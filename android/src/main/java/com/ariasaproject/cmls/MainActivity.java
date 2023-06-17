@@ -14,7 +14,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.StrictMode;
-import androidx.appcompat.app.AppCompatActivity;
+import android.app.Activity;
+//import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -55,7 +56,7 @@ import static com.ariasaproject.cmls.Constants.PREF_TITLE;
 import static com.ariasaproject.cmls.Constants.PREF_URL;
 import static com.ariasaproject.cmls.Constants.PREF_USER;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     static {
       System.loadLibrary("ext");
     }
