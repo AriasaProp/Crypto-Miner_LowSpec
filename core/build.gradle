@@ -9,8 +9,8 @@ model {
             sources {
                 cpp {
                     source {
-                        source.srcDirs += file('src/main')
-                        source.includeDirs += file('src/main')
+                        srcDirs += file('src/main/cpp')
+                        includeDirs += file('src/main/cpp')
                     }
                 }
             }
@@ -20,8 +20,8 @@ model {
             sources {
                 cpp {
                     source {
-                        source.srcDirs += file('src/test')
-                        source.includeDirs += file('src/test')
+                        srcDirs += file('src/test/cpp')
+                        includeDirs += file('src/test/cpp')
                     }
                 }
             }
