@@ -336,7 +336,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onResume() {
-        Toast.makeText(this, callNative(), Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, callNative(), Toast.LENGTH_SHORT).show();
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         if (settings.getBoolean(PREF_BACKGROUND, DEFAULT_BACKGROUND)==true)
         {
