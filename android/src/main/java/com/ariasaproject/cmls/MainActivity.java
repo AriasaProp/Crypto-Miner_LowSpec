@@ -56,7 +56,9 @@ import static com.ariasaproject.cmls.Constants.PREF_URL;
 import static com.ariasaproject.cmls.Constants.PREF_USER;
 
 public class MainActivity extends AppCompatActivity {
-
+    static {
+      System.loadLibrary("ext");
+    }
     EditText et_serv;
     EditText et_user;
     EditText et_pass;
@@ -95,34 +97,6 @@ public class MainActivity extends AppCompatActivity {
         mService.stopMiner();
 
     }
-
-//    private static final String DEFAULT_URL = "stratum+tcp://litecoinpool.org:3333";
-//    private static final String DEFAULT_USER = "ltcTeminer.1";
-//    private static final String DEFAULT_PASS = "1";
-//
-////    private static final String DEFAULT_URL = "stratum+tcp://tbdice.org:13333";
-////    private static final String DEFAULT_USER = "LVXh1QYdKmRLFjoho9hSqHNfJoVHrSGUjW";
-////    private static final String DEFAULT_PASS = "1234";
-//
-//    private static final String TAG = "MainActivity";
-//    private static final long DEFAULT_SCAN_TIME = 5000;
-//    private static final long DEFAULT_RETRY_PAUSE = 30000;
-//
-//    public static final String PREFS_NAME = "prefs";
-//    SharedPreferences settings;
-//
-//    private IMiningConnection mc = null;
-//    private IMiningWorker imw = null;
-//    private SingleMiningChief smc = null;
-//
-//    //private Worker worker;
-//    private long lastWorkTime;
-//    private long lastWorkHashes;
-//
-//    private EditText URL, Cred;
-//
-//    int temperature;
-
     private static int updateDelay=1000;
     String unit = " h/s";
 
@@ -242,20 +216,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (android.os.Build.VERSION.SDK_INT > 9)
-        {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-        }
-
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         Log.i("LC", "Main: in onCreate()");
-//        setTitle("StratumMiner");
-
-        //setContentView(R.layout.activity_status);
-        Log.i("LC", "Status: onCreate");
-
-
-
         Intent intent = new Intent(getApplicationContext(), MinerService.class);
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
@@ -312,53 +275,12 @@ public class MainActivity extends AppCompatActivity {
                                                      stopMining();
                                                      StartShutdown = true;
                                                      b.setText(getString(R.string.status_button_start));
-//                                                     b.setEnabled(false);
-//                                                     b.setClickable(false);
-//                                                     //Log.i("MainActivity","stopMining: baseThreadCount = " + baseThreadCount);
-//                                                     CpuMiningWorker worker = (CpuMiningWorker)mService.imw;
-//                                                     ThreadStatusAsyncTask threadWaiter = new ThreadStatusAsyncTask();
-//                                                     threadWaiter.execute(worker);
                                                  }
                                              }
         });
 
 
         updateThread.start();
-
-//        // Launch news on first run
-//        if(settings.getBoolean(PREF_NEWS_RUN_ONCE, false)==false)
-//        {
-//            intent = new Intent(getApplicationContext(), NewsActivity.class);
-//            startActivity(intent);
-//        }
-
-//        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-//        StrictMode.setThreadPolicy(policy);
-//
-//        settings = getSharedPreferences(PREFS_NAME, 0);
-//        URL = (EditText)findViewById(R.id.editText1);
-//        Cred = (EditText)findViewById(R.id.editText2);
-//
-//        this.registerReceiver(this.mBatInfoReceiver,
-//                new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-//
-//
-//        Handler mHandler = new Handler();
-//        mHandler.postDelayed(runnable, 1);
-
-//        try {
-////			IMiningConnection mc=new TestStratumMiningConnection(0);
-//            mc = new StratumMiningConnection(DEFAULT_URL,DEFAULT_USER,DEFAULT_PASS);
-//            imw = new CpuMiningWorker();
-//            smc = new SingleMiningChief(mc,imw);
-//            smc.startMining();
-//            for(;;){
-//                Thread.sleep(1000);
-//            }
-//        } catch (Exception e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
     }
 
     public void setButton (boolean flag) {
@@ -371,17 +293,6 @@ public class MainActivity extends AppCompatActivity {
             btn.setClickable(false);
         }
     }
-
-//    private static class ThreadParams {
-//        CpuMiningWorker _worker;
-//        View _v;
-//
-//        ThreadParams (CpuMiningWorker worker,View v) {
-//            this._worker=worker;
-//            this._v=v;
-//        }
-//    }
-
     public class ThreadStatusAsyncTask extends AsyncTask<CpuMiningWorker,Integer,Boolean> {
 
 
@@ -424,6 +335,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        Toast.makeText(this, callNative(), Toast.LENGTH_SHORT).show();
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         if (settings.getBoolean(PREF_BACKGROUND, DEFAULT_BACKGROUND)==true)
         {
@@ -481,238 +393,6 @@ public class MainActivity extends AppCompatActivity {
         }
         catch (Exception e){}
     }
-//
-//    void setUI()
-//    {
-//        Button startMining = (Button)findViewById(R.id.button1);
-//        Button stopMining = (Button)findViewById(R.id.button2);
-//
-//        //Not started
-//        stopMining.setEnabled(false);
-//
-//        URL.setText(settings.getString("URLText", "stratum+tcp://litecoinpool.org:3333"));
-//        Cred.setText(settings.getString("CredText", "user:password"));
-//
-//        if(smc != null) {
-//            if(smc._connection != null) {
-//                startMining.setEnabled(false);
-//                stopMining.setEnabled(true);
-//            }
-//            else {
-//                startMining.setEnabled(true);
-//                stopMining.setEnabled(false);
-//            }
-//        }
-//        else {
-//            startMining.setEnabled(true);
-//            stopMining.setEnabled(false);
-//        }
-//
-//        startMining.setOnClickListener(new View.OnClickListener() {
-//            //@Override
-//            @Override
-//            public void onClick(View v)
-//            {
-//                Spinner threadList = (Spinner)findViewById(R.id.spinner1);
-//
-//                String URLText = URL.getText().toString();
-//                String CredText = Cred.getText().toString();
-//
-//                SharedPreferences.Editor editor = settings.edit();
-//                editor.putString("URLText", URLText);
-//                editor.putString("CredText", CredText);
-//                editor.commit();
-//
-//                startMiner(URLText, CredText, threadList.getSelectedItem().toString(), "1.0", "5000", "30000");
-//            }
-//        });
-//
-//        stopMining.setOnClickListener(new View.OnClickListener() {
-//            //@Override
-//            @Override
-//            public void onClick(View v)
-//            {
-//                log("Stopping...");
-//                log("This can take a few minutes, please be patient (Up to 2 mins)");
-//                Handler handler = new Handler();
-//                handler.postDelayed(new Runnable() {
-//                    public void run() {
-//                        try {
-//                            if (smc != null) {
-////                                mc.disconnect();
-//                                smc.stopMining();
-////                    imw.stopWork();
-////                    mc.disconnect();
-//                                mc = null;
-//                                imw = null;
-//                                smc = null;
-//                                setUI();
-//                            }
-//                        } catch (MinyaException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }, 1000);
-//            }
-//        });
-//    }
-//
-//    void startMiner(String URL, String Auth, String Threads, String Throttle, String ScanTime, String RetryPause)
-//    {
-//        String[] args = { URL, Auth, Threads, Throttle, ScanTime, RetryPause };
-//
-//        main(args);
-//    }
-//
-//    private Runnable runnable = new Runnable() {
-//        @Override
-//        public void run() {
-//            setThreads();
-//            setUI();
-//            //startMiner("http://litecoinpool.org:9332/", "Simran.android:android", "2", "1.0", "5000", "30000");
-//        }
-//    };
-//
-//    void Miner(String url, String auth, long scanTime, long retryPause, int nThread, double throttle) {
-//        if (nThread < 1)
-//            throw new IllegalArgumentException("Invalid number of threads: " + nThread);
-//        if (throttle <= 0.0 || throttle > 1.0)
-//            throw new IllegalArgumentException("Invalid throttle: " + throttle);
-//        if (scanTime < 1L)
-//            throw new IllegalArgumentException("Invalid scan time: " + scanTime);
-//        if (retryPause < 0L)
-//            throw new IllegalArgumentException("Invalid retry pause: " + retryPause);
-//        try {
-////            mc = new StratumMiningConnection(DEFAULT_URL,DEFAULT_USER,DEFAULT_PASS);
-////            imw = new CpuMiningWorker();
-//            mc = new StratumMiningConnection(url,DEFAULT_USER,DEFAULT_PASS);
-//            imw = new CpuMiningWorker(nThread);
-//            smc = new SingleMiningChief(mc,imw);
-//            smc.startMining();
-////            for(;;){
-////                Thread.sleep(1000);
-////            }
-//        }
-//        catch (Exception e) {
-//            e.printStackTrace();
-////            throw new IllegalArgumentException("Invalid URL: " + url);
-//            log("Invalid URL: " + url);
-//        }
-//        ((CpuMiningWorker)smc._worker).addObserver(this);
-//        ((StratumMiningConnection)smc._connection).addObserver(this);
-////        worker.addObserver(this);
-////        Thread t = new Thread(worker);
-////        t.setPriority(Thread.MIN_PRIORITY);
-////        t.start();
-//        log(nThread + " miner threads started");
-//        setUI();
-//    }
-//
-//    private static final DateFormat logDateFormat = new SimpleDateFormat("[yyyy-MM-dd HH:mm:ss] ");
-//    protected static final int REFRESH = 0;
-//
-//    public void log(final String str) {
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//
-//                TextView Console = (TextView)findViewById(R.id.textView1);
-//
-//                Console.append(logDateFormat.format(new Date()) + str + "\n");
-//                //Log.i(TAG, logDateFormat.format(new Date()) + str);
-//
-//            }
-//        });
-//    }
-//
-//
-//    @Override
-//    public void update(Observable o, Object arg) {
-//        IMiningWorker.Notification n;
-//        n = (IMiningWorker.Notification) arg;
-//        if (n == IMiningWorker.Notification.SYSTEM_ERROR) {
-//            log("System error");
-//            System.exit(1);
-//        } else if (n == IMiningWorker.Notification.TERMINATED) {
-//            log("Miner shutdown");
-//        } else if (n == IMiningWorker.Notification.PERMISSION_ERROR) {
-//            log("Permission error");
-//            System.exit(1);
-//        } else if (n == IMiningWorker.Notification.AUTHENTICATION_ERROR) {
-//            log("Invalid worker username or password");
-//            System.exit(1);
-//        } else if (n == IMiningWorker.Notification.CONNECTION_ERROR) {
-//            log("Connection error, retrying in " + 3000/1000L + " seconds");
-//        } else if (n == IMiningWorker.Notification.COMMUNICATION_ERROR) {
-//            log("Communication error");
-//        } else if (n == IMiningWorker.Notification.LONG_POLLING_FAILED) {
-//            log("Long polling failed");
-//        } else if (n ==IMiningWorker.Notification.LONG_POLLING_ENABLED) {
-//            log("Long polling activated");
-//        } else if (n == IMiningWorker.Notification.NEW_BLOCK_DETECTED) {
-//            log("LONGPOLL detected new block");
-//        } else if (n == IMiningWorker.Notification.POW_TRUE) {
-//            log("PROOF OF WORK RESULT: true (yay!!!)");
-//        } else if (n == IMiningWorker.Notification.POW_FALSE) {
-//            log("PROOF OF WORK RESULT: false (booooo)");
-//        } else if (n == IMiningWorker.Notification.NEW_WORK) {
-//            if (lastWorkTime > 0L) {
-//                long hashes =smc._worker.getNumberOfHash() - lastWorkHashes;
-//                float speed = (float) hashes / Math.max(1, System.currentTimeMillis() - lastWorkTime);
-//                log(String.format("%d hashes, %.2f khash/s", hashes, speed) + " - " + temperature/10 + " C");
-//            }
-//            lastWorkTime = System.currentTimeMillis();
-//            lastWorkHashes = smc._worker.getNumberOfHash();
-//        }
-//        hRefresh.sendEmptyMessage(REFRESH);
-//    }
-//
-//    public void main(String[] args) {
-//        String url = null;
-//        String auth = null;
-//        int nThread = Runtime.getRuntime().availableProcessors();
-//        double throttle = 1.0;
-//        long scanTime = DEFAULT_SCAN_TIME;
-//        long retryPause = DEFAULT_RETRY_PAUSE;
-//
-//        if (args.length > 0 && args[0].equals("--help")) {
-//            Log.i(TAG, "Usage:  java Miner [URL] [USERNAME:PASSWORD] [THREADS] [THROTTLE] [SCANTIME] [RETRYPAUSE]");
-//            return;
-//        }
-//
-//        if (args.length > 0) url = args[0];
-//        if (args.length > 1) auth = args[1];
-//        if (args.length > 2) nThread = Integer.parseInt(args[2]);
-//        if (args.length > 3) throttle = Double.parseDouble(args[3]);
-//        if (args.length > 4) scanTime = Integer.parseInt(args[4]) * 1000L;
-//        if (args.length > 5) retryPause = Integer.parseInt(args[5]) * 1000L;
-//
-//        try {
-//            Miner(url, auth, scanTime, retryPause, nThread, throttle);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            //Log.e(TAG, e.getMessage());
-//        }
-//    }
-//
-//    Handler hRefresh = new Handler(){
-//        @Override
-//        public void handleMessage(Message msg) {
-//            switch(msg.what){
-//                case REFRESH:
-//				/*Refresh UI*/
-//                    setUI();
-//                    break;
-//            }
-//        }
-//    };
-//
-//    private BroadcastReceiver mBatInfoReceiver = new BroadcastReceiver(){
-//        @Override
-//        public void onReceive(Context arg0, Intent intent) {
-//            temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0);
-//        }
-//    };
-
-
+    
+    public native String callNative();
 }

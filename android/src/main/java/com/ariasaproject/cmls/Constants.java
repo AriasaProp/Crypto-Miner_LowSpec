@@ -29,9 +29,9 @@ public class Constants {
     public static final String PREF_SCREEN="SCREEN_AWAKE";
     public static final String PREF_NEWS_RUN_ONCE="NEWS_RUN_ONCE";
 
-    public static final String DEFAULT_URL="stratum+tcp://litecoinpool.org:3333";
-    public static final String DEFAULT_USER="Username";
-    public static final String DEFAULT_PASS="Password";
+    public static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org:3333";
+    public static final String DEFAULT_USER="AriasaProp";
+    public static final String DEFAULT_PASS="123";
 
     public static final String DONATE_URL="http://litecoinpool.org:9332";
     public static final String DONATE_USER="raad287.3";

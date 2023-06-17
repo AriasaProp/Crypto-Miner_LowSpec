@@ -26,9 +26,6 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_THREAD;
 import static com.ariasaproject.cmls.Constants.DEFAULT_THROTTLE;
 import static com.ariasaproject.cmls.Constants.DEFAULT_URL;
 import static com.ariasaproject.cmls.Constants.DEFAULT_USER;
-import static com.ariasaproject.cmls.Constants.DONATE_PASS;
-import static com.ariasaproject.cmls.Constants.DONATE_URL;
-import static com.ariasaproject.cmls.Constants.DONATE_USER;
 import static com.ariasaproject.cmls.Constants.MSG_ACCEPTED_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_CONSOLE_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_REJECTED_UPDATE;
@@ -46,10 +43,6 @@ import static com.ariasaproject.cmls.Constants.PREF_TITLE;
 import static com.ariasaproject.cmls.Constants.PREF_URL;
 import static com.ariasaproject.cmls.Constants.PREF_USER;
 import static com.ariasaproject.cmls.Constants.STATUS_NOT_MINING;
-
-/**
- * Created by Tal on 03/08/2017.
- */
 
 public class MinerService extends Service {
 
@@ -110,21 +103,6 @@ public class MinerService extends Service {
         url = settings.getString(PREF_URL, DEFAULT_URL);
         user = settings.getString(PREF_USER, DEFAULT_USER);
         pass = settings.getString(PREF_PASS, DEFAULT_PASS);
-
-//        if (settings.getBoolean(PREF_DONATE, DEFAULT_DONATE)==true)
-//        {
-//            console.write("Main: Donate mode");
-//            url=DONATE_URL;
-//            user=DONATE_USER;
-//            pass=DONATE_PASS;
-//        }
-//        else
-//        {
-//            url = settings.getString(PREF_URL, DEFAULT_URL);
-//            user = settings.getString(PREF_USER, DEFAULT_USER);
-//            pass = settings.getString(PREF_PASS, DEFAULT_PASS);
-//        }
-
         try {
             mc = new StratumMiningConnection(url,user,pass);
             int nThread =  settings.getInt(PREF_THREAD, DEFAULT_THREAD);
@@ -135,17 +113,6 @@ public class MinerService extends Service {
         } catch (MinyaException e) {
             e.printStackTrace();
         }
-
-//        miner = new Miner(url,
-//                user+":"+
-//                        pass,
-//                settings.getLong(PREF_SCANTIME, DEFAULT_SCANTIME),
-//                settings.getLong(PREF_RETRYPAUSE, DEFAULT_RETRYPAUSE),
-//                settings.getInt(PREF_THREAD, DEFAULT_THREAD),
-//                settings.getFloat(PREF_THROTTLE, DEFAULT_THROTTLE),
-//                settings.getInt(PREF_PRIORITY, DEFAULT_PRIORITY),
-//                serviceHandler, console);
-//        miner.start();
     }
 
     public void stopMiner()
@@ -159,16 +126,6 @@ public class MinerService extends Service {
         } catch (MinyaException e) {
             e.printStackTrace();
         }
-//        int lastThreadCount = Thread.activeCount();
-//        while (Thread.activeCount() != baseThreadCount) {
-//            if (Thread.activeCount() == lastThreadCount) {
-//                lastThreadCount = Thread.activeCount();
-//                continue;
-//            }
-//            Log.i("Thread.ActiveCount()" , "" + Thread.activeCount());
-//            lastThreadCount = Thread.activeCount();
-//        }
-//        miner.stop();
     }
 
     @Override
