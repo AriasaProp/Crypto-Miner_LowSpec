@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
     -DVK_NO_PROTOTYPES \
     -fexceptions -frtti")
 
-set(CORE_SRC "../../../../core")
+set(CORE_SRC "../../../../core/src/main")
 file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
 file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true ".")
 file(GLOB_RECURSE Src_Files "*.cpp")
