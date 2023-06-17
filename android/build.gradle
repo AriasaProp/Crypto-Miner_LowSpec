@@ -28,6 +28,11 @@ android {
             minifyEnabled true
         }
     }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
+    }
 }
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
