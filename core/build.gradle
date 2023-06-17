@@ -3,26 +3,14 @@ plugins {
     id 'cpp-unit-test'
 }
 
-model {
-    components {
-        main(NativeLibrarySpec) {
-            sources {
-                cpp {
-                    source {
-                        srcDir 'src/main'
-                    }
-                }
-            }
-        }
+library {
+    source.from file('src/main')
+    privateHeaders.from file('src/main')
+    publicHeaders.from file('src/main')
+}
 
-        test(NativeUnitTestSpec) {
-            sources {
-                cpp {
-                    source {
-                        srcDir 'src/test'
-                    }
-                }
-            }
-        }
-    }
+unitTest {
+    source.from file('src/test')
+    privateHeaders.from file('src/test')
+    publicHeaders.from file('src/test')
 }
