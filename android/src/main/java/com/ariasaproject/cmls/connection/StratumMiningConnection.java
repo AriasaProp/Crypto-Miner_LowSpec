@@ -350,9 +350,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             {
                 this._work_builder=null;
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -429,10 +427,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             }
         }
         //notifyを更新
-        try {
-            this._work_builder.setDiff(i_difficulty);
-        } catch (RuntimeException e) {
-        }
+        this._work_builder.setDiff(i_difficulty);
         MiningWork w=this.getWork();
         if(w==null){
             return;

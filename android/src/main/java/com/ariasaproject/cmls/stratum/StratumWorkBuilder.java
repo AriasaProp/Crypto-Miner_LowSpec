@@ -27,8 +27,7 @@ public class StratumWorkBuilder {
     {
         this._subscribe=i_attached_subscribe;
     }
-    public void setDiff(StratumJsonMethodSetDifficulty i_difficulty) throws Exception
-    {
+    public void setDiff(StratumJsonMethodSetDifficulty i_difficulty) {
         this._difficulty=i_difficulty.difficulty;
     }
     public void setNotify(StratumJsonMethodMiningNotify i_attached_notify) throws RuntimeException
@@ -53,7 +52,7 @@ public class StratumWorkBuilder {
     {
         return this._xnonce2;
     }
-    public MiningWork buildMiningWork() throws Exception {
+    public MiningWork buildMiningWork() {
         if(this._notify==null ||this._subscribe==null || this._difficulty<0){
             return null;
         }
@@ -68,12 +67,9 @@ public class StratumWorkBuilder {
         work_data.append(this._merkle_loot,0,32);
         work_data.append(this._notify.ntime);
         work_data.append(this._notify.nbit);
-        work_data.append(new byte[]{
-                0x00,0x00,0x00,0x00,
-                0x00,0x00,0x00,(byte)0x80});
+        work_data.append(new byte[]{0x00,0x00,0x00,0x00,0x00,0x00,0x00,(byte)0x80});
         work_data.append(new byte[40]);
-        work_data.append(new byte[]{
-                (byte)0x80,0x02,0x00,0x00});
+        work_data.append(new byte[]{(byte)0x80,0x02,0x00,0x00});
         return new StratumMiningWork(work_data,diff2target(this._difficulty/65536.0),this._notify.job_id,xnonce2_str);
 
     }
