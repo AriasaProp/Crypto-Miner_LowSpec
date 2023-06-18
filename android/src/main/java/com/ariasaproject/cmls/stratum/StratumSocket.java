@@ -140,13 +140,7 @@ public class StratumSocket extends Socket
             StratumJson s6=new StratumJsonResultStandard(mapper.readTree(StratumJsonResultStandard.TEST_PATT));
             StratumJson s7=new StratumJsonResultSubscribe(mapper.readTree(StratumJsonResultSubscribe.TEST_PATT));
             return;
-        } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }

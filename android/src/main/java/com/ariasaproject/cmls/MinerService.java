@@ -127,8 +127,9 @@ public class MinerService extends Service {
         running=false;
         try {
             smc.stopMining();
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (Exception e) {}
+        }
     }
 
     @Override
