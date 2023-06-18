@@ -7,9 +7,9 @@ import android.content.res.Resources;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.IBinder;
 import android.os.Message;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.ariasaproject.cmls.connection.IMiningConnection;
@@ -17,7 +17,6 @@ import com.ariasaproject.cmls.connection.StratumMiningConnection;
 import com.ariasaproject.cmls.worker.CpuMiningWorker;
 import com.ariasaproject.cmls.worker.IMiningWorker;
 
-import static com.ariasaproject.cmls.Constants.DEFAULT_DONATE;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PASS;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
 import static com.ariasaproject.cmls.Constants.DEFAULT_RETRYPAUSE;
@@ -26,12 +25,15 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_THREAD;
 import static com.ariasaproject.cmls.Constants.DEFAULT_THROTTLE;
 import static com.ariasaproject.cmls.Constants.DEFAULT_URL;
 import static com.ariasaproject.cmls.Constants.DEFAULT_USER;
+
 import static com.ariasaproject.cmls.Constants.MSG_ACCEPTED_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_CONSOLE_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_REJECTED_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_SPEED_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_STATUS_UPDATE;
+
 import static com.ariasaproject.cmls.Constants.MSG_TERMINATED;
+
 import static com.ariasaproject.cmls.Constants.PREF_DONATE;
 import static com.ariasaproject.cmls.Constants.PREF_PASS;
 import static com.ariasaproject.cmls.Constants.PREF_PRIORITY;
@@ -58,23 +60,34 @@ public class MinerService extends Service {
     int rejected=0;
     String status= STATUS_NOT_MINING;
     String cString="";
-    //int baseThreadCount = Thread.activeCount();
-
-    Handler serviceHandler = new Handler() {
+    
+    final Handler.Callback serviceHandlerCallback = new Handler.Callback () {
         @Override
         public void handleMessage(Message msg) {
-            Bundle bundle=msg.getData();
-            Log.i("LC", "Service: handleMessage() "+msg.arg1);
-
-            if(msg.arg1==MSG_CONSOLE_UPDATE) { cString = bundle.getString("console"); }
-            else if(msg.arg1==MSG_SPEED_UPDATE) { speed = bundle.getFloat("speed"); }
-            else if(msg.arg1==MSG_STATUS_UPDATE) { status = bundle.getString("status"); }
-            else if(msg.arg1==MSG_ACCEPTED_UPDATE) { accepted = (int) bundle.getLong("accepted"); }
-            else if(msg.arg1==MSG_REJECTED_UPDATE) { rejected = (int) bundle.getLong("rejected"); }
-            else if(msg.arg1==MSG_TERMINATED) {	running=false; }
+            switch (msg.what) {
+            default:
+                break;
+            case MSG_TERMINATED:
+                running = false;
+                break;
+            }
+            Bundle bundle = msg.getData();
+            if (bundle != null) {
+                if (bundle.getFloat(MSG_SPEED_UPDATE, 0) != 0)
+                    speed = bundle.getFloat(MSG_SPEED_UPDATE);
+                if (bundle.getLong(MSG_ACCEPTED_UPDATE, 0) != 0)
+                    accepted = (int) bundle.getLong(MSG_ACCEPTED_UPDATE);
+                if (bundle.getLong(MSG_REJECTED_UPDATE, 0) != 0)
+                    rejected = (int) bundle.getLong(MSG_REJECTED_UPDATE);
+                if (bundle.getString(MSG_STATUS_UPDATE, "") != "")
+                    status = bundle.getString(MSG_STATUS_UPDATE);
+                if (bundle.getString(MSG_CONSOLE_UPDATE, "") != "")
+                    cString = bundle.getString(MSG_CONSOLE_UPDATE);
+            }
             super.handleMessage(msg);
         }
     };
+    Handler serviceHandler = new Handler(Looper.getMainLooper(), serviceHandlerCallback);
     // Binder given to clients
     private final IBinder mBinder = new LocalBinder();
 
@@ -84,21 +97,14 @@ public class MinerService extends Service {
         }
     }
 
-    public MinerService() {
-        Log.i("LC", "Service: MinerService()");
-    }
-
-
-    public void startMiner()
-    {
+    public MinerService() {}
+    public void startMiner() {
         console = new Console(serviceHandler);
-        Log.i("LC", "MinerService:startMiner()");
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         String url, user, pass;
         speed=0;
         accepted=0;
         rejected=0;
-
         console.write("Service: Start mining");
         url = settings.getString(PREF_URL, DEFAULT_URL);
         user = settings.getString(PREF_USER, DEFAULT_USER);
@@ -115,9 +121,7 @@ public class MinerService extends Service {
         }
     }
 
-    public void stopMiner()
-    {
-        Log.i("LC", "Service: onBind()");
+    public void stopMiner() {
         console.write("Service: Stopping mining");
         Toast.makeText(this,"Worker cooling down, this can take a few minutes",Toast.LENGTH_LONG).show();
         running=false;
@@ -130,8 +134,6 @@ public class MinerService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.i("LC", "Service: onBind()");
-
         return mBinder;
     }
 

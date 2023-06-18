@@ -94,28 +94,29 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private static int updateDelay=1000;
-    String unit = " h/s";
     public volatile  boolean firstRunFlag = true;
     public volatile  boolean ShutdownStarted = false;
     public volatile  boolean StartShutdown = false;
 
     final DecimalFormat df = new DecimalFormat("#.##");
-    final Handler statusHandler = new Handler() {
-                @Override
-                public void handleMessage(Message msg) {
-                    final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
-                    txt_console.setText(mService.cString);
-                    txt_console.invalidate();
-                    final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
-                    tv_speed.setText(df.format(mService.speed)+unit);
-                    final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
-                    txt_accepted.setText(String.valueOf(mService.accepted));
-                    final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
-                    txt_rejected.setText(String.valueOf(mService.rejected));
-                    final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
-                    txt_status.setText(mService.status);
-                }
-            };
+    final Handler statusHandler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
+        final String unit = " h/s";
+        @Override
+        public void handleMessage(Message msg) {
+            final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
+            txt_console.setText(mService.cString);
+            txt_console.invalidate();
+            final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
+            tv_speed.setText(df.format(mService.speed)+unit);
+            final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
+            txt_accepted.setText(String.valueOf(mService.accepted));
+            final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
+            txt_rejected.setText(String.valueOf(mService.rejected));
+            final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
+            txt_status.setText(mService.status);
+            super.handleMessage(msg);
+        }
+    });
     final Runnable buttonUpdate = new Runnable() {
         @Override
         public void run() {
@@ -155,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         sleep(updateDelay);
                     } catch (InterruptedException e) {}
-                    statusHandler.sendMessage(statusHandler.obtainMessage(0));
+                    statusHandler.sendEmptyMessage(0);
                     statusHandler.post(buttonUpdate);
                 }
             }
