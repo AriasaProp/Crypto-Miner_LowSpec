@@ -114,29 +114,34 @@ public class MainActivity extends AppCompatActivity {
                     txt_rejected.setText(String.valueOf(mService.rejected));
                     final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
                     txt_status.setText(mService.status);
-                    final Button btn = (Button) findViewById(R.id.status_button_startstop);
-                    if(mService.running) {
-                        btn.setText(getString(R.string.main_button_stop));
-                        btn.setEnabled(true);
-                    } else {
-                        btn.setText(getString(R.string.main_button_start));
-                        if (firstRunFlag) {
-                            btn.setEnabled(true);
-                            btn.setClickable(true);
-                        }
-                        else if (StartShutdown) {
-                            btn.setEnabled(false);
-                            btn.setClickable(false);
-                            if (!ShutdownStarted) {
-                                ShutdownStarted = true;
-                                CpuMiningWorker worker = (CpuMiningWorker)mService.imw;
-                                ThreadStatusAsyncTask threadWaiter = new ThreadStatusAsyncTask();
-                                threadWaiter.execute(worker);
-                            }
-                        }
-                    }
                 }
             };
+    final Runnable buttonUpdate = new Runnable() {
+        @Override
+        public void run() {
+            Button btn = (Button) findViewById(R.id.status_button_startstop);
+            if(mService.running) {
+                btn.setText(getString(R.string.main_button_stop));
+                btn.setEnabled(true);
+            } else {
+                btn.setText(getString(R.string.main_button_start));
+                if (firstRunFlag) {
+                    btn.setEnabled(true);
+                    btn.setClickable(true);
+                }
+                else if (StartShutdown) {
+                    btn.setEnabled(false);
+                    btn.setClickable(false);
+                    if (!ShutdownStarted) {
+                        ShutdownStarted = true;
+                        CpuMiningWorker worker = (CpuMiningWorker)mService.imw;
+                        ThreadStatusAsyncTask threadWaiter = new ThreadStatusAsyncTask();
+                        threadWaiter.execute(worker);
+                    }
+                }
+            }
+        }
+    }
     final Thread updateThread = new Thread () {
             @Override
             public void run() {
@@ -145,11 +150,13 @@ public class MainActivity extends AppCompatActivity {
                         sleep(50);
                     } catch (InterruptedException e) {}
                 }
+                statusHandler.post(buttonUpdate);
                 while (mBound)	{
-                    statusHandler.sendMessage(statusHandler.obtainMessage(0));
                     try {
                         sleep(updateDelay);
                     } catch (InterruptedException e) {}
+                    statusHandler.sendMessage(statusHandler.obtainMessage(0));
+                    statusHandler.post(buttonUpdate);
                 }
             }
         };
@@ -175,16 +182,12 @@ public class MainActivity extends AppCompatActivity {
         try {
             Spinner threadList = (Spinner)findViewById(R.id.spinner1);
             String[] threadsAvailable = new String[Runtime.getRuntime().availableProcessors()];
-            for(int i = 1; i <= Runtime.getRuntime().availableProcessors();i++)
-            {
-                threadsAvailable[i] = Integer.toString(i + 1);
-                ArrayAdapter threads = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, threadsAvailable);
-                threadList.setAdapter(threads);
+            for(int i = 1; i <= Runtime.getRuntime().availableProcessors(); i++) {
+                threadsAvailable[i] = Integer.toString(i);
             }
+            threadList.setAdapter(new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, threadsAvailable));
         }
-        catch (Exception e){
-            
-        }
+        catch (Exception e){ }
         updateThread.start();
     }
     public void StartStopMining(View v)  {
@@ -239,8 +242,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     public class ThreadStatusAsyncTask extends AsyncTask<CpuMiningWorker,Integer,Boolean> {
-
-
         @Override
         protected Boolean doInBackground(CpuMiningWorker... params) {
             long lastTime = System.currentTimeMillis();
