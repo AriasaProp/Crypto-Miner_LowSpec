@@ -180,12 +180,12 @@ public class MainActivity extends AppCompatActivity {
         cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
         cb_screen_awake.setChecked(DEFAULT_SCREEN);
         try {
-            Spinner threadList = (Spinner)findViewById(R.id.spinner1);
-            String[] threadsAvailable = new String[Runtime.getRuntime().availableProcessors()];
-            for(int i = 1; i <= Runtime.getRuntime().availableProcessors(); i++) {
-                threadsAvailable[i] = Integer.toString(i);
+            int t = Runtime.getRuntime().availableProcessors();
+            String[] threadsAvailable = new String[t];
+            for(int i = 0; i < t; i++) {
+                threadsAvailable[i] = Integer.toString(i+1);
             }
-            threadList.setAdapter(new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, threadsAvailable));
+            ((Spinner)findViewById(R.id.spinner1)).setAdapter(new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, threadsAvailable));
         }
         catch (Exception e){ }
         updateThread.start();
