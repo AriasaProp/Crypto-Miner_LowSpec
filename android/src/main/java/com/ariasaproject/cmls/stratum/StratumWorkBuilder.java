@@ -118,14 +118,7 @@ public class StratumWorkBuilder {
             w.dump();
             System.out.println(WORK_DATA);
             System.out.println(WORK_TARGET);
-
-        } catch (JsonProcessingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
