@@ -74,25 +74,18 @@ public class MainActivity extends AppCompatActivity {
 
     public ServiceConnection mConnection = new ServiceConnection() {
 
-        public void onServiceConnected(ComponentName name, IBinder service) {
+        public synchronized void onServiceConnected(ComponentName name, IBinder service) {
             MinerService.LocalBinder binder = (MinerService.LocalBinder) service;
             mService = binder.getService();
             mBound=true;
+            notifyAll();
         }
 
-        public void onServiceDisconnected(ComponentName name) {  mBound=false;   }
+        public synchronized void onServiceDisconnected(ComponentName name) {
+            mBound=false;
+            notifyAll();
+        }
     };
-
-
-    public void startMining() {
-        mService.startMiner();
-    }
-
-    public void stopMining()
-    {
-        mService.stopMiner();
-
-    }
     private static int updateDelay=1000;
     public volatile  boolean firstRunFlag = true;
     public volatile  boolean ShutdownStarted = false;
@@ -103,61 +96,62 @@ public class MainActivity extends AppCompatActivity {
         final String unit = " h/s";
         @Override
         public boolean handleMessage(Message msg) {
-            final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
-            txt_console.setText(mService.cString);
-            txt_console.invalidate();
-            final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
-            tv_speed.setText(df.format(mService.speed)+unit);
-            final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
-            txt_accepted.setText(String.valueOf(mService.accepted));
-            final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
-            txt_rejected.setText(String.valueOf(mService.rejected));
-            final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
-            txt_status.setText(mService.status);
+            switch (msg.what) {
+                case 0: // ui update
+                    final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
+                    txt_console.setText(mService.cString);
+                    txt_console.invalidate();
+                    final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
+                    tv_speed.setText(df.format(mService.speed)+unit);
+                    final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
+                    txt_accepted.setText(String.valueOf(mService.accepted));
+                    final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
+                    txt_rejected.setText(String.valueOf(mService.rejected));
+                    final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
+                    txt_status.setText(mService.status);
+                    break;
+                case 1: // button mining update
+                    final Button btn = (Button) findViewById(R.id.status_button_startstop);
+                    if(mService.running) {
+                        btn.setText(getString(R.string.main_button_stop));
+                        btn.setEnabled(true);
+                    } else {
+                        btn.setText(getString(R.string.main_button_start));
+                        if (firstRunFlag) {
+                            btn.setEnabled(true);
+                            btn.setClickable(true);
+                        }
+                        else if (StartShutdown) {
+                            btn.setEnabled(false);
+                            btn.setClickable(false);
+                            if (!ShutdownStarted) {
+                                ShutdownStarted = true;
+                                CpuMiningWorker worker = (CpuMiningWorker)mService.imw;
+                                ThreadStatusAsyncTask threadWaiter = new ThreadStatusAsyncTask();
+                                threadWaiter.execute(worker);
+                            }
+                        }
+                    }
+                    break;
+            }
             return true;
         }
     });
-    final Runnable buttonUpdate = new Runnable() {
-        @Override
-        public void run() {
-            Button btn = (Button) findViewById(R.id.status_button_startstop);
-            if(mService.running) {
-                btn.setText(getString(R.string.main_button_stop));
-                btn.setEnabled(true);
-            } else {
-                btn.setText(getString(R.string.main_button_start));
-                if (firstRunFlag) {
-                    btn.setEnabled(true);
-                    btn.setClickable(true);
-                }
-                else if (StartShutdown) {
-                    btn.setEnabled(false);
-                    btn.setClickable(false);
-                    if (!ShutdownStarted) {
-                        ShutdownStarted = true;
-                        CpuMiningWorker worker = (CpuMiningWorker)mService.imw;
-                        ThreadStatusAsyncTask threadWaiter = new ThreadStatusAsyncTask();
-                        threadWaiter.execute(worker);
-                    }
-                }
-            }
-        }
-    };
     final Thread updateThread = new Thread () {
             @Override
             public void run() {
-                while (!mBound) {
+                synchronized (mConnection){
                     try {
-                        sleep(50);
+                        while (!mBound) mConnection.wait();
                     } catch (InterruptedException e) {}
                 }
-                statusHandler.post(buttonUpdate);
+                
                 while (mBound)	{
+                    statusHandler.sendEmptyMessage(1);
                     try {
                         sleep(updateDelay);
                     } catch (InterruptedException e) {}
                     statusHandler.sendEmptyMessage(0);
-                    statusHandler.post(buttonUpdate);
                 }
             }
         };
@@ -189,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
             ((Spinner)findViewById(R.id.spinner1)).setAdapter(new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, threadsAvailable));
         }
         catch (Exception e){ }
-        updateThread.start();
     }
     public void StartStopMining(View v)  {
        final Button b = (Button) v;
@@ -221,12 +214,12 @@ public class MainActivity extends AppCompatActivity {
            if(settings.getBoolean(PREF_SCREEN,DEFAULT_SCREEN )) {
                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
            }
-           startMining();
+           mService.startMiner();
            firstRunFlag = false;
            b.setText(getString(R.string.main_button_stop));
        }
        else{
-           stopMining();
+           mService.stopMiner();
            StartShutdown = true;
            b.setText(getString(R.string.status_button_start));
        }
@@ -271,47 +264,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause() {
-        // TODO Auto-generated method stub
-
-        super.onPause();
-    }
-
-
-    @Override
     protected void onResume() {
-        //Toast.makeText(this, callNative(), Toast.LENGTH_SHORT).show();
+        updateThread.start();
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
-        if (settings.getBoolean(PREF_BACKGROUND, DEFAULT_BACKGROUND))
-        {
+        if (settings.getBoolean(PREF_BACKGROUND, DEFAULT_BACKGROUND)) {
             TextView tv_background = (TextView) findViewById(R.id.status_textView_background);
             tv_background.setText("RUN IN BACKGROUND");
         }
         super.onResume();
     }
 
-
+    @Override
+    protected void onPause() {
+        if(updateThread.isAlive()) { updateThread.interrupt(); }
+        super.onPause();
+    }
 
     @Override
     protected void onStop() {
-        // TODO Auto-generated method stub
-        if(updateThread.isAlive()) { updateThread.interrupt(); }
-
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
-        if(!settings.getBoolean(PREF_BACKGROUND,DEFAULT_BACKGROUND ))
-        {
-            if (mService != null && mService.running == true) { stopMining(); }
+        if(!settings.getBoolean(PREF_BACKGROUND,DEFAULT_BACKGROUND )) {
+            if (mService != null && mService.running == true) { mService.stopMiner(); }
             Intent intent = new Intent(getApplicationContext(), MinerService.class);
             stopService(intent);
         }
 
         try {
             unbindService(mConnection);
-        } catch (RuntimeException e) {
-            //unbindService generates a runtime exception sometimes
-            //the service is getting unbound before unBindService is called
-            //when the window is dismissed by the user, this is the fix
-        }
+        } catch (RuntimeException e) {}
 
         super.onStop();
     }

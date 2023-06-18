@@ -17,7 +17,7 @@
         android:id="@+id/server_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="stratum+tcp://litecoinpool.org:3333" >
+        android:text="stratum+tcp://us2.litecoinpool.org:3333" >
     </EditText>
 
     <TextView
@@ -30,7 +30,7 @@
         android:id="@+id/user_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ltcTeminer.1" />
+        android:text="Ariasa.test" />
 
     <TextView
         android:id="@+id/password_view"
@@ -42,7 +42,7 @@
         android:id="@+id/password_et"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="1" />
+        android:text="123" />
 
     <TextView
         android:id="@+id/thread_view"
