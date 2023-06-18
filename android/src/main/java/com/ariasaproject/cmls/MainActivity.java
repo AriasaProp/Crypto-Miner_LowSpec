@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
             txt_rejected.setText(String.valueOf(mService.rejected));
             final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
             txt_status.setText(mService.status);
-            return true:
+            return true;
         }
     });
     final Runnable buttonUpdate = new Runnable() {

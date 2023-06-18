@@ -1,6 +1,6 @@
 package com.ariasaproject.cmls.connection;
 
-package com.ariasaproject.cmls.MiningWork;
+import com.ariasaproject.cmls.MiningWork;
 
 public interface IMiningConnection
 {
