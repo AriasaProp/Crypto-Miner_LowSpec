@@ -1,15 +1,10 @@
 package com.ariasaproject.cmls.stratum;
 
 import com.ariasaproject.cmls.HexArray;
-import com.ariasaproject.cmls.MinyaException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-
-/**
- * Created by Ben David on 01/08/2017.
- */
 
 public class StratumJsonMethodMiningNotify extends StratumJsonMethod {
     public final static String TEST_PATT = "{\"params\":"
@@ -28,12 +23,12 @@ public class StratumJsonMethodMiningNotify extends StratumJsonMethod {
     public final HexArray coinb1;
     public final HexArray coinb2;
 
-    public StratumJsonMethodMiningNotify(JsonNode i_json_node) throws MinyaException {
+    public StratumJsonMethodMiningNotify(JsonNode i_json_node) throws RuntimeException {
         super(i_json_node);
         {
             String s = i_json_node.get("method").asText();
             if (s.compareTo("mining.notify") != 0) {
-                throw new MinyaException();
+                throw new RuntimeException("json type isn't valid");
             }
         }
         JsonNode params = i_json_node.get("params");
@@ -54,7 +49,7 @@ public class StratumJsonMethodMiningNotify extends StratumJsonMethod {
         {
             JsonNode merkle_arr = params.get(4);
             if (!merkle_arr.isArray()) {
-                throw new MinyaException();
+                throw new RuntimeException("json not valid");
             }
             ArrayList<HexArray> l=new ArrayList<HexArray>();
             for (Iterator<JsonNode> i = merkle_arr.iterator(); i.hasNext();) {

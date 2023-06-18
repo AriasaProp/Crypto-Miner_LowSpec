@@ -1,25 +1,10 @@
 package com.ariasaproject.cmls.connection;
 
-import com.ariasaproject.cmls.MiningWork;
-import com.ariasaproject.cmls.MinyaException;
-
-/**
- * Created by Ben David on 01/08/2017.
- */
-
 public interface IMiningConnection
 {
-    /**
-     * コネクションから非同期イベントを受け取るオブジェクトを追加する。
-     * {@link #connect()}実行前に設定する事。
-     * @param i_listener
-     * @throws MinyaException
-     */
-    public void addListener(IConnectionEvent i_listener) throws MinyaException;
-    public MiningWork connect() throws MinyaException;
-//    public void connect() throws MinyaException;
-    public void disconnect() throws MinyaException;
-    public MiningWork getWork() throws MinyaException;
-    public void submitWork(MiningWork i_work, int i_nonce) throws MinyaException;
-//    public boolean submitWork(MiningWork i_work, int i_nonce) throws MinyaException;
+    public void addListener(IConnectionEvent i_listener) throws RuntimeException;
+    public MiningWork connect() throws RuntimeException;
+    public void disconnect() throws RuntimeException;
+    public MiningWork getWork() throws RuntimeException;
+    public void submitWork(MiningWork i_work, int i_nonce) throws RuntimeException;
 }

@@ -1,11 +1,6 @@
 package com.ariasaproject.cmls.stratum;
 
-import com.ariasaproject.cmls.MinyaException;
 import com.fasterxml.jackson.databind.JsonNode;
-
-/**
- * Created by Ben David on 01/08/2017.
- */
 
 public class StratumJsonMethodShowMessage extends StratumJsonMethod
 {
@@ -13,11 +8,11 @@ public class StratumJsonMethodShowMessage extends StratumJsonMethod
     public final static String TEST_PATT = "{\"params\": [\"TEST\"], \"jsonrpc\": \"2.0\", \"method\": \"client.show_message\", \"id\": null}";
     public final String val;
     // public parameterima
-    public StratumJsonMethodShowMessage(JsonNode i_json_node) throws MinyaException {
+    public StratumJsonMethodShowMessage(JsonNode i_json_node) throws RuntimeException {
         super(i_json_node);
         String s = i_json_node.get("method").asText();
         if (s.compareTo("client.show_message") != 0) {
-            throw new MinyaException();
+            throw new RuntimeException("json not valid");
         }
         this.val=i_json_node.get("params").asText();
         return;

@@ -4,8 +4,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.ariasaproject.cmls.MiningWork;
-import com.ariasaproject.cmls.MinyaException;
-import com.ariasaproject.cmls.MinyaLog;
 import com.ariasaproject.cmls.StratumMiningWork;
 import com.ariasaproject.cmls.stratum.StratumJson;
 import com.ariasaproject.cmls.stratum.StratumJsonMethodGetVersion;
@@ -108,7 +106,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         private void onJsonRx(StratumJson i_json)
         {
             Class<?> iid=i_json.getClass();
-            MinyaLog.debug("onJsonRx:"+iid.getName());
             Log.d("onJsonRx:",iid.getName());
 
             if(iid==StratumJsonMethodGetVersion.class)
@@ -250,24 +247,20 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     private StratumSocket _sock=null;
     private AsyncRxSocketThread _rx_thread;
 
-    public StratumMiningConnection(String i_url, String i_userid, String i_password) throws MinyaException
+    public StratumMiningConnection(String i_url, String i_userid, String i_password) throws RuntimeException
     {
         this._pass=i_password;
         this._uid=i_userid;
         try {
             this._server=new URI(i_url);
         } catch (URISyntaxException e) {
-            throw new MinyaException(e);
+            throw new RuntimeException(e);
         }
     }
     private StratumJsonMethodSetDifficulty _last_difficulty=null;
     private StratumJsonMethodMiningNotify _last_notify=null;
 
-    /**
-     * Server Connection
-     * @throws MinyaException
-     */
-    public MiningWork connect() throws MinyaException
+    public MiningWork connect() throws RuntimeException
     {
         setChanged();
         notifyObservers(IMiningWorker.Notification.CONNECTING);
@@ -298,33 +291,28 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             StratumJsonResultSubscribe subscribe=null;
             {
                 for(i=0;i<3;i++){
-                    MinyaLog.message("Request Stratum subscribe...");
                     Log.d("StratumMiningConnection","Request Stratum subscribe");
                     subscribe=(StratumJsonResultSubscribe)this._rx_thread.waitForJsonResult(this._sock.subscribe(CLIENT_NAME),StratumJsonResultSubscribe.class,3000);
                     if(subscribe==null || subscribe.error!=null){
-                        MinyaLog.warning("Stratum subscribe error.");
                         Log.w("StratumMiningConnection","Stratum subscribe error.");
                         continue;
                     }
                     break;
                 }
                 if(i==3){
-                    throw new MinyaException("Stratum subscribe error.");
+                    throw new RuntimeException("Stratum subscribe error.");
                 }
             }
 
             //Authorize and make  a 1st work.
             for(i=0;i<3;i++){
-                MinyaLog.message("Request Stratum authorize...");
                 Log.d("StratumMiningConnection","Request Stratum authorize...");
                 StratumJsonResultStandard auth=(StratumJsonResultStandard) this._rx_thread.waitForJsonResult(this._sock.authorize(this._uid,this._pass), StratumJsonResultStandard.class,3000);
                 if(auth==null || auth.error!=null){
-                    MinyaLog.warning("Stratum authorize error.");
                     Log.w("StratumMiningConnection","Stratum authorize error.");
                     continue;
                 }
                 if(!auth.result){
-                    MinyaLog.warning("Stratum authorize result error.");
                     Log.w("StratumMiningConnection","Stratum authorize result error.");
                 }
                 synchronized(this._data_lock){
@@ -340,23 +328,22 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                     ret=this._work_builder.buildMiningWork();
                 }
                 //Complete!
-                MinyaLog.message("Stratum authorize complete!");
                 Log.i("StratumMiningConnection","Stratum authorize complete!");
                 return ret;
             }
             setChanged();
             notifyObservers(IMiningWorker.Notification.AUTHENTICATION_ERROR);
-            throw new MinyaException("Stratum authorize process failed.");
+            throw new RuntimeException("Stratum authorize process failed.");
         } catch (UnknownHostException e){
             setChanged();
             notifyObservers(IMiningWorker.Notification.CONNECTION_ERROR);
-            throw new MinyaException(e);
+            throw new RuntimeException(e);
         } catch (IOException e) {
-            throw new MinyaException(e);
+            throw new RuntimeException(e);
         }
     }
 
-    public void disconnect() throws MinyaException
+    public void disconnect() throws RuntimeException
     {
         try {
             //threadの停止
@@ -371,9 +358,9 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                 this._work_builder=null;
             }
         } catch (IOException e) {
-            throw new MinyaException(e);
+            throw new RuntimeException(e);
         } catch (InterruptedException e) {
-            throw new MinyaException(e);
+            throw new RuntimeException(e);
         }
     }
     private Object _data_lock=new Object();
@@ -393,7 +380,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             }
             try {
                 work=this._work_builder.buildMiningWork();
-            } catch (MinyaException e){
+            } catch (Exception e){
                 return null;
             }
         }
@@ -412,7 +399,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
 
     /**
      * Threadからのコールバック(Thread)
-     * @throws MinyaException
+     * @throws RuntimeException
      */
     private void cbNewMiningNotify(StratumJsonMethodMiningNotify i_notify)
     {
@@ -425,13 +412,13 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         }
         //notifyを更新
         try {
-            MinyaLog.message("Receive new job:"+i_notify.job_id);
+            RuntimeLog.message("Receive new job:"+i_notify.job_id);
             Log.i("StratumMiningConnection","Receive new job:"+i_notify.job_id);
             setChanged();
             notifyObservers(IMiningWorker.Notification.NEW_WORK);
             this._work_builder.setNotify(i_notify);
-        } catch (MinyaException e){
-            MinyaLog.debug("Catch Exception:\n"+e.getMessage());
+        } catch (RuntimeException e){
+            RuntimeLog.debug("Catch Exception:\n"+e.getMessage());
             Log.d("StratumMiningConnection","Catch Exception:\n"+e.getMessage());
         }
         MiningWork w=this.getWork();
@@ -445,7 +432,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     }
     private void cbNewMiningDifficulty(StratumJsonMethodSetDifficulty i_difficulty)
     {
-        MinyaLog.message("Receive set difficulty:"+i_difficulty.difficulty);
+        RuntimeLog.message("Receive set difficulty:"+i_difficulty.difficulty);
         Log.i("StratumMiningConnection","Receive set difficulty:"+i_difficulty.difficulty);
         synchronized(this._data_lock)
         {
@@ -457,8 +444,8 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         //notifyを更新
         try {
             this._work_builder.setDiff(i_difficulty);
-        } catch (MinyaException e) {
-            MinyaLog.debug("Catch Exception:\n"+e.getMessage());
+        } catch (RuntimeException e) {
+            RuntimeLog.debug("Catch Exception:\n"+e.getMessage());
             Log.d("StratumMiningConnection","Catch Exception:\n"+e.getMessage());
         }
         MiningWork w=this.getWork();
@@ -473,17 +460,17 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
 
     private void cbSubmitRecv(SubmitOrder so, StratumJsonResultStandard i_result)
     {
-        MinyaLog.message("SubmitResponse "+so.nonce+" ["+(i_result.result?"Accepted":"Rejected")+"]");
+        RuntimeLog.message("SubmitResponse "+so.nonce+" ["+(i_result.result?"Accepted":"Rejected")+"]");
         Log.i("StratumMiningConnection","SubmitResponse "+so.nonce+" ["+(i_result.result?"Accepted":"Rejected")+"]");
         //登録されているlistenerをコール
         for(IConnectionEvent i: this._as_listener){
             i.onSubmitResult(so.work,so.nonce,i_result.error==null);
         }
     }
-    public void submitWork(MiningWork i_work, int i_nonce) throws MinyaException
+    public void submitWork(MiningWork i_work, int i_nonce) throws RuntimeException
     {
         if(!(i_work instanceof StratumMiningWork)){
-            throw new MinyaException();
+            throw new RuntimeException();
         }
         StratumMiningWork w=(StratumMiningWork)i_work;
         String ntime=w.data.getStr(StratumMiningWork.INDEX_OF_NTIME,4);
@@ -492,10 +479,10 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             long id=this._sock.submit(i_nonce,this._uid,w.job_id, w.xnonce2, ntime);
             SubmitOrder so=new SubmitOrder(id,w,i_nonce);
             this._rx_thread.addSubmitOrder(so);
-            MinyaLog.message("Found! "+so.nonce+" Request submit("+w.job_id+")");
+            RuntimeLog.message("Found! "+so.nonce+" Request submit("+w.job_id+")");
             Log.i("StratumMiningConnection","Found! "+so.nonce+" Request submit("+w.job_id+")");
         } catch (IOException e) {
-            throw new MinyaException(e);
+            throw new RuntimeException(e);
         }
     }
 

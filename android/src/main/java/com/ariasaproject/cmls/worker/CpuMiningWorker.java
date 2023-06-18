@@ -4,8 +4,6 @@ import android.util.Log;
 
 import com.ariasaproject.cmls.Console;
 import com.ariasaproject.cmls.MiningWork;
-import com.ariasaproject.cmls.MinyaException;
-import com.ariasaproject.cmls.MinyaLog;
 import com.ariasaproject.cmls.hasher.Hasher;
 
 import java.security.GeneralSecurityException;
@@ -22,10 +20,6 @@ import static com.ariasaproject.cmls.R.id.parent;
 import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.activeCount;
 
-/**
- * Created by Ben David on 01/08/2017.
- */
-
 public class CpuMiningWorker extends Observable implements IMiningWorker
 {
     private Console _console;
@@ -39,7 +33,6 @@ public class CpuMiningWorker extends Observable implements IMiningWorker
         private static final long serialVersionUID = -4176908211058342478L;
         void invokeNonceFound(MiningWork i_work, int i_nonce)
         {
-            MinyaLog.message("Nonce found! +"+((0xffffffffffffffffL)&i_nonce));
             Log.i("CpuMiningWorker", "Nonce found! +"+((0xffffffffffffffffL)&i_nonce));
             for(IWorkerEvent i: this){
                 i.onNonceFound(i_work,i_nonce);
@@ -119,13 +112,12 @@ public class CpuMiningWorker extends Observable implements IMiningWorker
                 notifyObservers(Notification.SYSTEM_ERROR);
                 try {
                     stopWork();
-                } catch (MinyaException e1) {
+                } catch (Exception e1) {
                     e1.printStackTrace();
                 }
             } catch (InterruptedException e) {
                 //Shutdownのハンドリング
                 //running = false;
-                MinyaLog.debug("Thread killed. Hashes= "+this.number_of_hashed);
                 Log.d("CpuMiningWorker", "Thread killed. Hashes= "+this.number_of_hashed);
                 _console.write("Thread killed. #Hashes="+this.number_of_hashed);
                 calcSpeedPerThread(number_of_hashed);
@@ -171,9 +163,8 @@ public class CpuMiningWorker extends Observable implements IMiningWorker
     private double _speed = 0;
 
     @Override
-    public boolean doWork(MiningWork i_work) throws MinyaException
+    public boolean doWork(MiningWork i_work) throws Exception
     {
-        MinyaLog.debug("Start doWork");
         Log.d("CpuMiningWorker","Start doWork");
         if(i_work!=null){
         //if(this._exec!=null){
@@ -195,7 +186,6 @@ public class CpuMiningWorker extends Observable implements IMiningWorker
             _speed=speed_calc;
             setChanged();
             notifyObservers(Notification.SPEED);
-            MinyaLog.message("Calculated "+ (_speed)+ " Hash/s");
             Log.i("CpuMiningWorker","Calculated "+ (_speed)+ " Hash/s");
 
         }
@@ -231,71 +221,15 @@ public class CpuMiningWorker extends Observable implements IMiningWorker
         return true;
     }
     @Override
-    public void stopWork() throws MinyaException {
+    public void stopWork() throws Exception {
         for (Worker t : _workr_thread) {
             if (t != null) {
                 Log.i("LC", "Worker: Killing thread ID: " + t.getId());
                 _console.write("Worker: Killing thread ID: " + t.getId());
                 t.interrupt();
-//                Log.i("LC", "Worker: thread ID: " + t.getId() + " isAlive() = " + t.isAlive());
-//                if (t.getState() == Thread.State.NEW) {
-//                    t.running = false;
-//                }
             }
         }
         this._console.write("Worker: Threads killed");
-//        int threads = Thread.activeCount();
-////        int threads = Thread.getAllStackTraces().size();
-////        while (threads > 0) {
-//            Log.d("CpuMiningWorker", "Number of threads: " + threads);
-//            Thread.currentThread().setPriority(MIN_PRIORITY);
-//            _exec.shutdown();
-////        this._exec.shutdownNow();
-//            //キャンセルの一斉送信
-//            try {
-//                // Wait a while for existing tasks to terminate
-//                if (!_exec.awaitTermination(60, TimeUnit.SECONDS)) {
-//                    _exec.shutdownNow(); // Cancel currently executing tasks
-//                    // Wait a while for tasks to respond to being cancelled
-//                    if (!_exec.awaitTermination(60, TimeUnit.SECONDS))
-//                        System.err.println("Pool did not terminate");
-//                        //threads = Thread.activeCount();
-//                }
-//                threads = Thread.activeCount();
-//            } catch (InterruptedException ie) {
-//                // (Re-)Cancel if current thread also interrupted
-//                _exec.shutdownNow();
-//                // Preserve interrupt status
-//                Thread.currentThread().interrupt();
-//                threads = Thread.activeCount();
-//            }
-//        }
-//        while (!_exec.isTerminated()) {
-//            try {
-//                _exec.shutdownNow();
-//                for (Thread t : _workr_thread) {
-//                    if (t != null) {
-//
-//                        Log.i("LC", "Worker: Killing thread ID: "+t.getId());
-//                        t.interrupt();
-//                    }
-//
-//                }
-//                //停止待ち
-////            this._exec.awaitTermination(1500, TimeUnit.MILLISECONDS);
-////            Thread.sleep(5000);
-//                this._exec.awaitTermination(30, TimeUnit.SECONDS);
-//            } catch (InterruptedException e) {
-//                //throw new MinyaException(e);
-//                // (Re-)Cancel if current thread also interrupted
-//                _exec.shutdownNow();
-//                // Preserve interrupt status
-//                //Thread.currentThread().interrupt();
-//                Log.i("CpuMiningWorker", "Caught InterruptedException");
-//                throw new MinyaException(e);
-//            }
-////        }
-//        this._exec=null;
     }
 
     @Override

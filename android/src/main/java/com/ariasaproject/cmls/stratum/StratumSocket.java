@@ -1,7 +1,5 @@
 package com.ariasaproject.cmls.stratum;
 
-import com.ariasaproject.cmls.MinyaException;
-import com.ariasaproject.cmls.MinyaLog;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,10 +15,6 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.UnknownHostException;
 
-/**
- * Created by Ben David on 01/08/2017.
- */
-
 public class StratumSocket extends Socket
 {
     private class LoggingWriter extends BufferedWriter
@@ -32,7 +26,6 @@ public class StratumSocket extends Socket
         public void write(String str) throws IOException
         {
             super.write(str);
-            MinyaLog.debug("TX>"+str);
         }
     }
     private class LoggingReader extends BufferedReader
@@ -44,7 +37,6 @@ public class StratumSocket extends Socket
         public String readLine() throws IOException
         {
             String s=super.readLine();
-            MinyaLog.debug("RX<"+s);
             return s;
         }
     }
@@ -114,26 +106,25 @@ public class StratumSocket extends Socket
         //parse method
         try {
             return new StratumJsonMethodGetVersion(jn);
-        } catch (MinyaException e) {}
+        } catch (Exception e) {}
         try {
             return new StratumJsonMethodMiningNotify(jn);
-        } catch (MinyaException e) {}
+        } catch (Exception e) {}
         try {
             return new StratumJsonMethodReconnect(jn);
-        } catch (MinyaException e) {}
+        } catch (Exception e) {}
         try {
             return new StratumJsonMethodSetDifficulty(jn);
-        } catch (MinyaException e) {}
+        } catch (Exception e) {}
         try {
             return new StratumJsonMethodShowMessage(jn);
-        } catch (MinyaException e) {}
-        //parse result(複雑なものから順にね！)
+        } catch (Exception e) {}
         try {
             return new StratumJsonResultSubscribe(jn);
-        } catch (MinyaException e) {}
+        } catch (Exception e) {}
         try {
             return new StratumJsonResultStandard(jn);
-        } catch (MinyaException e) {}
+        } catch (Exception e) {}
         return null;
     }
     public static void main(String[] args)
@@ -152,7 +143,7 @@ public class StratumSocket extends Socket
         } catch (JsonProcessingException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } catch (MinyaException e) {
+        } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (IOException e) {

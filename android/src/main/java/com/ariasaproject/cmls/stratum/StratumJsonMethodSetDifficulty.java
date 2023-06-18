@@ -1,11 +1,6 @@
 package com.ariasaproject.cmls.stratum;
 
-import com.ariasaproject.cmls.MinyaException;
 import com.fasterxml.jackson.databind.JsonNode;
-
-/**
- * Created by Ben David on 01/08/2017.
- */
 
 public class StratumJsonMethodSetDifficulty extends StratumJsonMethod
 {
@@ -14,11 +9,11 @@ public class StratumJsonMethodSetDifficulty extends StratumJsonMethod
     // public parameter
     public double difficulty;
 
-    public StratumJsonMethodSetDifficulty(JsonNode i_json_node) throws MinyaException {
+    public StratumJsonMethodSetDifficulty(JsonNode i_json_node) throws RuntimeException {
         super(i_json_node);
         String s = i_json_node.get("method").asText();
         if (s.compareTo("mining.set_difficulty") != 0) {
-            throw new MinyaException();
+            throw new RuntimeException("json not valid");
         }
         this.difficulty = i_json_node.get("params").get(0).asDouble();
     }
