@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">StratumMiner</string>
+    <string name="app_name">CryptoMiner - LowSpec</string>
 
     <string name="main_tv_server">Server Address</string>
     <string name="main_tv_username">Username:</string>
