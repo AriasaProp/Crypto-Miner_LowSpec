@@ -8,12 +8,7 @@ import javax.crypto.spec.SecretKeySpec;
 import static java.lang.Integer.rotateLeft;
 import static java.lang.System.arraycopy;
 
-/**
- * Created by Ben David on 01/08/2017.
- */
-
-public class Hasher
-{
+public class Hasher {
 
     private Mac mac;
     private byte[] H = new byte[32];
@@ -24,8 +19,7 @@ public class Hasher
     public Hasher() throws GeneralSecurityException {
         mac = Mac.getInstance("HmacSHA256");
     }
-    public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException
-    {
+    public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
         int i, j, k;
 
         arraycopy(header, 0, B, 0, 76);
