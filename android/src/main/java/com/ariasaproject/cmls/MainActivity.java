@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-    }
+    };
     final Thread updateThread = new Thread () {
             @Override
             public void run() {
