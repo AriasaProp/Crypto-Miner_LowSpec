@@ -63,7 +63,7 @@ public class MinerService extends Service {
     
     final Handler.Callback serviceHandlerCallback = new Handler.Callback () {
         @Override
-        public void handleMessage(Message msg) {
+        public boolean handleMessage(Message msg) {
             switch (msg.what) {
             default:
                 break;
@@ -84,7 +84,7 @@ public class MinerService extends Service {
                 if (bundle.getString(MSG_CONSOLE_UPDATE, "") != "")
                     cString = bundle.getString(MSG_CONSOLE_UPDATE);
             }
-            super.handleMessage(msg);
+            return true;
         }
     };
     Handler serviceHandler = new Handler(Looper.getMainLooper(), serviceHandlerCallback);
@@ -116,7 +116,7 @@ public class MinerService extends Service {
             smc = new SingleMiningChief(mc,imw,console,serviceHandler);
             smc.startMining();
             running =true;
-        } catch (MinyaException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -127,9 +127,8 @@ public class MinerService extends Service {
         running=false;
         try {
             smc.stopMining();
-        } catch (MinyaException e) {
             e.printStackTrace();
-        }
+        } catch (Exception e) {}
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.ariasaproject.cmls.connection;
 
+package com.ariasaproject.cmls.MiningWork;
+
 public interface IMiningConnection
 {
     public void addListener(IConnectionEvent i_listener) throws RuntimeException;

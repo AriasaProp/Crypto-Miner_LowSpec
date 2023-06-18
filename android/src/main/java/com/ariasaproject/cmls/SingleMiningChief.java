@@ -28,6 +28,7 @@ import static com.ariasaproject.cmls.Constants.STATUS_TERMINATED;
 
 import static com.ariasaproject.cmls.Constants.MSG_TERMINATED;
 
+import static com.ariasaproject.cmls.Constants.MSG_STATUS_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_UIUPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_SPEED_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_ACCEPTED_UPDATE;
