@@ -99,42 +99,8 @@ public class MainActivity extends AppCompatActivity {
     public volatile  boolean ShutdownStarted = false;
     public volatile  boolean StartShutdown = false;
 
-    Thread updateThread;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        Intent intent = new Intent(getApplicationContext(), MinerService.class);
-        startService(intent);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
-        et_serv = (EditText) findViewById(R.id.server_et);
-        et_user = (EditText) findViewById((R.id.user_et));
-        et_pass = (EditText) findViewById(R.id.password_et);
-        cb_service = (CheckBox) findViewById(R.id.settings_checkBox_background) ;
-        cb_service.setChecked(DEFAULT_BACKGROUND);
-        cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
-        cb_screen_awake.setChecked(DEFAULT_SCREEN);
-        try {
-            Spinner threadList = (Spinner)findViewById(R.id.spinner1);
-            String[] threadsAvailable = new String[Runtime.getRuntime().availableProcessors()];
-            for(int i = 1; i <= Runtime.getRuntime().availableProcessors();i++)
-            {
-                threadsAvailable[i] = Integer.toString(i + 1);
-                ArrayAdapter threads = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, threadsAvailable);
-                threadList.setAdapter(threads);
-            }
-        }
-        catch (Exception e){
-            
-        }
-        updateThread  = new Thread () {
-            final DecimalFormat df = new DecimalFormat("#.##");
-            final Handler statusHandler = new Handler() {
+    final DecimalFormat df = new DecimalFormat("#.##");
+    final Handler statusHandler = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
                     final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
@@ -171,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             };
+    final Thread updateThread = new Thread () {
             @Override
             public void run() {
                 while (!mBound) {
@@ -182,10 +149,42 @@ public class MainActivity extends AppCompatActivity {
                     statusHandler.sendMessage(statusHandler.obtainMessage(0));
                     try {
                         sleep(updateDelay);
-                    } catch (InterruptedException e) {
-                    }
-                } }
+                    } catch (InterruptedException e) {}
+                }
+            }
         };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        Intent intent = new Intent(getApplicationContext(), MinerService.class);
+        startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
+        et_serv = (EditText) findViewById(R.id.server_et);
+        et_user = (EditText) findViewById((R.id.user_et));
+        et_pass = (EditText) findViewById(R.id.password_et);
+        cb_service = (CheckBox) findViewById(R.id.settings_checkBox_background) ;
+        cb_service.setChecked(DEFAULT_BACKGROUND);
+        cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
+        cb_screen_awake.setChecked(DEFAULT_SCREEN);
+        try {
+            Spinner threadList = (Spinner)findViewById(R.id.spinner1);
+            String[] threadsAvailable = new String[Runtime.getRuntime().availableProcessors()];
+            for(int i = 1; i <= Runtime.getRuntime().availableProcessors();i++)
+            {
+                threadsAvailable[i] = Integer.toString(i + 1);
+                ArrayAdapter threads = new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, threadsAvailable);
+                threadList.setAdapter(threads);
+            }
+        }
+        catch (Exception e){
+            
+        }
         updateThread.start();
     }
     public void StartStopMining(View v)  {
