@@ -26,7 +26,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.VieeHolder;
 
+import com.ariasaproject.cmls.MiningStatusService;
+import com.ariasaproject.cmls.MiningStatusService.ConsoleItem;
 import com.ariasaproject.cmls.connection.IMiningConnection;
 import com.ariasaproject.cmls.connection.StratumMiningConnection;
 import com.ariasaproject.cmls.stratum.StratumSocket;
@@ -41,6 +45,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.ArrayList;
 
 import static android.R.id.edit;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
@@ -90,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
     
     final DecimalFormat df = new DecimalFormat("#.##");
     private Thread updateThread;
+    private final ConsoleAdapter consoleAdapter = new ConsoleAdapter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,6 +125,9 @@ public class MainActivity extends AppCompatActivity {
         }
         catch (Exception e){ }
         
+        final RecyclerView consoleView = (RecyclerView)findViewById(R.id.console_view);
+        consoleView.setLayoutManager(new LinearLayoutManager(this));
+        consoleView.setAdapter(consoleAdapter);
         
         //ui update threads
         final Handler.Callback statusHandlerCallback = new Handler.Callback() {
@@ -128,11 +137,9 @@ public class MainActivity extends AppCompatActivity {
                 switch (msg.what) {
                     default: // ui update
                         synchronized (mService.status) {
-                            if (mService.status.new_console) {
-                                final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
-                                txt_console.setText(mService.status.console);
-                                txt_console.invalidate();
-                                mService.status.new_console = false;
+                            if (!mService.status.isEmpty()) {
+                                consoleAdapter.addLog(mService.status);
+                                mService.status.clear();
                             }
                             if (mService.status.new_speed) {
                                 final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
@@ -297,4 +304,53 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
     public native String callNative();
+    public static class ConsoleAdapter extends RecyclerView.Adapter<ConsoleItemHolder> {
+        private static final int MAX_LOG_COUNT = 25;
+        private final ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
+    
+        public LogAdapter() {}
+    
+        @NonNull
+        @Override
+        public LogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_log, parent, false);
+            return new ConsoleItemHolder(itemView);
+        }
+    
+        @Override
+        public void onBindViewHolder(@NonNull LogViewHolder holder, int position) {
+            ConsoleItem c = logList.get(position);
+            holder.bindLog(c.time, c.msg);
+        }
+    
+        @Override
+        public int getItemCount() {
+            return logList.size();
+        }
+        
+        public void addLog(ArrayList<ConsoleItem> ac) {
+            for (ConsoleItem c : ac) {
+                logList.add(0, c);
+                notifyItemInserted(0);
+            }
+            while (logList.size() > MAX_LOG_COUNT)
+                logList.remove(logList.size()-1);
+        }
+    }
+    public static class ConsoleItemHolder extends ViewHolder {
+        private TextView time;
+        private TextView msg;
+    
+        public ConsoleItemHolder(View itemView) {
+            super(itemView);
+            time = itemView.findViewById(R.id.text1);
+            msg = itemView.findViewById(R.id.text2);
+        }
+        public void bindLog(String t, String m) {
+            time.setText(t);
+            msg.setText(m);
+        }
+    }
 }
+
+

@@ -12,6 +12,8 @@ import android.os.IBinder;
 import android.os.Message;
 import android.widget.Toast;
 
+import com.ariasaproject.cmls.MiningStatusService;
+import com.ariasaproject.cmls.MiningStatusService.ConsoleItem;
 import com.ariasaproject.cmls.connection.IMiningConnection;
 import com.ariasaproject.cmls.connection.StratumMiningConnection;
 import com.ariasaproject.cmls.worker.CpuMiningWorker;
@@ -80,8 +82,7 @@ public class MinerService extends Service {
                             status.status = (String) msg.obj;
                             break;
                         case MSG_ARG1_UPDATE_CONSOLE:
-                            status.new_console |= true;
-                            status.console = (String) msg.obj;
+                            status.console.add(new ConsoleItem(msg.obj));
                             break;
                         default:
                             break;
