@@ -102,7 +102,6 @@ public class MinerService extends Service {
     private final LocalBinder mBinder = new LocalBinder();
     public MinerService() {
         console = new Console(serviceHandler);
-        status = new MiningStatusService();
     }
     public void startMiner() {
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
