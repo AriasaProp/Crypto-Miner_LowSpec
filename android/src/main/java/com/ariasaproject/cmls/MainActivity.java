@@ -86,75 +86,13 @@ public class MainActivity extends AppCompatActivity {
             notifyAll();
         }
     };
-    private static int updateDelay=1000;
+    private static int updateDelay = 500;
     public volatile  boolean firstRunFlag = true;
     public volatile  boolean ShutdownStarted = false;
     public volatile  boolean StartShutdown = false;
-
+    
     final DecimalFormat df = new DecimalFormat("#.##");
-    final Handler statusHandler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
-        final String unit = " h/s";
-        @Override
-        public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-                case 0: // ui update
-                    final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
-                    txt_console.setText(mService.cString);
-                    txt_console.invalidate();
-                    final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
-                    tv_speed.setText(df.format(mService.speed)+unit);
-                    final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
-                    txt_accepted.setText(String.valueOf(mService.accepted));
-                    final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
-                    txt_rejected.setText(String.valueOf(mService.rejected));
-                    final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
-                    txt_status.setText(mService.status);
-                    break;
-                case 1: // button mining update
-                    final Button btn = (Button) findViewById(R.id.status_button_startstop);
-                    if(mService.running) {
-                        btn.setText(getString(R.string.main_button_stop));
-                        btn.setEnabled(true);
-                    } else {
-                        btn.setText(getString(R.string.main_button_start));
-                        if (firstRunFlag) {
-                            btn.setEnabled(true);
-                            btn.setClickable(true);
-                        }
-                        else if (StartShutdown) {
-                            btn.setEnabled(false);
-                            btn.setClickable(false);
-                            if (!ShutdownStarted) {
-                                ShutdownStarted = true;
-                                CpuMiningWorker worker = (CpuMiningWorker)mService.imw;
-                                ThreadStatusAsyncTask threadWaiter = new ThreadStatusAsyncTask();
-                                threadWaiter.execute(worker);
-                            }
-                        }
-                    }
-                    break;
-            }
-            return true;
-        }
-    });
-    final Thread updateThread = new Thread () {
-            @Override
-            public void run() {
-                synchronized (mConnection){
-                    try {
-                        while (!mBound) mConnection.wait();
-                    } catch (InterruptedException e) {}
-                }
-                
-                while (mBound)	{
-                    statusHandler.sendEmptyMessage(1);
-                    try {
-                        sleep(updateDelay);
-                    } catch (InterruptedException e) {}
-                    statusHandler.sendEmptyMessage(0);
-                }
-            }
-        };
+    private Thread updateThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,6 +121,91 @@ public class MainActivity extends AppCompatActivity {
             ((Spinner)findViewById(R.id.spinner1)).setAdapter(new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, threadsAvailable));
         }
         catch (Exception e){ }
+        
+        
+        //ui update threads
+        final Handler.Callback statusHandlerCallback = new Handler.Callback() {
+            final String unit = " h/s";
+            @Override
+            public boolean handleMessage(Message msg) {
+                switch (msg.what) {
+                    default: // ui update
+                        final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
+                        txt_console.setText(mService.cString);
+                        txt_console.invalidate();
+                        final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
+                        tv_speed.setText(df.format(mService.speed)+unit);
+                        final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
+                        txt_accepted.setText(String.valueOf(mService.accepted));
+                        final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
+                        txt_rejected.setText(String.valueOf(mService.rejected));
+                        final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
+                        txt_status.setText(mService.status);
+                        break;
+                    case 1: {// button mining update
+                        final Button btn = (Button) findViewById(R.id.status_button_startstop);
+                        if(mService.running) {
+                            btn.setText(getString(R.string.main_button_stop));
+                            btn.setEnabled(true);
+                        } else {
+                            btn.setText(getString(R.string.main_button_start));
+                            if (firstRunFlag) {
+                                btn.setEnabled(true);
+                                btn.setClickable(true);
+                            } else if (StartShutdown) {
+                                btn.setEnabled(false);
+                                btn.setClickable(false);
+                            }
+                        }
+                        break;
+                    }
+                    case 2: {// button mining after Shutdown
+                        final Button btn = (Button) findViewById(R.id.status_button_startstop);
+                        btn.setEnabled(true);
+                        btn.setClickable(true);
+                        ShutdownStarted = false;
+                        StartShutdown = false;
+                        firstRunFlag = true;
+                        Toast.makeText(MainActivity.this,"Cooldown finished",Toast.LENGTH_SHORT).show();
+                        break;
+                    }
+                }
+                return true;
+            }
+        }
+        final Handler statusHandler = new Handler(Looper.getMainLooper(), statusHandlerCallback);
+        updateThread = new Thread (new Runnable() {
+            @Override
+            public void run() {
+                synchronized (mConnection){
+                    try {
+                        while (!mBound) mConnection.wait();
+                    } catch (InterruptedException e) {}
+                }
+                while (mBound)	{
+                    statusHandler.sendEmptyMessage(1);
+                    if (!firstRunFlag && StartShutdown && !ShutdownStarted) {
+                        ShutdownStarted = true;
+                        CpuMiningWorker worker = (CpuMiningWorker)MainActivity.this.mService.imw;
+                        long lastTime = System.currentTimeMillis();
+                        long currTime;
+                        while (worker.getThreadsStatus()) {
+                            currTime = System.currentTimeMillis();
+                            double deltaTime = (double)(currTime-lastTime)/1000.0;
+                            if (deltaTime>15.0) {
+                                worker.ConsoleWrite("Still cooling down...");
+                                lastTime = currTime;
+                            }
+                        }
+                        statusHandler.sendEmptyMessage(2);
+                    }
+                    try {
+                        sleep(updateDelay);
+                    } catch (InterruptedException e) {}
+                    statusHandler.sendEmptyMessage(0);
+                }
+            }
+        });
     }
     public void StartStopMining(View v)  {
        final Button b = (Button) v;
@@ -235,34 +258,6 @@ public class MainActivity extends AppCompatActivity {
             btn.setClickable(false);
         }
     }
-    public class ThreadStatusAsyncTask extends AsyncTask<CpuMiningWorker,Integer,Boolean> {
-        @Override
-        protected Boolean doInBackground(CpuMiningWorker... params) {
-            long lastTime = System.currentTimeMillis();
-            long currTime;
-            while (params[0].getThreadsStatus()) {
-                currTime = System.currentTimeMillis();
-                double deltaTime = (double)(currTime-lastTime)/1000.0;
-                if (deltaTime>15.0) {
-                    params[0].ConsoleWrite("Still cooling down...");
-                    lastTime = currTime;
-                }
-            }
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            if (aBoolean) {
-                setButton(true);
-                ShutdownStarted = false;
-                StartShutdown = false;
-                firstRunFlag = true;
-                Toast.makeText(MainActivity.this,"Cooldown finished",Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
     @Override
     protected void onResume() {
         updateThread.start();
@@ -294,6 +289,10 @@ public class MainActivity extends AppCompatActivity {
         } catch (RuntimeException e) {}
 
         super.onStop();
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
     public native String callNative();
 }
