@@ -259,28 +259,27 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        if(!updateThread.isAlive()) updateThread.start();
     }
     
     @Override
     protected void onResume() {
-        updateThread.start();
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         if (settings.getBoolean(PREF_BACKGROUND, DEFAULT_BACKGROUND)) {
             TextView tv_background = (TextView) findViewById(R.id.status_textView_background);
             tv_background.setText("RUN IN BACKGROUND");
         }
-        Toast.makeText(this,"Resumed",Toast.LENGTH_SHORT).show();
         super.onResume();
     }
 
     @Override
     protected void onPause() {
-        if(updateThread.isAlive()) { updateThread.interrupt(); }
         super.onPause();
     }
 
     @Override
     protected void onStop() {
+        if(updateThread.isAlive()) { updateThread.interrupt(); }
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         if(!settings.getBoolean(PREF_BACKGROUND,DEFAULT_BACKGROUND )) {
             if (mService != null && mService.running == true) { mService.stopMiner(); }
