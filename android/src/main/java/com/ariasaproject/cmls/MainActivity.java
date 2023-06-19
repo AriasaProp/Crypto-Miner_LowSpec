@@ -313,7 +313,7 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public LogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_log, parent, false);
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.console_item, parent, false);
             return new ConsoleItemHolder(itemView);
         }
     
