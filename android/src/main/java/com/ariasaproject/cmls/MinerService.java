@@ -51,10 +51,9 @@ public class MinerService extends Service {
     IMiningConnection mc;
     IMiningWorker imw;
     SingleMiningChief smc;
-    Console console;
+    public final Console console;
     boolean running=false;
-    public MiningStatusService status;
-    
+    public final MiningStatusService status = new MiningStatusService();
     final Handler.Callback serviceHandlerCallback = new Handler.Callback () {
         @Override
         public boolean handleMessage(Message msg) {
@@ -102,17 +101,13 @@ public class MinerService extends Service {
     // Binder given to clients
     private final LocalBinder mBinder = new LocalBinder();
     public MinerService() {
-        
+        console = new Console(serviceHandler);
+        status = new MiningStatusService();
     }
     public void startMiner() {
-        console = new Console(serviceHandler);
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         String url, user, pass;
-        synchronized (status) {
-            status.speed=0;
-            status.accepted=0;
-            status.rejected=0;
-        }
+        status.reSet();
         console.write("Service: Start mining");
         url = settings.getString(PREF_URL, DEFAULT_URL);
         user = settings.getString(PREF_USER, DEFAULT_USER);

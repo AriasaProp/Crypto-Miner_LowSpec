@@ -200,8 +200,7 @@ public class MainActivity extends AppCompatActivity {
                     statusHandler.sendEmptyMessage(1);
                     if (!firstRunFlag && StartShutdown && !ShutdownStarted) {
                         ShutdownStarted = true;
-                        CpuMiningWorker worker = (CpuMiningWorker)mService.imw;
-                        worker.ConsoleWrite("Cooling down...");
+                        mService.console.write("Cooling down...");
                         try {
                             while (worker.getThreadsStatus())
                                 Thread.sleep(10);
@@ -259,13 +258,11 @@ public class MainActivity extends AppCompatActivity {
     
     @Override
     protected void onStart() {
-        Toast.makeText(this,"onStart",Toast.LENGTH_SHORT).show();
         super.onStart();
     }
     
     @Override
     protected void onResume() {
-        Toast.makeText(this,"onResume",Toast.LENGTH_SHORT).show();
         updateThread.start();
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         if (settings.getBoolean(PREF_BACKGROUND, DEFAULT_BACKGROUND)) {
