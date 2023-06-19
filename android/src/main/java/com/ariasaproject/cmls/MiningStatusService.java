@@ -18,12 +18,12 @@ public class MiningStatusService extends Object{
     public synchronized void reSet() {
         new_speed = false;
         speed = 0;
-        new_accepted = false
+        new_accepted = false;
         accepted = 0;
         new_rejected = false;
         rejected = 0;
         new_status = false;
-        status = "None"
+        status = "None";
         new_console = false;
     }
     
