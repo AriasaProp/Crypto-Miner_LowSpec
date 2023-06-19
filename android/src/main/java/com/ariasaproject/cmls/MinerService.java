@@ -104,7 +104,7 @@ public class MinerService extends Service {
         MinerService getService() {
             return MinerService.this;
         }
-    }
+    };
 
     public MinerService() {}
     public void startMiner() {
