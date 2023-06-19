@@ -17,6 +17,7 @@ import android.os.StrictMode;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.LayoutInflater;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -27,7 +28,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.recyclerview.widget.RecyclerView.VieeHolder;
 
 import com.ariasaproject.cmls.MiningStatusService;
 import com.ariasaproject.cmls.MiningStatusService.ConsoleItem;
@@ -137,9 +137,9 @@ public class MainActivity extends AppCompatActivity {
                 switch (msg.what) {
                     default: // ui update
                         synchronized (mService.status) {
-                            if (!mService.status.isEmpty()) {
+                            if (!mService.status.console.isEmpty()) {
                                 consoleAdapter.addLog(mService.status);
-                                mService.status.clear();
+                                mService.status.console.clear();
                             }
                             if (mService.status.new_speed) {
                                 final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
@@ -312,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
     
         @NonNull
         @Override
-        public LogViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public ConsoleItemHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.console_item, parent, false);
             return new ConsoleItemHolder(itemView);
         }
@@ -337,7 +337,7 @@ public class MainActivity extends AppCompatActivity {
                 logList.remove(logList.size()-1);
         }
     }
-    public static class ConsoleItemHolder extends ViewHolder {
+    public static class ConsoleItemHolder extends RecyclerView.ViewHolder {
         private TextView time;
         private TextView msg;
     
