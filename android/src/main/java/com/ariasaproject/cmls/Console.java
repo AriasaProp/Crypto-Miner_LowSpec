@@ -8,7 +8,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static com.ariasaproject.cmls.Constants.MSG_CONSOLE_UPDATE;
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_SERVICE_STATUS;
+import static com.ariasaproject.cmls.MinerService.MSG_ARG1_UPDATE_CONSOLE;
 
 public class Console {
     private static final DateFormat logDateFormat = new SimpleDateFormat("[HH:mm:ss] ");
@@ -24,15 +25,11 @@ public class Console {
     }
 
     public void write (String s) {
-        Message msg = sHandler.obtainMessage();
         if(s!=null) {
             for (int i = 19; i>0; i--) {console_a[i]=console_a[i-1]; }
             console_a[0] = logDateFormat.format(new Date()) + s;
         }
-        Bundle bundle = new Bundle();
-        bundle.putString(MSG_CONSOLE_UPDATE, getConsole());
-        msg.setData(bundle);
-        sHandler.sendMessage(msg);
+        sHandler.sendMessage(sHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_CONSOLE, getConsole()));
     }
     public String getConsole() {
         sb=new StringBuilder();

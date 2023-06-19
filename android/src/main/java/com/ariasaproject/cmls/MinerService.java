@@ -26,14 +26,6 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_THROTTLE;
 import static com.ariasaproject.cmls.Constants.DEFAULT_URL;
 import static com.ariasaproject.cmls.Constants.DEFAULT_USER;
 
-import static com.ariasaproject.cmls.Constants.MSG_ACCEPTED_UPDATE;
-import static com.ariasaproject.cmls.Constants.MSG_CONSOLE_UPDATE;
-import static com.ariasaproject.cmls.Constants.MSG_REJECTED_UPDATE;
-import static com.ariasaproject.cmls.Constants.MSG_SPEED_UPDATE;
-import static com.ariasaproject.cmls.Constants.MSG_STATUS_UPDATE;
-
-import static com.ariasaproject.cmls.Constants.MSG_TERMINATED;
-
 import static com.ariasaproject.cmls.Constants.PREF_DONATE;
 import static com.ariasaproject.cmls.Constants.PREF_PASS;
 import static com.ariasaproject.cmls.Constants.PREF_PRIORITY;
@@ -47,51 +39,68 @@ import static com.ariasaproject.cmls.Constants.PREF_USER;
 import static com.ariasaproject.cmls.Constants.STATUS_NOT_MINING;
 
 public class MinerService extends Service {
-
+    public static final int MSG_TERMINATED = 1;
+    public static final int MSG_UPDATE_SERVICE_STATUS = 2;
+    
+    public static final int MSG_ARG1_UPDATE_SPEED = 1;
+    public static final int MSG_ARG1_UPDATE_ACC = 2;
+    public static final int MSG_ARG1_UPDATE_REJECT = 3;
+    public static final int MSG_ARG1_UPDATE_STATUS = 4;
+    public static final int MSG_ARG1_UPDATE_CONSOLE = 5;
+    
     IMiningConnection mc;
     IMiningWorker imw;
     SingleMiningChief smc;
-    //Miner miner;
     Console console;
-   // String news=null;
-    Boolean running=false;
-    float speed=0;
-    int accepted=0;
-    int rejected=0;
-    String status= STATUS_NOT_MINING;
-    String cString="";
+    boolean running=false;
+    public MiningStatusService status;
     
     final Handler.Callback serviceHandlerCallback = new Handler.Callback () {
         @Override
         public boolean handleMessage(Message msg) {
-            switch (msg.what) {
-            default:
-                break;
-            case MSG_TERMINATED:
-                running = false;
-                break;
-            }
-            Bundle bundle = msg.getData();
-            if (bundle != null) {
-                if (bundle.getFloat(MSG_SPEED_UPDATE, 0) != 0)
-                    speed = bundle.getFloat(MSG_SPEED_UPDATE);
-                if (bundle.getLong(MSG_ACCEPTED_UPDATE, 0) != 0)
-                    accepted = (int) bundle.getLong(MSG_ACCEPTED_UPDATE);
-                if (bundle.getLong(MSG_REJECTED_UPDATE, 0) != 0)
-                    rejected = (int) bundle.getLong(MSG_REJECTED_UPDATE);
-                if (bundle.getString(MSG_STATUS_UPDATE, "") != "")
-                    status = bundle.getString(MSG_STATUS_UPDATE);
-                if (bundle.getString(MSG_CONSOLE_UPDATE, "") != "")
-                    cString = bundle.getString(MSG_CONSOLE_UPDATE);
+            synchronized (MinerService.this.status) {
+                switch (msg.what) {
+                default:
+                    break;
+                case MSG_UPDATE_SERVICE_STATUS:
+                    switch (msg.arg1) {
+                        case MSG_ARG1_UPDATE_SPEED:
+                            status.new_speed |= true;
+                            status.speed = (Float) msg.obj;
+                            break;
+                        case MSG_ARG1_UPDATE_ACC:
+                            status.new_accepted |= true;
+                            status.accepted = (Long) msg.obj;
+                            break;
+                        case MSG_ARG1_UPDATE_REJECT:
+                            status.new_rejected |= true;
+                            status.rejected = (Long) msg.obj;
+                            break;
+                        case MSG_ARG1_UPDATE_STATUS:
+                            status.new_status |= true;
+                            status.status = (String) msg.obj;
+                            break;
+                        case MSG_ARG1_UPDATE_CONSOLE:
+                            status.new_console |= true;
+                            status.console = (String) msg.obj;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case MSG_TERMINATED:
+                    running = false;
+                    break;
+                }
+                MinerService.this.status.notifyAll();
+                
             }
             return true;
         }
     };
     Handler serviceHandler = new Handler(Looper.getMainLooper(), serviceHandlerCallback);
     // Binder given to clients
-    private final IBinder mBinder = new LocalBinder();
-
-    public class LocalBinder extends Binder {
+    private final IBinder mBinder = new Binder() {
         MinerService getService() {
             return MinerService.this;
         }

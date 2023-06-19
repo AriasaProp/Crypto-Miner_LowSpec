@@ -1,14 +1,6 @@
 package com.ariasaproject.cmls;
 
 public class Constants {
-    public static final int MSG_TERMINATED = 1;
-
-    public static final String MSG_STATUS_UPDATE = "status_update";
-    public static final String MSG_UIUPDATE = "ui_update";
-    public static final String MSG_SPEED_UPDATE = "speed_update";
-    public static final String MSG_ACCEPTED_UPDATE = "accepted_update";
-    public static final String MSG_REJECTED_UPDATE = "rejected_update";
-    public static final String MSG_CONSOLE_UPDATE = "console_update";
 
     public static final String PREF_URL="URL";
     public static final String PREF_USER= "USER";

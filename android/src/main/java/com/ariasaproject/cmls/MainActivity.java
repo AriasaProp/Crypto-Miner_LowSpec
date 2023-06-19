@@ -130,17 +130,34 @@ public class MainActivity extends AppCompatActivity {
             public boolean handleMessage(Message msg) {
                 switch (msg.what) {
                     default: // ui update
-                        final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
-                        txt_console.setText(mService.cString);
-                        txt_console.invalidate();
-                        final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
-                        tv_speed.setText(df.format(mService.speed)+unit);
-                        final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
-                        txt_accepted.setText(String.valueOf(mService.accepted));
-                        final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
-                        txt_rejected.setText(String.valueOf(mService.rejected));
-                        final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
-                        txt_status.setText(mService.status);
+                        synchronized (mService.status) {
+                            if (mService.status.new_console) {
+                                final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
+                                txt_console.setText(mService.cString);
+                                txt_console.invalidate();
+                                mService.status.new_console = false;
+                            }
+                            if (mService.status.new_speed) {
+                                final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
+                                tv_speed.setText(df.format(mService.status.speed)+unit);
+                                mService.status.new_speed = false;
+                            }
+                            if (mService.status.new_accepted) {
+                                final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
+                                txt_accepted.setText(String.valueOf(mService.status.accepted));
+                                mService.status.new_accepted = false;
+                            }
+                            if (mService.status.new_rejected) {
+                                final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
+                                txt_rejected.setText(String.valueOf(mService.status.rejected));
+                                mService.status.new_rejected = false;
+                            }
+                            if (mService.status.new_status) {
+                                final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
+                                txt_status.setText(mService.status.status);
+                                mService.status.new_status = false;
+                            }
+                        }
                         break;
                     case 1: {// button mining update
                         final Button btn = (Button) findViewById(R.id.status_button_startstop);
@@ -202,7 +219,8 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         Thread.sleep(updateDelay);
                     } catch (InterruptedException e) {}
-                    statusHandler.sendEmptyMessage(0);
+                    if (MainActivity.this.mService.status.hasNew())
+                        statusHandler.sendEmptyMessage(0);
                 }
             }
         });
