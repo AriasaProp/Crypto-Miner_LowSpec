@@ -29,7 +29,7 @@ public class Console {
             for (int i = 19; i>0; i--) {console_a[i]=console_a[i-1]; }
             console_a[0] = logDateFormat.format(new Date()) + s;
         }
-        sHandler.sendMessage(sHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_CONSOLE, getConsole()));
+        sHandler.sendMessage(sHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_CONSOLE, 0, getConsole()));
     }
     public String getConsole() {
         sb=new StringBuilder();

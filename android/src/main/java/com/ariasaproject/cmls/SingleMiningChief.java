@@ -151,75 +151,75 @@ public class SingleMiningChief implements Observer {
         case SYSTEM_ERROR:
             console.write("Miner: System error");
             status = STATUS_ERROR;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case PERMISSION_ERROR:
             console.write("Miner: Permission error");
             status = STATUS_ERROR;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case TERMINATED:
             console.write("Miner: Worker terminated");
             status = STATUS_TERMINATED;
             mainHandler.sendEmptyMessage(MSG_TERMINATED);
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_SPEED, new Float(0)));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_SPEED, 0,new Float(0)));
             break;
         case CONNECTING:
             console.write("Miner: Worker connecting");
             status = STATUS_CONNECTING;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case AUTHENTICATION_ERROR:
             console.write("Miner: Authentication error");
             status = STATUS_ERROR;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case CONNECTION_ERROR:
             console.write("Miner: Connection error");
             status = STATUS_ERROR;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case COMMUNICATION_ERROR:
             console.write("Miner: Communication error");
             status = STATUS_ERROR;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case LONG_POLLING_FAILED:
             console.write("Miner: Long polling failed");
             status = STATUS_NOT_MINING;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case LONG_POLLING_ENABLED:
             console.write("Miner: Long polling enabled");
             console.write("Miner: Speed updates as work is completed");
             status = STATUS_MINING;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case NEW_BLOCK_DETECTED:
             status = STATUS_MINING;
             console.write("Miner: Detected new block");
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case POW_TRUE:
             console.write("Miner: PROOF OF WORK RESULT: true");
             status = STATUS_MINING;
             accepted+=1;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_ACC, new Long(accepted)));
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_ACC, 0, new Long(accepted)));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case POW_FALSE:
             status = STATUS_MINING;
             rejected+=1;
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_REJECT, new Long(accepted)));
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_REJECT, 0, new Long(accepted)));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             break;
         case SPEED:
             if (status.equals(STATUS_TERMINATED) || status.equals(STATUS_NOT_MINING))
                 speed = 0;
             else
                 speed = (float) ((CpuMiningWorker)_worker).get_speed();
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_SPEED, new Float(speed)));
+            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_SPEED, 0, new Float(speed)));
             break;
         case NEW_WORK:
             if (lastWorkTime > 0L) {
@@ -227,8 +227,8 @@ public class SingleMiningChief implements Observer {
                 speed = (float) ((CpuMiningWorker)_worker).get_speed();
                 status= STATUS_MINING;
                 console.write(String.format("Miner: %d Hashes, %.6f Hash/s", hashes, speed));
-                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_SPEED, new Float(speed)));
-                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, status));
+                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_SPEED, 0, new Float(speed)));
+                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_STATUS, 0, status));
             }
             lastWorkTime = System.currentTimeMillis();
             lastWorkHashes = _worker.getNumberOfHash();
