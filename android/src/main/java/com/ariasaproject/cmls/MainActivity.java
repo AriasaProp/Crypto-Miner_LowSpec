@@ -202,7 +202,10 @@ public class MainActivity extends AppCompatActivity {
                         ShutdownStarted = true;
                         CpuMiningWorker worker = (CpuMiningWorker)mService.imw;
                         worker.ConsoleWrite("Cooling down...");
-                        while (worker.getThreadsStatus()) Thread.sleep(10);
+                        try {
+                            while (worker.getThreadsStatus())
+                                Thread.sleep(10);
+                        } catch (InterruptedException e) {}
                         statusHandler.sendEmptyMessage(2);
                     }
                     try {
