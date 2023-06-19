@@ -100,12 +100,7 @@ public class MinerService extends Service {
     };
     Handler serviceHandler = new Handler(Looper.getMainLooper(), serviceHandlerCallback);
     // Binder given to clients
-    private final IBinder mBinder = new Binder() {
-        MinerService getService() {
-            return MinerService.this;
-        }
-    };
-
+    private final LocalBinder mBinder = new LocalBinder();
     public MinerService() {}
     public void startMiner() {
         console = new Console(serviceHandler);
@@ -145,7 +140,10 @@ public class MinerService extends Service {
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
-
-
-
+    
+    public class LocalBinder extends Binder {
+        MinerService getService() {
+            return MinerService.this;
+        }
+    }
 }
