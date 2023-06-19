@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
         private static final int MAX_LOG_COUNT = 25;
         private final ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     
-        public LogAdapter() {}
+        public ConsoleAdapter() {}
     
         @NonNull
         @Override
