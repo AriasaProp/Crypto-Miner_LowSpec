@@ -106,9 +106,11 @@ public class MinerService extends Service {
         console = new Console(serviceHandler);
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         String url, user, pass;
-        speed=0;
-        accepted=0;
-        rejected=0;
+        synchronized (status) {
+            status.speed=0;
+            status.accepted=0;
+            status.rejected=0;
+        }
         console.write("Service: Start mining");
         url = settings.getString(PREF_URL, DEFAULT_URL);
         user = settings.getString(PREF_USER, DEFAULT_USER);

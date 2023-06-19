@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                         synchronized (mService.status) {
                             if (mService.status.new_console) {
                                 final TextView txt_console = (TextView) findViewById(R.id.status_textView_console);
-                                txt_console.setText(mService.cString);
+                                txt_console.setText(mService.status.console);
                                 txt_console.invalidate();
                                 mService.status.new_console = false;
                             }
