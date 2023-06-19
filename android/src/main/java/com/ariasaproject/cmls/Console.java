@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
-import java.util.Date;
 import java.lang.Object;
 
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_SERVICE_STATUS;

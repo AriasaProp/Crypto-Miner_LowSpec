@@ -82,7 +82,7 @@ public class MinerService extends Service {
                             status.status = (String) msg.obj;
                             break;
                         case MSG_ARG1_UPDATE_CONSOLE:
-                            status.console.add(new ConsoleItem(msg.obj));
+                            status.console.add(new ConsoleItem((String)msg.obj));
                             break;
                         default:
                             break;

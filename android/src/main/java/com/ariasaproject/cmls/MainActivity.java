@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
                     default: // ui update
                         synchronized (mService.status) {
                             if (!mService.status.console.isEmpty()) {
-                                consoleAdapter.addLog(mService.status);
+                                consoleAdapter.addLog(mService.status.console);
                                 mService.status.console.clear();
                             }
                             if (mService.status.new_speed) {
