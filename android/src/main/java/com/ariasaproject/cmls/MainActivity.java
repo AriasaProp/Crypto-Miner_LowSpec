@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return true;
             }
-        }
+        };
         final Handler statusHandler = new Handler(Looper.getMainLooper(), statusHandlerCallback);
         updateThread = new Thread (new Runnable() {
             @Override
