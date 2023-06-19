@@ -219,8 +219,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         Thread.sleep(updateDelay);
                     } catch (InterruptedException e) {}
-                    if (MainActivity.this.mService.status.hasNew())
-                        statusHandler.sendEmptyMessage(0);
+                    statusHandler.sendEmptyMessage(0);
                 }
             }
         });
