@@ -58,7 +58,7 @@ public class MinerService extends Service {
     final Handler.Callback serviceHandlerCallback = new Handler.Callback () {
         @Override
         public boolean handleMessage(Message msg) {
-            synchronized (MinerService.this.status) {
+            synchronized (status) {
                 switch (msg.what) {
                 default:
                     break;
@@ -92,7 +92,7 @@ public class MinerService extends Service {
                     running = false;
                     break;
                 }
-                MinerService.this.status.notifyAll();
+                status.notifyAll();
                 
             }
             return true;
@@ -101,7 +101,9 @@ public class MinerService extends Service {
     Handler serviceHandler = new Handler(Looper.getMainLooper(), serviceHandlerCallback);
     // Binder given to clients
     private final LocalBinder mBinder = new LocalBinder();
-    public MinerService() {}
+    public MinerService() {
+        
+    }
     public void startMiner() {
         console = new Console(serviceHandler);
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);

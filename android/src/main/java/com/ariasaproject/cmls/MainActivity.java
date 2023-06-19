@@ -65,10 +65,8 @@ public class MainActivity extends AppCompatActivity {
     CheckBox cb_service;
     CheckBox cb_screen_awake;
 
-    int  baseThreadCount;
-
-    boolean mBound = false;
-    MinerService mService;
+    int baseThreadCount;
+    MinerService mService = null;
 
     public int curScreenPos=0;
 
@@ -77,12 +75,11 @@ public class MainActivity extends AppCompatActivity {
         public synchronized void onServiceConnected(ComponentName name, IBinder service) {
             MinerService.LocalBinder binder = (MinerService.LocalBinder) service;
             mService = binder.getService();
-            mBound=true;
             notifyAll();
         }
 
         public synchronized void onServiceDisconnected(ComponentName name) {
-            mBound=false;
+            mService = null;
             notifyAll();
         }
     };
@@ -196,24 +193,16 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 synchronized (mConnection){
                     try {
-                        while (!mBound) mConnection.wait();
+                        while (mService == null) mConnection.wait();
                     } catch (InterruptedException e) {}
                 }
-                while (mBound)	{
+                while (mService != null)	{
                     statusHandler.sendEmptyMessage(1);
                     if (!firstRunFlag && StartShutdown && !ShutdownStarted) {
                         ShutdownStarted = true;
-                        CpuMiningWorker worker = (CpuMiningWorker)MainActivity.this.mService.imw;
-                        long lastTime = System.currentTimeMillis();
-                        long currTime;
-                        while (worker.getThreadsStatus()) {
-                            currTime = System.currentTimeMillis();
-                            double deltaTime = (double)(currTime-lastTime)/1000.0;
-                            if (deltaTime>15.0) {
-                                worker.ConsoleWrite("Still cooling down...");
-                                lastTime = currTime;
-                            }
-                        }
+                        CpuMiningWorker worker = (CpuMiningWorker)mService.imw;
+                        worker.ConsoleWrite("Cooling down...");
+                        while (worker.getThreadsStatus()) Thread.sleep(10);
                         statusHandler.sendEmptyMessage(2);
                     }
                     try {
@@ -225,8 +214,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     public void StartStopMining(View v)  {
-       final Button b = (Button) v;
-       if (b.getText().equals(getString(R.string.status_button_start))){
+        if (mService == null) return;
+        final Button b = (Button) v;
+        if (b.getText().equals(getString(R.string.status_button_start))){
            StringBuilder sb= new StringBuilder();
            sb = new StringBuilder();
            String url = sb.append(et_serv.getText()).toString();
@@ -235,11 +225,11 @@ public class MainActivity extends AppCompatActivity {
            sb.setLength(0);
            String pass = sb.append(et_pass.getText()).toString();
            sb.setLength(0);
-    
+        
            Spinner threadList = (Spinner)findViewById(R.id.spinner1);
-    
+        
            int threads = Integer.parseInt(threadList.getSelectedItem().toString());
-    
+        
            SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
            SharedPreferences.Editor editor = settings.edit();
            settings = getSharedPreferences(PREF_TITLE, 0);
@@ -257,32 +247,28 @@ public class MainActivity extends AppCompatActivity {
            mService.startMiner();
            firstRunFlag = false;
            b.setText(getString(R.string.main_button_stop));
-       }
-       else{
+        } else{
            mService.stopMiner();
            StartShutdown = true;
            b.setText(getString(R.string.status_button_start));
-       }
-    }
-
-    public void setButton (boolean flag) {
-        Button btn = (Button) findViewById(R.id.status_button_startstop);
-        if (flag) {
-            btn.setEnabled(true);
-            btn.setClickable(true);
-        } else {
-            btn.setEnabled(false);
-            btn.setClickable(false);
         }
     }
+    
+    @Override
+    protected void onStart() {
+        Toast.makeText(this,"onStart",Toast.LENGTH_SHORT).show();
+    }
+    
     @Override
     protected void onResume() {
+        Toast.makeText(this,"onResume",Toast.LENGTH_SHORT).show();
         updateThread.start();
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         if (settings.getBoolean(PREF_BACKGROUND, DEFAULT_BACKGROUND)) {
             TextView tv_background = (TextView) findViewById(R.id.status_textView_background);
             tv_background.setText("RUN IN BACKGROUND");
         }
+        Toast.makeText(this,"Resumed",Toast.LENGTH_SHORT).show();
         super.onResume();
     }
 
@@ -300,7 +286,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(getApplicationContext(), MinerService.class);
             stopService(intent);
         }
-
         try {
             unbindService(mConnection);
         } catch (RuntimeException e) {}
