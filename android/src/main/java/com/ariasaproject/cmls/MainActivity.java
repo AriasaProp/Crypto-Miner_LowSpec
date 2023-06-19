@@ -202,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                         ShutdownStarted = true;
                         mService.console.write("Cooling down...");
                         try {
-                            while (worker.getThreadsStatus())
+                            while (mService.running)
                                 Thread.sleep(10);
                         } catch (InterruptedException e) {}
                         statusHandler.sendEmptyMessage(2);

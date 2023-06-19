@@ -127,12 +127,12 @@ public class MinerService extends Service {
     public void stopMiner() {
         console.write("Service: Stopping mining");
         Toast.makeText(this,"Worker cooling down, this can take a few minutes",Toast.LENGTH_LONG).show();
-        running=false;
         try {
             smc.stopMining();
         } catch (Exception e) {
             e.printStackTrace();
         }
+        running=false;
     }
 
     @Override
