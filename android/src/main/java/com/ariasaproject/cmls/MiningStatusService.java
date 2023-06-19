@@ -3,6 +3,9 @@ package com.ariasaproject.cmls;
 import java.lang.Object;
 import java.util.ArrayList;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 public class MiningStatusService extends Object{
     private static final DateFormat logDateFormat = new SimpleDateFormat("[HH:mm:ss] ");
     public static class ConsoleItem extends Object{
@@ -31,11 +34,10 @@ public class MiningStatusService extends Object{
         rejected = 0;
         new_status = false;
         status = "None";
-        new_console = false;
     }
     
     public synchronized boolean hasNew() {
-        return new_speed||new_accepted||new_rejected||new_status||new_console;
+        return new_speed||new_accepted||new_rejected||new_status||(!console.isEmpty());
     }
 }
 

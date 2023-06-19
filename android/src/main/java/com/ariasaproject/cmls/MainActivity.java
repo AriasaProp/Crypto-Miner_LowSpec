@@ -16,6 +16,7 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.LayoutInflater;
 import android.widget.ArrayAdapter;
@@ -28,6 +29,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.ariasaproject.cmls.MiningStatusService;
 import com.ariasaproject.cmls.MiningStatusService.ConsoleItem;
@@ -126,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         catch (Exception e){ }
         
         final RecyclerView consoleView = (RecyclerView)findViewById(R.id.console_view);
-        consoleView.setLayoutManager(new LinearLayoutManager(this));
+        consoleView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         consoleView.setAdapter(consoleAdapter);
         
         //ui update threads
@@ -310,15 +312,14 @@ public class MainActivity extends AppCompatActivity {
     
         public ConsoleAdapter() {}
     
-        @NonNull
         @Override
-        public ConsoleItemHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public ConsoleItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.console_item, parent, false);
             return new ConsoleItemHolder(itemView);
         }
     
         @Override
-        public void onBindViewHolder(@NonNull LogViewHolder holder, int position) {
+        public void onBindViewHolder(ConsoleItemHolder holder, int position) {
             ConsoleItem c = logList.get(position);
             holder.bindLog(c.time, c.msg);
         }

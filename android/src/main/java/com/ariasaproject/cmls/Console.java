@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.lang.Object;
 
