@@ -200,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
                         statusHandler.sendEmptyMessage(2);
                     }
                     try {
-                        sleep(updateDelay);
+                        Thread.sleep(updateDelay);
                     } catch (InterruptedException e) {}
                     statusHandler.sendEmptyMessage(0);
                 }
