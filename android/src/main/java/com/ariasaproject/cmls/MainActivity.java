@@ -138,30 +138,26 @@ public class MainActivity extends AppCompatActivity {
         cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
         cb_screen_awake.setChecked(DEFAULT_SCREEN);
         final SeekBar sb = (SeekBar)findViewById(R.id.threadSeek);
-        sb.setMax(1);
-        try {
-            int t = Runtime.getRuntime().availableProcessors();
-            final TextView sbT = (TextView)findViewById(R.id.thread_view);
-            sb.setMax(t);
-            sb.setProgress(settings.getInt(PREF_THREAD, 1)); //old
-            sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                int p = 1;
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    sbT.setText(String.valueOf(p = progress));
-                }
-            
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {}
-            
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-                    threads_use = p;
-                }
-            });
-        }
-        catch (Exception e){ }
+        int t = Runtime.getRuntime().availableProcessors();
+        final TextView sbT = (TextView)findViewById(R.id.thread_view);
+        sb.setMax(t);
+        thread_use = settings.getInt(PREF_THREAD, 1);
+        sb.setProgress(threads_use); //old
+        sbT.setText(String.format("%02d", threads_use));
+        sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                threads_use = progress;
+                sbT.setText(String.format("%02d", progress));
+            }
         
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+        
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+        //log Adapter
         final RecyclerView consoleView = (RecyclerView)findViewById(R.id.console_view);
         consoleView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         final RecyclerView.Adapter adpt = new RecyclerView.Adapter<ConsoleItemHolder>() {
@@ -277,6 +273,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (InterruptedException e) {}
             }
         });
+        updateThread.start();
     }
     public void StartStopMining(View v)  {
         if (mService == null) return;
@@ -315,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(!updateThread.isAlive()) updateThread.start();
+        if(!updateThread.isAlive()) 
     }
     
     @Override
@@ -343,11 +340,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        if(updateThread.isAlive()) { updateThread.interrupt(); }
-        try {
-            unbindService(mConnection);
-        } catch (RuntimeException e) {}
-
+        updateThread.interrupt();
         super.onStop();
     }
     @Override
