@@ -52,26 +52,23 @@ public class SingleMiningChief implements Observer {
     public IMiningWorker _worker;
     private EventListener _eventlistener;
 
-    public String status = STATUS_NOT_MINING;
+    public String status = "None";
 
     public class EventListener extends Observable implements IConnectionEvent,IWorkerEvent {
         private SingleMiningChief _parent;
         private int _number_of_accept;
         private int _number_of_all;
 
-        EventListener(SingleMiningChief i_parent)
-        {
+        EventListener(SingleMiningChief i_parent) {
             this._parent=i_parent;
             this.resetCounter();
         }
-        public void resetCounter()
-        {
+        public void resetCounter() {
             this._number_of_accept = this._number_of_all=0;
         }
 
         @Override
-        public void onNewWork(MiningWork i_work)
-        {
+        public void onNewWork(MiningWork i_work) {
             try {
                 console.write("New work detected!");
                 setChanged();
@@ -109,8 +106,7 @@ public class SingleMiningChief implements Observer {
         }
 
     }
-    public SingleMiningChief(IMiningConnection i_connection,IMiningWorker i_worker, Console cons, Handler h) throws Exception
-    {
+    public SingleMiningChief(IMiningConnection i_connection,IMiningWorker i_worker, Console cons, Handler h) throws Exception {
         status= STATUS_CONNECTING;
         speed=0.0f;
         mainHandler=h;
@@ -120,10 +116,8 @@ public class SingleMiningChief implements Observer {
         this._eventlistener=new EventListener(this);
         this._connection.addListener(this._eventlistener);
         this._worker.addListener(this._eventlistener);
-
     }
-    public void startMining() throws Exception
-    {
+    public void startMining() throws Exception {
         console.write("Miner: Starting worker thread, priority: "+priority);
         ((StratumMiningConnection)_connection).addObserver(this);
         ((CpuMiningWorker)_worker).addObserver(this);
@@ -135,11 +129,8 @@ public class SingleMiningChief implements Observer {
             }
         }
     }
-    public void stopMining() throws Exception
-    {
-        console.write("Miner: Worker stopping...");
-        console.write("Miner: Worker cooling down");
-        console.write("Miner: This can take a few minutes");
+    public void stopMining() throws Exception {
+        console.write("Miner Worker stopping... cooling down \nThis can take a few minutes");
         this._connection.disconnect();
         this._worker.stopWork();
         speed=0;

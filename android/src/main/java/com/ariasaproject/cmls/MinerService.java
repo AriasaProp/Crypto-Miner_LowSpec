@@ -1,6 +1,7 @@
 package com.ariasaproject.cmls;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -38,7 +39,6 @@ import static com.ariasaproject.cmls.Constants.PREF_THROTTLE;
 import static com.ariasaproject.cmls.Constants.PREF_TITLE;
 import static com.ariasaproject.cmls.Constants.PREF_URL;
 import static com.ariasaproject.cmls.Constants.PREF_USER;
-import static com.ariasaproject.cmls.Constants.STATUS_NOT_MINING;
 
 public class MinerService extends Service {
     public static final int MSG_TERMINATED = 1;
@@ -104,14 +104,9 @@ public class MinerService extends Service {
     public MinerService() {
         console = new Console(serviceHandler);
     }
-    public void startMiner() {
-        SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
-        String url, user, pass;
+    public void startMiner(String url, String user, String pass) {
         status.reSet();
         console.write("Service: Start mining");
-        url = settings.getString(PREF_URL, DEFAULT_URL);
-        user = settings.getString(PREF_USER, DEFAULT_USER);
-        pass = settings.getString(PREF_PASS, DEFAULT_PASS);
         try {
             mc = new StratumMiningConnection(url,user,pass);
             int nThread =  settings.getInt(PREF_THREAD, DEFAULT_THREAD);

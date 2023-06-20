@@ -23,7 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.Spinner;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,10 +51,7 @@ import java.util.ArrayList;
 
 import static android.R.id.edit;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
-import static com.ariasaproject.cmls.Constants.DEFAULT_BACKGROUND;
 import static com.ariasaproject.cmls.Constants.DEFAULT_SCREEN;
-import static com.ariasaproject.cmls.Constants.PREF_BACKGROUND;
-import static com.ariasaproject.cmls.Constants.PREF_NEWS_RUN_ONCE;
 import static com.ariasaproject.cmls.Constants.PREF_PASS;
 import static com.ariasaproject.cmls.Constants.PREF_SCREEN;
 import static com.ariasaproject.cmls.Constants.PREF_THREAD;
@@ -63,13 +60,13 @@ import static com.ariasaproject.cmls.Constants.PREF_URL;
 import static com.ariasaproject.cmls.Constants.PREF_USER;
 
 public class MainActivity extends AppCompatActivity {
+    final static String KEY_CONSOLE_ITEMS = "console";
     static {
       System.loadLibrary("ext");
     }
     EditText et_serv;
     EditText et_user;
     EditText et_pass;
-    CheckBox cb_service;
     CheckBox cb_screen_awake;
 
     int baseThreadCount;
@@ -78,13 +75,13 @@ public class MainActivity extends AppCompatActivity {
     public int curScreenPos=0;
 
     public ServiceConnection mConnection = new ServiceConnection() {
-
+        @Override
         public synchronized void onServiceConnected(ComponentName name, IBinder service) {
             MinerService.LocalBinder binder = (MinerService.LocalBinder) service;
             mService = binder.getService();
             notifyAll();
         }
-
+        @Override
         public synchronized void onServiceDisconnected(ComponentName name) {
             mService = null;
             notifyAll();
@@ -98,32 +95,49 @@ public class MainActivity extends AppCompatActivity {
     final DecimalFormat df = new DecimalFormat("#.##");
     private Thread updateThread;
     private final ConsoleAdapter consoleAdapter = new ConsoleAdapter();
-
+    private static final int MAX_LOG_COUNT = 25;
+    private final ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
+    
+    int threads_use = 1;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
         Intent intent = new Intent(getApplicationContext(), MinerService.class);
         startService(intent);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
+        if (savedInstanceState != null) {
+            logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
+        }
         et_serv = (EditText) findViewById(R.id.server_et);
         et_user = (EditText) findViewById((R.id.user_et));
         et_pass = (EditText) findViewById(R.id.password_et);
-        cb_service = (CheckBox) findViewById(R.id.settings_checkBox_background) ;
-        cb_service.setChecked(DEFAULT_BACKGROUND);
         cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
         cb_screen_awake.setChecked(DEFAULT_SCREEN);
+        final SeekBar sb = (SeekBar)findViewById(R.id.threadSeek);
+        sb.setMax(1);
         try {
             int t = Runtime.getRuntime().availableProcessors();
-            String[] threadsAvailable = new String[t];
-            for(int i = 0; i < t; i++) {
-                threadsAvailable[i] = Integer.toString(i+1);
-            }
-            ((Spinner)findViewById(R.id.spinner1)).setAdapter(new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, threadsAvailable));
+            final TextView sbT = (TextView)findViewById(R.id.thread_view);
+            sb.setMax(t);
+            sb.setProgress(1); //old
+            sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    sbT.setText(String.valueOf(progress));
+                }
+            
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {}
+            
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                    threads_use = progress;
+                }
+            });
         }
         catch (Exception e){ }
         
@@ -141,7 +155,13 @@ public class MainActivity extends AppCompatActivity {
                         synchronized (mService.status) {
                             if (!mService.status.console.isEmpty()) {
                                 consoleAdapter.addLog(mService.status.console);
+                                for (ConsoleItem c : mService.status.console) {
+                                    logList.add(0, c);
+                                }
+                                while (logList.size() > MAX_LOG_COUNT)
+                                    logList.remove(logList.size() - 1);
                                 mService.status.console.clear();
+                                consoleAdapter.notifyDataSetChanged();
                             }
                             if (mService.status.new_speed) {
                                 final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
@@ -216,10 +236,8 @@ public class MainActivity extends AppCompatActivity {
                         } catch (InterruptedException e) {}
                         statusHandler.sendEmptyMessage(2);
                     }
-                    try {
-                        Thread.sleep(updateDelay);
-                    } catch (InterruptedException e) {}
-                    statusHandler.sendEmptyMessage(0);
+                    if(mService.status.hasNew())
+                        statusHandler.sendEmptyMessage(0);
                 }
             }
         });
@@ -236,26 +254,19 @@ public class MainActivity extends AppCompatActivity {
            sb.setLength(0);
            String pass = sb.append(et_pass.getText()).toString();
            sb.setLength(0);
-        
-           Spinner threadList = (Spinner)findViewById(R.id.spinner1);
-        
-           int threads = Integer.parseInt(threadList.getSelectedItem().toString());
-        
-           SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
+           SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
            SharedPreferences.Editor editor = settings.edit();
-           settings = getSharedPreferences(PREF_TITLE, 0);
-           editor = settings.edit();
            editor.putString(PREF_URL, url);
            editor.putString(PREF_USER, user);
            editor.putString(PREF_PASS, pass);
-           editor.putInt(PREF_THREAD, threads);
-           editor.putBoolean(PREF_BACKGROUND, cb_service.isChecked());
+           editor.putInt(PREF_THREAD, threads_use);
            editor.putBoolean(PREF_SCREEN, cb_screen_awake.isChecked());
            editor.commit();
-           if(settings.getBoolean(PREF_SCREEN,DEFAULT_SCREEN )) {
+           
+           if(settings.getBoolean(PREF_SCREEN, DEFAULT_SCREEN)) {
                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
            }
-           mService.startMiner();
+           mService.startMiner(url, user, pass);
            firstRunFlag = false;
            b.setText(getString(R.string.main_button_stop));
         } else{
@@ -274,11 +285,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
-        if (settings.getBoolean(PREF_BACKGROUND, DEFAULT_BACKGROUND)) {
-            TextView tv_background = (TextView) findViewById(R.id.status_textView_background);
-            tv_background.setText("RUN IN BACKGROUND");
-        }
         super.onResume();
+    }
+    
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(KEY_CONSOLE_ITEMS, logList);
+    }
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null && savedInstanceState.containsKey(KEY_CONSOLE_ITEMS)) {
+            logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
+        }
     }
 
     @Override
@@ -289,12 +309,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         if(updateThread.isAlive()) { updateThread.interrupt(); }
-        SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
-        if(!settings.getBoolean(PREF_BACKGROUND,DEFAULT_BACKGROUND )) {
-            if (mService != null && mService.running == true) { mService.stopMiner(); }
-            Intent intent = new Intent(getApplicationContext(), MinerService.class);
-            stopService(intent);
-        }
         try {
             unbindService(mConnection);
         } catch (RuntimeException e) {}
@@ -307,9 +321,6 @@ public class MainActivity extends AppCompatActivity {
     }
     public native String callNative();
     public static class ConsoleAdapter extends RecyclerView.Adapter<ConsoleItemHolder> {
-        private static final int MAX_LOG_COUNT = 25;
-        private final ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
-    
         public ConsoleAdapter() {}
     
         @Override
@@ -327,15 +338,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public int getItemCount() {
             return logList.size();
-        }
-        
-        public void addLog(ArrayList<ConsoleItem> ac) {
-            for (ConsoleItem c : ac) {
-                logList.add(0, c);
-            }
-            while (logList.size() > MAX_LOG_COUNT)
-                logList.remove(logList.size() - 1);
-            notifyDataSetChanged();
         }
     }
     public static class ConsoleItemHolder extends RecyclerView.ViewHolder {

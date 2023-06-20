@@ -13,9 +13,7 @@ public class Constants {
     public static final String PREF_SERVICE = "SERVICE";
     public static final String PREF_TITLE="SETTINGS";
     public static final String PREF_PRIORITY="PRIORITY";
-    public static final String PREF_BACKGROUND="BACKGROUND";
     public static final String PREF_SCREEN="SCREEN_AWAKE";
-    public static final String PREF_NEWS_RUN_ONCE="NEWS_RUN_ONCE";
 
     public static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org:3333";
     public static final String DEFAULT_USER="Ariasa.test";
@@ -26,7 +24,6 @@ public class Constants {
     public static final long 	DEFAULT_SCANTIME=500;
     public static final long 	DEFAULT_RETRYPAUSE=500;
     public static final float 	DEFAULT_THROTTLE=1;
-    public static final boolean 	DEFAULT_BACKGROUND = false;
     public static final boolean 	DEFAULT_SCREEN = true;
 
     public static final String CLIENT_NAME_STRING="CMLS";

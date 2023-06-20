@@ -44,18 +44,31 @@
         android:layout_height="wrap_content"
         android:text="123" />
 
-    <TextView
-        android:id="@+id/thread_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Threads:" />
-
-    <Spinner
-        android:id="@+id/spinner1"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="1">
+        <TextView
+            android:id="@+id/thread_view"
+            android:layout_width="0"
+            android:layout_weight="0.2"
+            android:layout_height="wrap_content"
+            android:text="Threads: " />
+        <SeekBar
+            android:id="@+id/threadSeek"
+            android:min="1"
+            android:layout_width="0"
+            android:layout_weight="0.6"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/thread_view"
+            android:layout_width="0"
+            android:layout_weight="0.2"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="01" />
+    </LinearLayout>
 
     <TableLayout
         android:layout_width="fill_parent"
@@ -121,30 +134,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/holo_green_dark" />
-        </TableRow>
-    </TableLayout>
-
-    <TableLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
-        <TableRow
-            android:id="@+id/tableRow4"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content" >
-
-            <CheckBox
-                android:id="@+id/settings_checkBox_background"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="20dp"
-                android:text="@string/settings_service_lbl" />
-
-            <TextView
-                android:id="@+id/status_textView_background"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@android:color/holo_red_light" />
-
         </TableRow>
     </TableLayout>
     <TableLayout
