@@ -94,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
     
     final DecimalFormat df = new DecimalFormat("#.##");
     private Thread updateThread;
-    private final ConsoleAdapter consoleAdapter = new ConsoleAdapter();
     private static final int MAX_LOG_COUNT = 25;
     private final ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     
@@ -143,7 +142,23 @@ public class MainActivity extends AppCompatActivity {
         
         final RecyclerView consoleView = (RecyclerView)findViewById(R.id.console_view);
         consoleView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        consoleView.setAdapter(consoleAdapter);
+        consoleView.setAdapter(new RecyclerView.Adapter<ConsoleItemHolder>() {
+            final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+            @Override
+            public ConsoleItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View itemView = inflater.inflate(R.layout.console_item, parent, false);
+                return new ConsoleItemHolder(itemView);
+            }
+            @Override
+            public void onBindViewHolder(ConsoleItemHolder holder, int position) {
+                ConsoleItem c = logList.get(position);
+                holder.bindLog(c.time, c.msg);
+            }
+            @Override
+            public int getItemCount() {
+                return logList.size();
+            }
+        });
         
         //ui update threads
         final Handler.Callback statusHandlerCallback = new Handler.Callback() {
@@ -319,27 +334,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
     }
-    public native String callNative();
-    public static class ConsoleAdapter extends RecyclerView.Adapter<ConsoleItemHolder> {
-        public ConsoleAdapter() {}
-    
-        @Override
-        public ConsoleItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.console_item, parent, false);
-            return new ConsoleItemHolder(itemView);
-        }
-    
-        @Override
-        public void onBindViewHolder(ConsoleItemHolder holder, int position) {
-            ConsoleItem c = logList.get(position);
-            holder.bindLog(c.time, c.msg);
-        }
-    
-        @Override
-        public int getItemCount() {
-            return logList.size();
-        }
-    }
+    public native String callNative(); 
     public static class ConsoleItemHolder extends RecyclerView.ViewHolder {
         private TextView time;
         private TextView msg;
