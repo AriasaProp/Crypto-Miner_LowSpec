@@ -148,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
                 int p = 1;
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    sbT.setText(String.valueOf(p = progress));
                 }
             
                 @Override
@@ -155,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
             
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
-                    sbT.setText(String.valueOf(p = progress));
                     threads_use = p;
                 }
             });
