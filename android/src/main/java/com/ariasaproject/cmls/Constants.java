@@ -9,15 +9,9 @@ public class Constants {
     public static final String PREF_THROTTLE = "THROTTLE";
     public static final String PREF_SCANTIME = "SCANTIME";
     public static final String PREF_RETRYPAUSE = "RETRYPAUSE";
-    public static final String PREF_DONATE = "DONATE";
     public static final String PREF_SERVICE = "SERVICE";
-    public static final String PREF_TITLE="SETTINGS";
     public static final String PREF_PRIORITY="PRIORITY";
     public static final String PREF_SCREEN="SCREEN_AWAKE";
-
-    public static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org:3333";
-    public static final String DEFAULT_USER="Ariasa.test";
-    public static final String DEFAULT_PASS="123";
 
     public static final int 		DEFAULT_PRIORITY=1;
     public static final int 		DEFAULT_THREAD=1;

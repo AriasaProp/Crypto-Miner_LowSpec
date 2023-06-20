@@ -1,9 +1,7 @@
 package com.ariasaproject.cmls;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Binder;
 import android.os.Bundle;
@@ -20,25 +18,11 @@ import com.ariasaproject.cmls.connection.StratumMiningConnection;
 import com.ariasaproject.cmls.worker.CpuMiningWorker;
 import com.ariasaproject.cmls.worker.IMiningWorker;
 
-import static com.ariasaproject.cmls.Constants.DEFAULT_PASS;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
 import static com.ariasaproject.cmls.Constants.DEFAULT_RETRYPAUSE;
 import static com.ariasaproject.cmls.Constants.DEFAULT_SCANTIME;
 import static com.ariasaproject.cmls.Constants.DEFAULT_THREAD;
 import static com.ariasaproject.cmls.Constants.DEFAULT_THROTTLE;
-import static com.ariasaproject.cmls.Constants.DEFAULT_URL;
-import static com.ariasaproject.cmls.Constants.DEFAULT_USER;
-
-import static com.ariasaproject.cmls.Constants.PREF_DONATE;
-import static com.ariasaproject.cmls.Constants.PREF_PASS;
-import static com.ariasaproject.cmls.Constants.PREF_PRIORITY;
-import static com.ariasaproject.cmls.Constants.PREF_RETRYPAUSE;
-import static com.ariasaproject.cmls.Constants.PREF_SCANTIME;
-import static com.ariasaproject.cmls.Constants.PREF_THREAD;
-import static com.ariasaproject.cmls.Constants.PREF_THROTTLE;
-import static com.ariasaproject.cmls.Constants.PREF_TITLE;
-import static com.ariasaproject.cmls.Constants.PREF_URL;
-import static com.ariasaproject.cmls.Constants.PREF_USER;
 
 public class MinerService extends Service {
     public static final int MSG_TERMINATED = 1;

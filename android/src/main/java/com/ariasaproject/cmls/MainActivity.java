@@ -55,11 +55,28 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_SCREEN;
 import static com.ariasaproject.cmls.Constants.PREF_PASS;
 import static com.ariasaproject.cmls.Constants.PREF_SCREEN;
 import static com.ariasaproject.cmls.Constants.PREF_THREAD;
-import static com.ariasaproject.cmls.Constants.PREF_TITLE;
 import static com.ariasaproject.cmls.Constants.PREF_URL;
 import static com.ariasaproject.cmls.Constants.PREF_USER;
 
 public class MainActivity extends AppCompatActivity {
+    
+    static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org:3333";
+    static final String DEFAULT_USER="Ariasa.test";
+    static final String DEFAULT_PASS="123";
+    /*
+    static final String PREF_URL="URL";
+    static final String PREF_USER= "USER";
+    static final String PREF_PASS= "PASS";
+    static final String PREF_THREAD= "THREAD";
+    static final String PREF_THROTTLE = "THROTTLE";
+    static final String PREF_SCANTIME = "SCANTIME";
+    static final String PREF_RETRYPAUSE = "RETRYPAUSE";
+    static final String PREF_DONATE = "DONATE";
+    static final String PREF_SERVICE = "SERVICE";
+    static final String PREF_TITLE="SETTINGS";
+    static final String PREF_PRIORITY="PRIORITY";
+    static final String PREF_SCREEN="SCREEN_AWAKE";
+    */
     final static String KEY_CONSOLE_ITEMS = "console";
     static {
       System.loadLibrary("ext");
@@ -114,6 +131,10 @@ public class MainActivity extends AppCompatActivity {
         et_serv = (EditText) findViewById(R.id.server_et);
         et_user = (EditText) findViewById((R.id.user_et));
         et_pass = (EditText) findViewById(R.id.password_et);
+        SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
+        et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
+        et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
+        et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
         cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
         cb_screen_awake.setChecked(DEFAULT_SCREEN);
         final SeekBar sb = (SeekBar)findViewById(R.id.threadSeek);
@@ -122,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
             int t = Runtime.getRuntime().availableProcessors();
             final TextView sbT = (TextView)findViewById(R.id.thread_view);
             sb.setMax(t);
-            sb.setProgress(1); //old
+            sb.setProgress(settings.getInt(PREF_THREAD, 1)); //old
             sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 int p = 1;
                 @Override
@@ -282,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
            if(settings.getBoolean(PREF_SCREEN, DEFAULT_SCREEN)) {
                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
            }
-           mService.startMiner(url, user, pass);
+           mService.startMiner(url, user, pass, threads_use);
            firstRunFlag = false;
            b.setText(getString(R.string.main_button_stop));
         } else{
