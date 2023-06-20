@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
     final DecimalFormat df = new DecimalFormat("#.##");
     private Thread updateThread;
     private static final int MAX_LOG_COUNT = 25;
-    private final ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
+    private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     
     int threads_use = 1;
     
@@ -124,9 +124,10 @@ public class MainActivity extends AppCompatActivity {
             sb.setMax(t);
             sb.setProgress(1); //old
             sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                int p = 1;
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    sbT.setText(String.valueOf(progress));
+                    sbT.setText(String.valueOf(p = progress));
                 }
             
                 @Override
@@ -134,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
             
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
-                    threads_use = progress;
+                    threads_use = p;
                 }
             });
         }
@@ -142,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         
         final RecyclerView consoleView = (RecyclerView)findViewById(R.id.console_view);
         consoleView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        consoleView.setAdapter(new RecyclerView.Adapter<ConsoleItemHolder>() {
+        final RecyclerView.Adapter adpt = new RecyclerView.Adapter<ConsoleItemHolder>() {
             final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
             @Override
             public ConsoleItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -158,7 +159,8 @@ public class MainActivity extends AppCompatActivity {
             public int getItemCount() {
                 return logList.size();
             }
-        });
+        }
+        consoleView.setAdapter(adpt);
         
         //ui update threads
         final Handler.Callback statusHandlerCallback = new Handler.Callback() {
@@ -176,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
                                 while (logList.size() > MAX_LOG_COUNT)
                                     logList.remove(logList.size() - 1);
                                 mService.status.console.clear();
-                                consoleAdapter.notifyDataSetChanged();
+                                adpt.notifyDataSetChanged();
                             }
                             if (mService.status.new_speed) {
                                 final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
