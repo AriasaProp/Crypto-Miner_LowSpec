@@ -321,7 +321,6 @@ public class MainActivity extends AppCompatActivity {
     
     @Override
     protected void onResume() {
-        SharedPreferences settings = getSharedPreferences(PREF_TITLE, 0);
         super.onResume();
     }
     
