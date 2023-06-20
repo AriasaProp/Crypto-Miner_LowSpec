@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             notifyAll();
         }
     };
-    private static int updateDelay = 500;
+    private static int updateDelay = 400; // 0.4 sec
     public volatile  boolean firstRunFlag = true;
     public volatile  boolean ShutdownStarted = false;
     public volatile  boolean StartShutdown = false;
@@ -148,7 +148,6 @@ public class MainActivity extends AppCompatActivity {
                 int p = 1;
                 @Override
                 public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                    sbT.setText(String.valueOf(p = progress));
                 }
             
                 @Override
@@ -156,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
             
                 @Override
                 public void onStopTrackingTouch(SeekBar seekBar) {
+                    sbT.setText(String.valueOf(p = progress));
                     threads_use = p;
                 }
             });
@@ -257,25 +257,24 @@ public class MainActivity extends AppCompatActivity {
         updateThread = new Thread (new Runnable() {
             @Override
             public void run() {
-                synchronized (mConnection){
-                    try {
+                try {
+                    synchronized (mConnection){
                         while (mService == null) mConnection.wait();
-                    } catch (InterruptedException e) {}
-                }
-                while (mService != null)	{
-                    statusHandler.sendEmptyMessage(1);
-                    if (!firstRunFlag && StartShutdown && !ShutdownStarted) {
-                        ShutdownStarted = true;
-                        mService.console.write("Cooling down...");
-                        try {
+                    }
+                    while (mService != null)	{
+                        statusHandler.sendEmptyMessage(1);
+                        if (!firstRunFlag && StartShutdown && !ShutdownStarted) {
+                            ShutdownStarted = true;
+                            mService.console.write("Cooling down...");
                             while (mService.running)
                                 Thread.sleep(10);
-                        } catch (InterruptedException e) {}
-                        statusHandler.sendEmptyMessage(2);
+                            statusHandler.sendEmptyMessage(2);
+                        }
+                        Thread.sleep(updateDelay);
+                        if(mService.status.hasNew())
+                            statusHandler.sendEmptyMessage(0);
                     }
-                    if(mService.status.hasNew())
-                        statusHandler.sendEmptyMessage(0);
-                }
+                } catch (InterruptedException e) {}
             }
         });
     }
