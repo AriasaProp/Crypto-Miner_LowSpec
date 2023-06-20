@@ -40,7 +40,7 @@ public class MiningStatusService extends Object{
         }
         @Override
         public void writeToParcel(Parcel dest, int flags) {
-            dest.writeStringArray(new String[] { text1, text2 });
+            dest.writeStringArray(new String[] { time, msg });
         }
     }
     public boolean new_speed = false;

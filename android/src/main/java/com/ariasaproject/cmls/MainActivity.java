@@ -171,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
                     default: // ui update
                         synchronized (mService.status) {
                             if (!mService.status.console.isEmpty()) {
-                                consoleAdapter.addLog(mService.status.console);
                                 for (ConsoleItem c : mService.status.console) {
                                     logList.add(0, c);
                                 }
