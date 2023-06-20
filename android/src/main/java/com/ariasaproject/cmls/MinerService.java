@@ -104,12 +104,11 @@ public class MinerService extends Service {
     public MinerService() {
         console = new Console(serviceHandler);
     }
-    public void startMiner(String url, String user, String pass) {
+    public void startMiner(String url, String user, String pass, int nThread) {
         status.reSet();
         console.write("Service: Start mining");
         try {
             mc = new StratumMiningConnection(url,user,pass);
-            int nThread =  settings.getInt(PREF_THREAD, DEFAULT_THREAD);
             imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,console);
             smc = new SingleMiningChief(mc,imw,console,serviceHandler);
             smc.startMining();
