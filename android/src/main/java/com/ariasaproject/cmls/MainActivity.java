@@ -141,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
         int t = Runtime.getRuntime().availableProcessors();
         final TextView sbT = (TextView)findViewById(R.id.thread_view);
         sb.setMax(t);
-        thread_use = settings.getInt(PREF_THREAD, 1);
+        threads_use = settings.getInt(PREF_THREAD, 1);
         sb.setProgress(threads_use); //old
         sbT.setText(String.format("%02d", threads_use));
         sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
