@@ -55,11 +55,13 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                     for(long i=NUMBER_OF_ROUND-1;i>=0;i--){
                         byte[] hash = hasher.hash(work.header.refHex(), nonce);
                         for (int i2 = hash.length - 1; i2 >= 0; i2--) {
-                            if ((hash[i2] & 0xff) > (target[i2] & 0xff))
+                            if ((hash[i2] & 0xff) > (target[i2] & 0xff)) {
                                 break;
-                            if ((hash[i2] & 0xff) < (target[i2] & 0xff))
+                            }
+                            if ((hash[i2] & 0xff) < (target[i2] & 0xff)) {
                                 this._parent.invokeNonceFound(work,nonce);
                                 break;
+                            }
                         }
                         nonce += _step;
                     }
