@@ -48,6 +48,7 @@ import java.util.Date;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.ArrayList;
+import java.util.ArrayDeque;
 
 import static android.R.id.edit;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
@@ -308,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
     public native String callNative();
     public static class ConsoleAdapter extends RecyclerView.Adapter<ConsoleItemHolder> {
         private static final int MAX_LOG_COUNT = 25;
-        private final ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
+        private final ArrayDeque<ConsoleItem> logList = new ArrayDeque<ConsoleItem>(MAX_LOG_COUNT);
     
         public ConsoleAdapter() {}
     
@@ -331,11 +332,11 @@ public class MainActivity extends AppCompatActivity {
         
         public void addLog(ArrayList<ConsoleItem> ac) {
             for (ConsoleItem c : ac) {
-                logList.add(0, c);
-                notifyItemInserted(0);
+                logList.addFirst(c);
             }
             while (logList.size() > MAX_LOG_COUNT)
-                logList.remove(logList.size()-1);
+                logList.removeLast();
+            notifyDataSetChanged();
         }
     }
     public static class ConsoleItemHolder extends RecyclerView.ViewHolder {
