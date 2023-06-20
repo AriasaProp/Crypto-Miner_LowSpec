@@ -1,7 +1,5 @@
 package com.ariasaproject.cmls.worker;
 
-import android.util.Log;
-
 import com.ariasaproject.cmls.Console;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.hasher.Hasher;
@@ -20,46 +18,23 @@ import static com.ariasaproject.cmls.R.id.parent;
 import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.activeCount;
 
-public class CpuMiningWorker extends Observable implements IMiningWorker
-{
+public class CpuMiningWorker extends Observable implements IMiningWorker {
     private Console _console;
     private int _number_of_thread;
     private int _thread_priorirty;
-    //private ExecutorService _exec;
     private Worker[] _workr_thread;
     private long _retrypause;
-    private class EventList extends ArrayList<IWorkerEvent>
-    {
-        private static final long serialVersionUID = -4176908211058342478L;
-        void invokeNonceFound(MiningWork i_work, int i_nonce)
-        {
-            Log.i("CpuMiningWorker", "Nonce found! +"+((0xffffffffffffffffL)&i_nonce));
-            for(IWorkerEvent i: this){
-                i.onNonceFound(i_work,i_nonce);
-            }
-        }
-    }
-    private class Worker extends Thread implements Runnable
-    {
+    private class Worker extends Thread implements Runnable {
         CpuMiningWorker _parent;
 
         MiningWork _work;
         int _start;
         int _step;
         public long number_of_hashed;
-        public Worker(CpuMiningWorker i_parent)
-        {
+        public Worker(CpuMiningWorker i_parent) {
             this._parent=i_parent;
         }
-        /**
-         * nonce計算のパラメータを指定する。
-         * スレッドはi_startを起点にi_startづつnonceを増加させて計算する。
-         * @param i_work
-         * @param i_start
-         * @param i_step
-         */
-        public void setWork(MiningWork i_work,int i_start,int i_step)
-        {
+        public void setWork(MiningWork i_work,int i_start,int i_step) {
             this._work=i_work;
             this._start=i_start;
             this._step=i_step;
@@ -68,43 +43,28 @@ public class CpuMiningWorker extends Observable implements IMiningWorker
         public volatile boolean running = false;
 
         @Override
-        public void run()
-        {
-            //Log.i("CpuMiningWorker","run()");
+        public void run() {
             running = true;
-            //ここにハッシュ処理を書く
-            this.number_of_hashed=0;
+            number_of_hashed=0;
             try{
-                //初期nonceの決定
-                int nonce=this._start;
-                MiningWork work=this._work;
+                int nonce = _start;
+                MiningWork work = _work;
                 Hasher hasher = new Hasher();
-                //めんどくさいので計算は途中で止めない
-                byte[] target=work.target.refHex();
+                byte[] target = work.target.refHex();
                 while(true){
-                    //Log.i("CpuMiningWorker","run(), while loop");
                     for(long i=NUMBER_OF_ROUND-1;i>=0;i--){
                         byte[] hash = hasher.hash(work.header.refHex(), nonce);
-                        //nonceのチェック
                         for (int i2 = hash.length - 1; i2 >= 0; i2--) {
-                            //Log.i("for loop in while", "iteration: i2= " + i2 );
-                            if ((hash[i2] & 0xff) > (target[i2] & 0xff)){
-                                Log.i("hash[i2] & 0xff", "first condition, iteration: i= " + i + " i2= " + i2);
+                            if ((hash[i2] & 0xff) > (target[i2] & 0xff))
                                 break;
-                            }
-                            if ((hash[i2] & 0xff) < (target[i2] & 0xff)){
-                                //発見!
-                                Log.i("hash[i2] & 0xff", "second condition, iteration: i=" + i + " i2= " + i2);
-                                this._parent._as_listener.invokeNonceFound(work,nonce);
+                            if ((hash[i2] & 0xff) < (target[i2] & 0xff))
+                                this._parent.invokeNonceFound(work,nonce);
                                 break;
-                            }
                         }
-                        nonce+=this._step;
+                        nonce += _step;
                     }
                     this.number_of_hashed+=NUMBER_OF_ROUND;
-                    Log.i("number_of_hashed", "" + number_of_hashed);
                     Thread.sleep(10L);
-                    //running = false;
                 }
             } catch (GeneralSecurityException e){
                 e.printStackTrace();
@@ -116,42 +76,26 @@ public class CpuMiningWorker extends Observable implements IMiningWorker
                     e1.printStackTrace();
                 }
             } catch (InterruptedException e) {
-                //Shutdownのハンドリング
-                //running = false;
-                Log.d("CpuMiningWorker", "Thread killed. Hashes= "+this.number_of_hashed);
                 _console.write("Thread killed. #Hashes="+this.number_of_hashed);
                 calcSpeedPerThread(number_of_hashed);
                 _last_time=System.currentTimeMillis();
             }
         }
     }
-//    public CpuMiningWorker()
-//    {
-//        this(Runtime.getRuntime().availableProcessors(),DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,null);
-//    }
     public void calcSpeedPerThread(long numOfHashes) {
-        Log.i("calcSpeedHashes: = ", "" + numOfHashes);
         long curr_time =  System.currentTimeMillis();
         double delta_time = Math.max(1,curr_time-this._last_time)/1000.0;
-//        _last_time = curr_time;
-        Log.i("delta_time_double = ", "" + delta_time);
-        Log.i("calcSpeedPerThread","speed_calc_double= " + numOfHashes/delta_time);
-        double speed_calc = ((double)numOfHashes/delta_time);
-        Log.i("speed_calc = ", "" + speed_calc);
-        _speed=(double)speed_calc;
+        _speed = ((double)numOfHashes/delta_time);
         setChanged();
         notifyObservers(Notification.SPEED);
-
     }
 
-    public CpuMiningWorker(int i_number_of_thread , long retry_pause, int priority,Console console)
-    {
+    public CpuMiningWorker(int i_number_of_thread , long retry_pause, int priority,Console console) {
         _console = console;
         _thread_priorirty = priority;
         this._retrypause = retry_pause;
         this._number_of_thread=i_number_of_thread;
         this._workr_thread=new Worker[10];
-        //Threadの生成
         for(int i=this._number_of_thread-1;i>=0;i--){
             this._workr_thread[i]=new Worker(this);
         }
@@ -163,91 +107,62 @@ public class CpuMiningWorker extends Observable implements IMiningWorker
     private double _speed = 0;
 
     @Override
-    public boolean doWork(MiningWork i_work) throws Exception
-    {
-        Log.d("CpuMiningWorker","Start doWork");
+    public boolean doWork(MiningWork i_work) throws Exception {
         if(i_work!=null){
-        //if(this._exec!=null){
-            //実行中なら一度すべてのワークを停止
             this.stopWork();
             long hashes=0;
             for(int i=this._number_of_thread-1;i>=0;i--){
                 hashes+=this._workr_thread[i].number_of_hashed;
-//                Log.i("CpuMiningWorker","hashes: " + this._workr_thread[i].number_of_hashed);
             }
-            Log.i("CpuMiningWorker","Hashes: " + hashes);
-            //ハッシュレートの計算
             _num_hashed = hashes;
             _tot_hashed += _num_hashed;
             double delta_time = Math.max(1,System.currentTimeMillis()-this._last_time)/1000.0;
-            Log.i("delta_time = ", "" + delta_time);
-            double speed_calc =((double)_num_hashed/delta_time);
-            Log.i("speed_calc = ", "" + speed_calc);
-            _speed=speed_calc;
+            _speed = ((double)_num_hashed/delta_time);
             setChanged();
             notifyObservers(Notification.SPEED);
-            Log.i("CpuMiningWorker","Calculated "+ (_speed)+ " Hash/s");
-
         }
         this._last_time=System.currentTimeMillis();
-        //Executerの生成
-        //this._exec= Executors.newFixedThreadPool(this._number_of_thread);
-//        this._last_hashed = this._num_hashed;
         for(int i=this._number_of_thread-1;i>=0;i--){
             this._workr_thread[i] = null;
             System.gc();
             this._workr_thread[i]=new Worker(this);
         }
         for(int i=this._number_of_thread-1;i>=0;i--){
-            //Set Work:
             this._workr_thread[i].setWork(i_work,(int)i,this._number_of_thread);
-            // Set Priority:
             _workr_thread[i].setPriority(_thread_priorirty);
-            //Check if thread already started:
             if (_workr_thread[i].isAlive() == false) {
-                //Log.i("isAlive()", " = false, about to  _workr_thread[i].start();");
                 try {
                     _workr_thread[i].start();
                 } catch (IllegalThreadStateException e){
                     _workr_thread[i].interrupt();
                 }
             }
-//            if (!_workr_thread[i].running) {
-//                _workr_thread[i].start();
-//                //this._exec.execute(this._workr_thread[i]);
-//            }
         }
-
         return true;
     }
     @Override
     public void stopWork() throws Exception {
         for (Worker t : _workr_thread) {
             if (t != null) {
-                Log.i("LC", "Worker: Killing thread ID: " + t.getId());
                 _console.write("Worker: Killing thread ID: " + t.getId());
                 t.interrupt();
             }
         }
-        this._console.write("Worker: Threads killed");
+        _console.write("Worker: Threads killed");
     }
 
     @Override
-    public int getProgress()
-    {
+    public int getProgress() {
         return 0;
     }
 
     @Override
-    public long getNumberOfHash()
-    {
-        Log.i("CpuMiningWorker","getNumberOfHash() = " + _tot_hashed);
+    public long getNumberOfHash() {
         return _tot_hashed;
-        //return 0;
     }
 
     public double get_speed() {
-    return _speed;
+        return _speed;
     }
 
     public boolean getThreadsStatus() {
@@ -263,15 +178,14 @@ public class CpuMiningWorker extends Observable implements IMiningWorker
         _console.write(c);
     }
 
-
-    private EventList _as_listener=new EventList();
-
-    /**
-     * この関数は非同期コールスレッドと衝突するので{@link #doWork(MiningWork)}前に実行する事。
-     */
-    public void addListener(IWorkerEvent i_listener)
-    {
+    private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
+    public synchronized void invokeNonceFound(MiningWork i_work, int i_nonce) {
+        _console.write("Mining: Nonce found! +"+((0xffffffffffffffffL)&i_nonce));
+        for(IWorkerEvent i : _as_listener){
+            i.onNonceFound(i_work,i_nonce);
+        }
+    }
+    public synchronized void addListener(IWorkerEvent i_listener) {
         this._as_listener.add(i_listener);
-        return;
     }
 }
