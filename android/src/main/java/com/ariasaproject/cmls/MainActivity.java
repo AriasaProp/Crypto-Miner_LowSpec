@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
             public int getItemCount() {
                 return logList.size();
             }
-        }
+        };
         consoleView.setAdapter(adpt);
         
         //ui update threads
