@@ -33,10 +33,6 @@ import java.util.concurrent.TimeUnit;
 import static com.ariasaproject.cmls.Constants.CLIENT_NAME_STRING;
 import static com.ariasaproject.cmls.R.id.parent;
 
-/**
- * Created by Ben David on 01/08/2017.
- */
-
 public class StratumMiningConnection extends Observable implements IMiningConnection
 {
     private class SubmitOrder
@@ -52,10 +48,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         public final MiningWork work;
         public final int nonce;
     }
-    /**
-     * 非同期受信スレッド
-     *
-     */
     private class AsyncRxSocketThread extends Thread
     {
         private ArrayList<SubmitOrder> _submit_q=new ArrayList<SubmitOrder>();
@@ -66,18 +58,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             this._parent=i_parent;
             this._parent._sock.setSoTimeout(100);
         }
-        public void run()
-        {
-//            try {
-//                _parent._sock = new StratumSocket(_parent._server);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            try {
-//                this._parent._sock.setSoTimeout(100);
-//            } catch (SocketException e) {
-//                e.printStackTrace();
-//            }
+        public void run() {
             for(;;){
                 try {
                     StratumJson json=this._parent._sock.recvStratumJson();
@@ -93,15 +74,11 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e){
-                    //割り込みでスレッド終了
                     break;
                 }
             }
         }
 
-        /**
-         *JSON Parsing
-         */
         private void onJsonRx(StratumJson i_json)
         {
             Class<?> iid=i_json.getClass();
@@ -118,7 +95,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             }else if(iid==StratumJsonMethodShowMessage.class){
             }else if(iid==StratumJsonResultStandard.class)
             {
-                //submit_qを探索してsubmitIDと一致したらjson_qに入れないでコール
                 {
                     StratumJsonResultStandard sjson=(StratumJsonResultStandard)i_json;
                     SubmitOrder so=null;

@@ -6,18 +6,34 @@
     android:layout_height="fill_parent"
     tools:context="com.ariasaproject.cmls"
     android:orientation="vertical" >
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="LiteCoin Pool URL:" />
-
-    <EditText
-        android:id="@+id/server_et"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="stratum+tcp://us2.litecoinpool.org:3333" />
+        android:weightSum="1"
+        android:orientation="horizontal" >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="URL" />
+        <EditText
+            android:id="@+id/server_et"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.6"
+            android:text="stratum+tcp://us2.litecoinpool.org" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text=" : " />
+        <EditText
+            android:id="@+id/port_et"
+            android:layout_width="0dp"
+            android:layout_weight="0.2"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:text="3333" />
+    </LinearLayout>
+
 
     <TextView
         android:id="@+id/user_view"

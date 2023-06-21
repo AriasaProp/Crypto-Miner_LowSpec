@@ -60,13 +60,16 @@ import static com.ariasaproject.cmls.Constants.PREF_USER;
 
 public class MainActivity extends AppCompatActivity {
     
-    static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org:3333";
+    static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org";
+    static final int DEFAULT_PORT=3333;
     static final String DEFAULT_USER="Ariasa.test";
     static final String DEFAULT_PASS="123";
-    /*
+    
     static final String PREF_URL="URL";
+    static final String PREF_PORT="PORT";
     static final String PREF_USER= "USER";
     static final String PREF_PASS= "PASS";
+    /*
     static final String PREF_THREAD= "THREAD";
     static final String PREF_THROTTLE = "THROTTLE";
     static final String PREF_SCANTIME = "SCANTIME";
@@ -81,9 +84,7 @@ public class MainActivity extends AppCompatActivity {
     static {
       System.loadLibrary("ext");
     }
-    EditText et_serv;
-    EditText et_user;
-    EditText et_pass;
+    EditText et_serv, et_port, et_user, et_pass;
     CheckBox cb_screen_awake;
 
     int baseThreadCount;
@@ -129,10 +130,12 @@ public class MainActivity extends AppCompatActivity {
             logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
         }
         et_serv = (EditText) findViewById(R.id.server_et);
+        et_port = (EditText) findViewById(R.id.port_et);
         et_user = (EditText) findViewById((R.id.user_et));
         et_pass = (EditText) findViewById(R.id.password_et);
         SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
         et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
+        et_port.setText(String.valueOf(settings.getInt(PREF_PORT, DEFAULT_PORT)));
         et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
         et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
         cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
@@ -283,6 +286,8 @@ public class MainActivity extends AppCompatActivity {
            sb = new StringBuilder();
            String url = sb.append(et_serv.getText()).toString();
            sb.setLength(0);
+           int port = Integer.parseInt(et_port.getText().toString());
+           sb.setLength(0);
            String user = sb.append(et_user.getText()).toString();
            sb.setLength(0);
            String pass = sb.append(et_pass.getText()).toString();
@@ -290,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
            SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
            SharedPreferences.Editor editor = settings.edit();
            editor.putString(PREF_URL, url);
+           editor.putInt(PREF_PORT, port);
            editor.putString(PREF_USER, user);
            editor.putString(PREF_PASS, pass);
            editor.putInt(PREF_THREAD, threads_use);
@@ -299,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
            if(settings.getBoolean(PREF_SCREEN, DEFAULT_SCREEN)) {
                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
            }
-           mService.startMiner(url, user, pass, threads_use);
+           mService.startMiner(String.format("%s:%d", url, port), user, pass, threads_use);
            firstRunFlag = false;
            b.setText(getString(R.string.main_button_stop));
         } else{
