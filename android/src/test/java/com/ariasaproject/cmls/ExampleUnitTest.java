@@ -1,7 +1,9 @@
 package com.ariasaroject.cmls;
 
+/*
 import com.ariasaroject.cmls.HexArray;
 import com.ariasaroject.cmls.hasher.Hasher;
+*/
 import org.junit.Test;
 
 import static org.junit.Assert.*;
