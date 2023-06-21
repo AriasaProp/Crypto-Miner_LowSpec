@@ -51,12 +51,6 @@ import java.util.ArrayList;
 
 import static android.R.id.edit;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
-import static com.ariasaproject.cmls.Constants.DEFAULT_SCREEN;
-import static com.ariasaproject.cmls.Constants.PREF_PASS;
-import static com.ariasaproject.cmls.Constants.PREF_SCREEN;
-import static com.ariasaproject.cmls.Constants.PREF_THREAD;
-import static com.ariasaproject.cmls.Constants.PREF_URL;
-import static com.ariasaproject.cmls.Constants.PREF_USER;
 
 public class MainActivity extends AppCompatActivity {
     
@@ -64,13 +58,15 @@ public class MainActivity extends AppCompatActivity {
     static final int DEFAULT_PORT=3333;
     static final String DEFAULT_USER="Ariasa.test";
     static final String DEFAULT_PASS="123";
+    static final boolean DEFAULT_SCREEN = true;
     
     static final String PREF_URL="URL";
     static final String PREF_PORT="PORT";
     static final String PREF_USER= "USER";
     static final String PREF_PASS= "PASS";
-    /*
     static final String PREF_THREAD= "THREAD";
+    static final String PREF_SCREEN="SCREEN_AWAKE";
+    /*
     static final String PREF_THROTTLE = "THROTTLE";
     static final String PREF_SCANTIME = "SCANTIME";
     static final String PREF_RETRYPAUSE = "RETRYPAUSE";
@@ -78,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
     static final String PREF_SERVICE = "SERVICE";
     static final String PREF_TITLE="SETTINGS";
     static final String PREF_PRIORITY="PRIORITY";
-    static final String PREF_SCREEN="SCREEN_AWAKE";
     */
     final static String KEY_CONSOLE_ITEMS = "console";
     static {
