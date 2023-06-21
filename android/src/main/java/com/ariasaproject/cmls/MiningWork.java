@@ -1,9 +1,5 @@
 package com.ariasaproject.cmls;
 
-/**
- * Created by Ben David on 01/08/2017.
- */
-
 public class MiningWork
 {
     public final HexArray data;		//big endian
@@ -27,18 +23,11 @@ public class MiningWork
         this.header=new HexArray(headerByData(i_data.refHex()));
         return;
     }
-    public void dump()
-    {
+    public void dump() {
         System.out.println("data:"+this.data.getStr());
         System.out.println("target:"+this.target.getStr());
     }
-    /**
-     * This function makes submitdata from current work and nonce value.
-     * @param i_nonce
-     * @return
-     */
-    public String makeSubmitData(int i_nonce)
-    {
+    public String makeSubmitData(int i_nonce) {
         byte[] d = this.data.refHex().clone();
         d[79] = (byte) (i_nonce >>  0);
         d[78] = (byte) (i_nonce >>  8);

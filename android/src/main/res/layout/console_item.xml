@@ -10,10 +10,10 @@
         android:id="@+id/text1"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:gravity="center"/>
+        android:gravity="top"/>
     <TextView
         android:id="@+id/text2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center|left"/>
+        android:gravity="top|left"/>
 </LinearLayout>
