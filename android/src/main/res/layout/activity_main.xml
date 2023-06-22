@@ -12,20 +12,22 @@
         android:weightSum="1"
         android:orientation="horizontal" >
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:gravity="center"
             android:text="URL" />
         <EditText
             android:id="@+id/server_et"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.8"
-            android:ellipsize="end"
             android:maxLines="1"
+            android:inputType="textUri"
             android:text="stratum+tcp://us2.litecoinpool.org" />
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:gravity="center"
             android:text=" : " />
         <EditText
             android:id="@+id/port_et"
@@ -35,32 +37,38 @@
             android:inputType="number"
             android:text="3333" />
     </LinearLayout>
-
-
-    <TextView
-        android:id="@+id/user_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="User:" />
-
-    <EditText
-        android:id="@+id/user_et"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ariasa.test" />
-
-    <TextView
-        android:id="@+id/password_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Password:" />
-
-    <EditText
-        android:id="@+id/password_et"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="123" />
-
+        android:weightSum="1"
+        android:orientation="horizontal" >
+        <TextView
+            android:id="@+id/user_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="User " />
+        <EditText
+            android:id="@+id/user_et"
+            android:layout_width="0dp"
+            android:layout_weight="0.5"
+            android:layout_height="wrap_content"
+            android:text="Ariasa.test" />
+        <TextView
+            android:id="@+id/password_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="Pass " />
+        <EditText
+            android:id="@+id/password_et"
+            android:layout_width="0dp"
+            android:layout_weight="0.5"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:text="123" />
+    </LinearLayout>
+    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -68,7 +76,8 @@
         android:weightSum="1">
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
             android:text="Threads: " />
         <SeekBar
             android:id="@+id/threadSeek"
@@ -79,7 +88,7 @@
         <TextView
             android:id="@+id/thread_view"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:gravity="center"
             android:text="01" />
     </LinearLayout>
@@ -87,9 +96,7 @@
     <TableLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" >
-
         <TableRow
-            android:id="@+id/tableRow1"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" >
 
@@ -121,7 +128,6 @@
         </TableRow>
 
         <TableRow
-            android:id="@+id/tableRow2"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" >
 
@@ -171,8 +177,9 @@
         android:id="@+id/status_button_startstop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="StartStopMining"
-        android:text="Start Mining" />
+        android:clickable="false"
+        android:enabled="false"
+        android:text="Not Ready" />
     <TextView
         android:id="@+id/textView5"
         android:layout_width="wrap_content"
