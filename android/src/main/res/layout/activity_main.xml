@@ -179,7 +179,7 @@
         android:layout_height="wrap_content"
         android:clickable="false"
         android:enabled="false"
-        android:onclick="StartStopMining"
+        android:onClick="StartStopMining"
         android:text="Not Ready" />
     <TextView
         android:id="@+id/textView5"
