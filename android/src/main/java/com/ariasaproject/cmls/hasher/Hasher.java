@@ -120,7 +120,8 @@ public class Hasher {
             X[di + 14] += xs[14];
             X[di + 15] += xs[15];
         }
-        di = 16, xi = 0;
+        di = 16;
+        xi = 0;
         {
             xs[0] = (X[di +  0] ^= X[xi +  0]);
             xs[1] = (X[di +  1] ^= X[xi +  1]);
