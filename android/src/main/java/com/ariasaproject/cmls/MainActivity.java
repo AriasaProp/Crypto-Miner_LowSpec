@@ -70,9 +70,6 @@ public class MainActivity extends AppCompatActivity {
     static final String PREF_THROTTLE = "THROTTLE";
     static final String PREF_SCANTIME = "SCANTIME";
     static final String PREF_RETRYPAUSE = "RETRYPAUSE";
-    static final String PREF_DONATE = "DONATE";
-    static final String PREF_SERVICE = "SERVICE";
-    static final String PREF_TITLE="SETTINGS";
     static final String PREF_PRIORITY="PRIORITY";
     */
     final static String KEY_CONSOLE_ITEMS = "console";
@@ -80,12 +77,10 @@ public class MainActivity extends AppCompatActivity {
       System.loadLibrary("ext");
     }
     EditText et_serv, et_port, et_user, et_pass;
+    SeekBar sb_thread;
     CheckBox cb_screen_awake;
 
-    int baseThreadCount;
     MinerService mService = null;
-
-    public int curScreenPos=0;
 
     public ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -110,8 +105,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int MAX_LOG_COUNT = 25;
     private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     
-    int threads_use = 1;
-    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,27 +121,24 @@ public class MainActivity extends AppCompatActivity {
         et_port = (EditText) findViewById(R.id.port_et);
         et_user = (EditText) findViewById((R.id.user_et));
         et_pass = (EditText) findViewById(R.id.password_et);
+        sb_thread = (SeekBar)findViewById(R.id.threadSeek);
+        cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
         SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
         et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
         et_port.setText(String.valueOf(settings.getInt(PREF_PORT, DEFAULT_PORT)));
         et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
         et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
-        cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
         cb_screen_awake.setChecked(DEFAULT_SCREEN);
-        final SeekBar sb = (SeekBar)findViewById(R.id.threadSeek);
         int t = Runtime.getRuntime().availableProcessors();
         final TextView sbT = (TextView)findViewById(R.id.thread_view);
-        sb.setMax(t);
-        threads_use = settings.getInt(PREF_THREAD, 1);
-        sb.setProgress(threads_use); //old
-        sbT.setText(String.format("%02d", threads_use));
-        sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        sb_thread.setMax(t);
+        sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); //old
+        sbT.setText(String.format("%02d", sb.getProgress()));
+        sb_thread.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                threads_use = progress;
                 sbT.setText(String.format("%02d", progress));
             }
-        
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
         
@@ -293,14 +283,14 @@ public class MainActivity extends AppCompatActivity {
            editor.putInt(PREF_PORT, port);
            editor.putString(PREF_USER, user);
            editor.putString(PREF_PASS, pass);
-           editor.putInt(PREF_THREAD, threads_use);
+           editor.putInt(PREF_THREAD, sb_thread.getProgress());
            editor.putBoolean(PREF_SCREEN, cb_screen_awake.isChecked());
            editor.commit();
            
            if(settings.getBoolean(PREF_SCREEN, DEFAULT_SCREEN)) {
                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
            }
-           mService.startMiner(String.format("%s:%d", url, port), user, pass, threads_use);
+           mService.startMiner(String.format("%s:%d", url, port), user, pass, sb_thread.getProgress());
            firstRunFlag = false;
            b.setText(getString(R.string.main_button_stop));
         } else{
