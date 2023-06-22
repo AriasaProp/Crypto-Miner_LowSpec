@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
         et_user = (EditText) findViewById((R.id.user_et));
         et_pass = (EditText) findViewById(R.id.password_et);
         sb_thread = (SeekBar)findViewById(R.id.threadSeek);
+        final TextView thread_view = (TextView)findViewById(R.id.thread_view);
         cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
         SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
         et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
@@ -130,14 +131,13 @@ public class MainActivity extends AppCompatActivity {
         et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
         cb_screen_awake.setChecked(DEFAULT_SCREEN);
         int t = Runtime.getRuntime().availableProcessors();
-        final TextView sbT = (TextView)findViewById(R.id.thread_view);
         sb_thread.setMax(t);
         sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); //old
-        sbT.setText(String.format("%02d", sb.getProgress()));
+        thread_view.setText(String.format("%02d", sb_thread.getProgress()));
         sb_thread.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                sbT.setText(String.format("%02d", progress));
+                thread_view.setText(String.format("%02d", progress));
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {}
