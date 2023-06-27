@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
     
     private static final int MAX_LOG_COUNT = 25;
     private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
+    RecyclerView.Adapter adpt;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,13 +169,18 @@ public class MainActivity extends AppCompatActivity {
         et_pass = (EditText) findViewById(R.id.password_et);
         sb_thread = (SeekBar)findViewById(R.id.threadSeek);
         final TextView thread_view = (TextView)findViewById(R.id.thread_view);
-        cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake) ;
+        cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake);
         SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-        et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
-        et_port.setText(String.valueOf(settings.getInt(PREF_PORT, DEFAULT_PORT)));
-        et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
-        et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
-        cb_screen_awake.setChecked(DEFAULT_SCREEN);
+        if (settings.contains(PREF_URL))
+            et_serv.setText(settings.getString(PREF_URL, ""));
+        if (settings.contains(PREF_PORT))
+            et_port.setText(String.valueOf(settings.getInt(PREF_PORT, "0")));
+        if (settings.contains(PREF_USER))
+            et_user.setText(settings.getString(PREF_USER, ""));
+        if (settings.contains(PREF_PASS))
+            et_pass.setText(settings.getString(PREF_PASS, ""));
+        if (settings.contains(PREF_SCREEN))
+            cb_screen_awake.setChecked(settings.getBoolean(PREF_SCREEN, false));
         int t = Runtime.getRuntime().availableProcessors();
         sb_thread.setMax(t);
         sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); //old
@@ -193,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
         //log Adapter
         final RecyclerView consoleView = (RecyclerView)findViewById(R.id.console_view);
         consoleView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        final RecyclerView.Adapter adpt = new RecyclerView.Adapter<ConsoleItemHolder>() {
+        adpt = new RecyclerView.Adapter<ConsoleItemHolder>() {
             final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
             @Override
             public ConsoleItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -212,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
         };
         consoleView.setAdapter(adpt);
         
-        //ui update threads
     }
     final StringBuilder sb = new StringBuilder();
     void MiningStateUpdate(int state)  {
