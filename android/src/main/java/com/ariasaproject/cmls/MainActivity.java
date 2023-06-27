@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                             mService.status.new_rejected = false;
                         }
                         if (mService.status.new_status) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_status, 0, mService.status.status));
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_STATUS, 0, mService.status.status));
                             mService.status.new_status = false;
                         }
                     }
