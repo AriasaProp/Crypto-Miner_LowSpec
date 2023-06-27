@@ -96,7 +96,7 @@ public class MinerService extends Service {
     });
     // Binder given to clients
     private final LocalBinder mBinder = new LocalBinder();
-    public MinerService() {
+    public void onCreate() {
         console = new Console(serviceHandler);
     }
     @Override
@@ -126,6 +126,7 @@ public class MinerService extends Service {
     }
     @Override
     public void onDestroy() {
+        super.onDestroy();
         state = MINING_ONSTOP;
         console.write("Service: Stopping mining");
         Toast.makeText(this,"Worker cooling down, this can take a few minutes",Toast.LENGTH_LONG).show();

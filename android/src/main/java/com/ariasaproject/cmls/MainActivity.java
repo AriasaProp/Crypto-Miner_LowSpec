@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
     static final String PREF_RETRYPAUSE = "RETRYPAUSE";
     static final String PREF_PRIORITY="PRIORITY";
     */
-    final static String KEY_CONSOLE_ITEMS = "console";
+    final static String KEY_CONSOLE_ITEMS = "console_log";
     static {
       System.loadLibrary("ext");
     }
@@ -81,45 +81,47 @@ public class MainActivity extends AppCompatActivity {
     CheckBox cb_screen_awake;
 
     public ServiceConnection mConnection = new ServiceConnection() {
+        static final int MSG_STATUS = 1;
+        static final int STATUS_SPEED = 1;
+        static final int STATUS_ACCEPTED = 2;
+        static final int STATUS_REJECTED = 3;
+        static final int STATUS_STATUS = 4;
+        
+        static final int MSG_CONSOLE = 2;
+        
+        static final int MSG_STATE = 3;
+        
         MinerService mService = null;
         final String unit = " h/s";
         final DecimalFormat df = new DecimalFormat("#.##");
         final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
             switch (msg.what) {
-            default: // ui update
-                synchronized (mService.status) {
-                    if (!mService.status.console.isEmpty()) {
-                        for (ConsoleItem c : mService.status.console) {
-                            logList.add(0, c);
-                        }
-                        while (logList.size() > MAX_LOG_COUNT)
-                            logList.remove(logList.size() - 1);
-                        mService.status.console.clear();
-                        adpt.notifyDataSetChanged();
-                    }
-                    if (mService.status.new_speed) {
-                        final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
-                        tv_speed.setText(df.format(mService.status.speed)+unit);
-                        mService.status.new_speed = false;
-                    }
-                    if (mService.status.new_accepted) {
-                        final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
-                        txt_accepted.setText(String.valueOf(mService.status.accepted));
-                        mService.status.new_accepted = false;
-                    }
-                    if (mService.status.new_rejected) {
-                        final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
-                        txt_rejected.setText(String.valueOf(mService.status.rejected));
-                        mService.status.new_rejected = false;
-                    }
-                    if (mService.status.new_status) {
-                        final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
-                        txt_status.setText(mService.status.status);
-                        mService.status.new_status = false;
-                    }
+            default: break;
+            case MSG_STATUS: // status update
+                switch (msg.arg1) {
+                default: break;
+                case STATUS_SPEED:
+                    final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
+                    tv_speed.setText(df.format((float)msg.obj)+unit);
+                    break;
+                case STATUS_ACCEPTED:
+                    final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
+                    txt_accepted.setText(String.valueOf((long)msg.obj));
+                    break;
+                case STATUS_REJECTED:
+                    final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
+                    txt_rejected.setText(String.valueOf((long)msg.obj));
+                    break;
+                case STATUS_STATUS:
+                    final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
+                    txt_status.setText((String)msg.obj);
+                    break;
                 }
                 break;
-            case 1: // button mining update
+            case MSG_CONSOLE: // console update
+                adpt.notifyDataSetChanged();
+                break;
+            case MSG_STATE: // button mining update
                 MainActivity.this.MiningStateUpdate(mService.state);
                 break;
             }
@@ -128,10 +130,35 @@ public class MainActivity extends AppCompatActivity {
         final Thread updateThread = new Thread (() -> {
             try {
                 for (;;)	{
-                    statusHandler.sendEmptyMessage(1);
+                    statusHandler.sendEmptyMessage(MSG_STATE);
                     Thread.sleep(updateDelay);
-                    if(mService.status.hasNew())
-                        statusHandler.sendEmptyMessage(0);
+                    synchronized (mService.status) {
+                        if (!mService.status.console.isEmpty()) {
+                            for (ConsoleItem c : mService.status.console) {
+                                logList.add(0, c);
+                            }
+                            while (logList.size() > MAX_LOG_COUNT)
+                                logList.remove(logList.size() - 1);
+                            mService.status.console.clear();
+                            statusHandler.sendEmptyMessage(MSG_CONSOLE);
+                        }
+                        if (mService.status.new_speed) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_SPEED, 0, mService.status.speed));
+                            mService.status.new_speed = false;
+                        }
+                        if (mService.status.new_accepted) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_ACCEPTED, 0, mService.status.accepted));
+                            mService.status.new_accepted = false;
+                        }
+                        if (mService.status.new_rejected) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_REJECTED, 0, mService.status.rejected));
+                            mService.status.new_rejected = false;
+                        }
+                        if (mService.status.new_status) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_status, 0, mService.status.status));
+                            mService.status.new_status = false;
+                        }
+                    }
                 }
             } catch (InterruptedException e) {}
         });
@@ -151,7 +178,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int MAX_LOG_COUNT = 25;
     private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     RecyclerView.Adapter adpt;
-    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -215,7 +241,9 @@ public class MainActivity extends AppCompatActivity {
         
     }
     final StringBuilder sb = new StringBuilder();
+    int lastServiceState = -1;
     void MiningStateUpdate(int state)  {
+        if (state == lastServiceState) return;
         final Button b = (Button) findViewById(R.id.status_button_startstop);
         switch (state) {
         default: break;
@@ -276,6 +304,7 @@ public class MainActivity extends AppCompatActivity {
             b.setOnClickListener(null);
             break;
         }
+        lastServiceState = state;
     }
     
     @Override
