@@ -171,16 +171,11 @@ public class MainActivity extends AppCompatActivity {
         final TextView thread_view = (TextView)findViewById(R.id.thread_view);
         cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake);
         SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-        if (settings.contains(PREF_URL))
-            et_serv.setText(settings.getString(PREF_URL, ""));
-        if (settings.contains(PREF_PORT))
-            et_port.setText(String.valueOf(settings.getInt(PREF_PORT, "0")));
-        if (settings.contains(PREF_USER))
-            et_user.setText(settings.getString(PREF_USER, ""));
-        if (settings.contains(PREF_PASS))
-            et_pass.setText(settings.getString(PREF_PASS, ""));
-        if (settings.contains(PREF_SCREEN))
-            cb_screen_awake.setChecked(settings.getBoolean(PREF_SCREEN, false));
+        et_serv.setText(settings.getString(PREF_URL, ""));
+        et_port.setText(String.valueOf(settings.getInt(PREF_PORT, 0)));
+        et_user.setText(settings.getString(PREF_USER, ""));
+        et_pass.setText(settings.getString(PREF_PASS, ""));
+        cb_screen_awake.setChecked(settings.getBoolean(PREF_SCREEN, false));
         int t = Runtime.getRuntime().availableProcessors();
         sb_thread.setMax(t);
         sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); //old
