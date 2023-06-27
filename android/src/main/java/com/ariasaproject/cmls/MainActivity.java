@@ -31,6 +31,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import static com.ariasaproject.cmls.MinerService.MINING_NONE;
+import static com.ariasaproject.cmls.MinerService.MINING_ONSTART;
+import static com.ariasaproject.cmls.MinerService.MINING_RUNNING;
+import static com.ariasaproject.cmls.MinerService.MINING_ONSTOP;
+
 import com.ariasaproject.cmls.MiningStatusService;
 import com.ariasaproject.cmls.MiningStatusService.ConsoleItem;
 import com.ariasaproject.cmls.connection.IMiningConnection;
@@ -53,11 +58,6 @@ import static android.R.id.edit;
 import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
 
 public class MainActivity extends AppCompatActivity {
-    
-    static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org";
-    static final int DEFAULT_PORT=3333;
-    static final String DEFAULT_USER="Ariasa.test";
-    static final String DEFAULT_PASS="123";
     static final boolean DEFAULT_SCREEN = true;
     
     static final String PREF_URL="URL";
@@ -80,28 +80,74 @@ public class MainActivity extends AppCompatActivity {
     SeekBar sb_thread;
     CheckBox cb_screen_awake;
 
-    MinerService mService = null;
-
     public ServiceConnection mConnection = new ServiceConnection() {
+        MinerService mService = null;
+        final String unit = " h/s";
+        final DecimalFormat df = new DecimalFormat("#.##");
+        final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
+            switch (msg.what) {
+            default: // ui update
+                synchronized (mService.status) {
+                    if (!mService.status.console.isEmpty()) {
+                        for (ConsoleItem c : mService.status.console) {
+                            logList.add(0, c);
+                        }
+                        while (logList.size() > MAX_LOG_COUNT)
+                            logList.remove(logList.size() - 1);
+                        mService.status.console.clear();
+                        adpt.notifyDataSetChanged();
+                    }
+                    if (mService.status.new_speed) {
+                        final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
+                        tv_speed.setText(df.format(mService.status.speed)+unit);
+                        mService.status.new_speed = false;
+                    }
+                    if (mService.status.new_accepted) {
+                        final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
+                        txt_accepted.setText(String.valueOf(mService.status.accepted));
+                        mService.status.new_accepted = false;
+                    }
+                    if (mService.status.new_rejected) {
+                        final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
+                        txt_rejected.setText(String.valueOf(mService.status.rejected));
+                        mService.status.new_rejected = false;
+                    }
+                    if (mService.status.new_status) {
+                        final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
+                        txt_status.setText(mService.status.status);
+                        mService.status.new_status = false;
+                    }
+                }
+                break;
+            case 1: // button mining update
+                MainActivity.this.MiningStateUpdate(mService.state);
+                break;
+            }
+            return true;
+        });
+        final Thread updateThread = new Thread (() -> {
+            try {
+                for (;;)	{
+                    statusHandler.sendEmptyMessage(1);
+                    Thread.sleep(updateDelay);
+                    if(mService.status.hasNew())
+                        statusHandler.sendEmptyMessage(0);
+                }
+            } catch (InterruptedException e) {}
+        });
         @Override
-        public synchronized void onServiceConnected(ComponentName name, IBinder service) {
+        public void onServiceConnected(ComponentName name, IBinder service) {
             MinerService.LocalBinder binder = (MinerService.LocalBinder) service;
             mService = binder.getService();
-            notifyAll();
+            if (!updateThread.isAlive()) updateThread.start();
         }
         @Override
-        public synchronized void onServiceDisconnected(ComponentName name) {
-            mService = null;
-            notifyAll();
+        public void onServiceDisconnected(ComponentName name) {
+            updateThread.interrupt();
         }
     };
     private static int updateDelay = 400; // 0.4 sec
-    public volatile  boolean firstRunFlag = true;
-    public volatile  boolean ShutdownStarted = false;
-    public volatile  boolean StartShutdown = false;
     
-    final DecimalFormat df = new DecimalFormat("#.##");
-    private Thread updateThread;
     private static final int MAX_LOG_COUNT = 25;
     private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     
@@ -111,8 +157,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        Intent intent = new Intent(getApplicationContext(), MinerService.class);
-        startService(intent);
+        Intent intent = new Intent(this, MinerService.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         if (savedInstanceState != null) {
             logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
@@ -168,135 +213,68 @@ public class MainActivity extends AppCompatActivity {
         consoleView.setAdapter(adpt);
         
         //ui update threads
-        final Handler.Callback statusHandlerCallback = new Handler.Callback() {
-            final String unit = " h/s";
-            @Override
-            public boolean handleMessage(Message msg) {
-                switch (msg.what) {
-                    default: // ui update
-                        synchronized (mService.status) {
-                            if (!mService.status.console.isEmpty()) {
-                                for (ConsoleItem c : mService.status.console) {
-                                    logList.add(0, c);
-                                }
-                                while (logList.size() > MAX_LOG_COUNT)
-                                    logList.remove(logList.size() - 1);
-                                mService.status.console.clear();
-                                adpt.notifyDataSetChanged();
-                            }
-                            if (mService.status.new_speed) {
-                                final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
-                                tv_speed.setText(df.format(mService.status.speed)+unit);
-                                mService.status.new_speed = false;
-                            }
-                            if (mService.status.new_accepted) {
-                                final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
-                                txt_accepted.setText(String.valueOf(mService.status.accepted));
-                                mService.status.new_accepted = false;
-                            }
-                            if (mService.status.new_rejected) {
-                                final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
-                                txt_rejected.setText(String.valueOf(mService.status.rejected));
-                                mService.status.new_rejected = false;
-                            }
-                            if (mService.status.new_status) {
-                                final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
-                                txt_status.setText(mService.status.status);
-                                mService.status.new_status = false;
-                            }
-                        }
-                        break;
-                    case 1: {// button mining update
-                        final Button btn = (Button) findViewById(R.id.status_button_startstop);
-                        if(mService.running) {
-                            btn.setText(getString(R.string.main_button_stop));
-                            btn.setEnabled(true);
-                        } else {
-                            btn.setText(getString(R.string.main_button_start));
-                            if (firstRunFlag) {
-                                btn.setEnabled(true);
-                                btn.setClickable(true);
-                            } else if (StartShutdown) {
-                                btn.setEnabled(false);
-                                btn.setClickable(false);
-                            }
-                        }
-                        break;
-                    }
-                    case 2: {// button mining after Shutdown
-                        final Button btn = (Button) findViewById(R.id.status_button_startstop);
-                        btn.setEnabled(true);
-                        btn.setClickable(true);
-                        ShutdownStarted = false;
-                        StartShutdown = false;
-                        firstRunFlag = true;
-                        Toast.makeText(MainActivity.this,"Cooldown finished",Toast.LENGTH_SHORT).show();
-                        break;
-                    }
-                }
-                return true;
-            }
-        };
-        final Handler statusHandler = new Handler(Looper.getMainLooper(), statusHandlerCallback);
-        updateThread = new Thread (new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    synchronized (mConnection){
-                        while (mService == null) mConnection.wait();
-                    }
-                    while (mService != null)	{
-                        statusHandler.sendEmptyMessage(1);
-                        if (!firstRunFlag && StartShutdown && !ShutdownStarted) {
-                            ShutdownStarted = true;
-                            mService.console.write("Cooling down...");
-                            while (mService.running)
-                                Thread.sleep(10);
-                            statusHandler.sendEmptyMessage(2);
-                        }
-                        Thread.sleep(updateDelay);
-                        if(mService.status.hasNew())
-                            statusHandler.sendEmptyMessage(0);
-                    }
-                } catch (InterruptedException e) {}
-            }
-        });
-        updateThread.start();
     }
-    public void StartStopMining(View v)  {
-        if (mService == null) return;
-        final Button b = (Button) v;
-        if (b.getText().equals(getString(R.string.status_button_start))){
-           StringBuilder sb= new StringBuilder();
-           sb = new StringBuilder();
-           String url = sb.append(et_serv.getText()).toString();
-           sb.setLength(0);
-           int port = Integer.parseInt(et_port.getText().toString());
-           sb.setLength(0);
-           String user = sb.append(et_user.getText()).toString();
-           sb.setLength(0);
-           String pass = sb.append(et_pass.getText()).toString();
-           sb.setLength(0);
-           SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-           SharedPreferences.Editor editor = settings.edit();
-           editor.putString(PREF_URL, url);
-           editor.putInt(PREF_PORT, port);
-           editor.putString(PREF_USER, user);
-           editor.putString(PREF_PASS, pass);
-           editor.putInt(PREF_THREAD, sb_thread.getProgress());
-           editor.putBoolean(PREF_SCREEN, cb_screen_awake.isChecked());
-           editor.commit();
-           
-           if(settings.getBoolean(PREF_SCREEN, DEFAULT_SCREEN)) {
-               getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-           }
-           mService.startMiner(String.format("%s:%d", url, port), user, pass, sb_thread.getProgress());
-           firstRunFlag = false;
-           b.setText(getString(R.string.main_button_stop));
-        } else{
-           mService.stopMiner();
-           StartShutdown = true;
-           b.setText(getString(R.string.status_button_start));
+    final StringBuilder sb = new StringBuilder();
+    void MiningStateUpdate(int state)  {
+        final Button b = (Button) findViewById(R.id.status_button_startstop);
+        switch (state) {
+        default: break;
+        case MINING_NONE:
+            b.setText(getString(R.string.main_button_start));
+            b.setEnabled(true);
+            b.setClickable(true);
+            b.setOnClickListener(v -> {
+               String url = sb.append(et_serv.getText()).toString();
+               sb.setLength(0);
+               int port = Integer.parseInt(et_port.getText().toString());
+               sb.setLength(0);
+               String user = sb.append(et_user.getText()).toString();
+               sb.setLength(0);
+               String pass = sb.append(et_pass.getText()).toString();
+               sb.setLength(0);
+               SharedPreferences settings = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
+               SharedPreferences.Editor editor = settings.edit();
+               editor.putString(PREF_URL, url);
+               editor.putInt(PREF_PORT, port);
+               editor.putString(PREF_USER, user);
+               editor.putString(PREF_PASS, pass);
+               editor.putInt(PREF_THREAD, sb_thread.getProgress());
+               editor.putBoolean(PREF_SCREEN, cb_screen_awake.isChecked());
+               editor.commit();
+               
+               if(settings.getBoolean(PREF_SCREEN, DEFAULT_SCREEN)) {
+                   MainActivity.this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+               }
+               Intent intent = new Intent(MainActivity.this, MinerService.class);
+               intent.putExtra(PREF_URL, url);
+               intent.putExtra(PREF_PORT, port);
+               intent.putExtra(PREF_USER, user);
+               intent.putExtra(PREF_PASS, pass);
+               intent.putExtra(PREF_THREAD, sb_thread.getProgress());
+               startService(intent);
+            });
+            break;
+        case MINING_ONSTART:
+            b.setText(getString(R.string.main_button_onstart));
+            b.setEnabled(false);
+            b.setClickable(false);
+            b.setOnClickListener(null);
+            break;
+        case MINING_RUNNING:
+            b.setEnabled(true);
+            b.setClickable(true);
+            b.setText(getString(R.string.main_button_stop));
+            b.setOnClickListener(v -> {
+                Intent intent = new Intent(MainActivity.this, MinerService.class);
+                stopService(intent);
+            });
+            break;
+        case MINING_ONSTOP:
+            b.setText(getString(R.string.main_button_onstop));
+            b.setEnabled(false);
+            b.setClickable(false);
+            b.setOnClickListener(null);
+            break;
         }
     }
     
@@ -330,7 +308,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        updateThread.interrupt();
         super.onStop();
     }
     @Override
