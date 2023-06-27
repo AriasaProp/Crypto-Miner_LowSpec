@@ -53,7 +53,7 @@ public class MinerService extends Service {
     IMiningConnection mc;
     IMiningWorker imw;
     SingleMiningChief smc;
-    public final Console console;
+    public Console console;
     int state = MINING_NONE;
     public final MiningStatusService status = new MiningStatusService();
     Handler serviceHandler = new Handler(Looper.getMainLooper(), (msg) -> {
