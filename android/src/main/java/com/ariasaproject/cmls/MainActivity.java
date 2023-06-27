@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     SeekBar sb_thread;
     CheckBox cb_screen_awake;
 
-    public ServiceConnection mConnection = new ServiceConnection() {
+    public ServiceConnection sc = new ServiceConnection() {
         static final int MSG_STATUS = 1;
         static final int STATUS_SPEED = 1;
         static final int STATUS_ACCEPTED = 2;
@@ -184,8 +184,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        Intent intent = new Intent(this, MinerService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        boolean serviceWasRunning = false;
+        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (MinerService.class.getName().equals(service.service.getClassName())) {
+                serviceWasRunning = true;
+                break;
+            }
+        }
+        if (serviceWasRunning) {
+            Intent intent = new Intent(this, MinerService.class);
+            bindService(intent, sc, Context.BIND_AUTO_CREATE);
+            startService(intent);
+        }
+        
         if (savedInstanceState != null) {
             logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
         }
@@ -252,34 +264,29 @@ public class MainActivity extends AppCompatActivity {
             b.setEnabled(true);
             b.setClickable(true);
             b.setOnClickListener(v -> {
-               String url = sb.append(et_serv.getText()).toString();
-               sb.setLength(0);
-               int port = Integer.parseInt(et_port.getText().toString());
-               sb.setLength(0);
-               String user = sb.append(et_user.getText()).toString();
-               sb.setLength(0);
-               String pass = sb.append(et_pass.getText()).toString();
-               sb.setLength(0);
-               SharedPreferences settings = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
-               SharedPreferences.Editor editor = settings.edit();
-               editor.putString(PREF_URL, url);
-               editor.putInt(PREF_PORT, port);
-               editor.putString(PREF_USER, user);
-               editor.putString(PREF_PASS, pass);
-               editor.putInt(PREF_THREAD, sb_thread.getProgress());
-               editor.putBoolean(PREF_SCREEN, cb_screen_awake.isChecked());
-               editor.commit();
-               
-               if(settings.getBoolean(PREF_SCREEN, DEFAULT_SCREEN)) {
+                mService.state = MINING_ONSTART;
+                String url = sb.append(et_serv.getText()).toString();
+                sb.setLength(0);
+                int port = Integer.parseInt(et_port.getText().toString());
+                sb.setLength(0);
+                String user = sb.append(et_user.getText()).toString();
+                sb.setLength(0);
+                String pass = sb.append(et_pass.getText()).toString();
+                sb.setLength(0);
+                SharedPreferences settings = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(PREF_URL, url);
+                editor.putInt(PREF_PORT, port);
+                editor.putString(PREF_USER, user);
+                editor.putString(PREF_PASS, pass);
+                editor.putInt(PREF_THREAD, sb_thread.getProgress());
+                editor.putBoolean(PREF_SCREEN, cb_screen_awake.isChecked());
+                editor.commit();
+                
+                if(settings.getBoolean(PREF_SCREEN, DEFAULT_SCREEN)) {
                    MainActivity.this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-               }
-               Intent intent = new Intent(MainActivity.this, MinerService.class);
-               intent.putExtra(PREF_URL, url);
-               intent.putExtra(PREF_PORT, port);
-               intent.putExtra(PREF_USER, user);
-               intent.putExtra(PREF_PASS, pass);
-               intent.putExtra(PREF_THREAD, sb_thread.getProgress());
-               startService(intent);
+                }
+                mService.startMining(url,port,user,pass, sb_thread.getProgress());
             });
             break;
         case MINING_ONSTART:
@@ -293,8 +300,8 @@ public class MainActivity extends AppCompatActivity {
             b.setClickable(true);
             b.setText(getString(R.string.main_button_stop));
             b.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, MinerService.class);
-                stopService(intent);
+                mService.state = MINING_ONSTOP;
+                mService.stopMining();
             });
             break;
         case MINING_ONSTOP:
@@ -342,6 +349,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (isFinishing()) {
+            unbindService(sc);
+            stopService(new Intent(this, MinerService.class));
+        }
     }
     public native String callNative(); 
     public static class ConsoleItemHolder extends RecyclerView.ViewHolder {

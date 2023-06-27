@@ -87,7 +87,8 @@ public class MinerService extends Service {
                 }
                 break;
             case MSG_TERMINATED:
-                stopSelf();
+                state = MINING_ONSTOP;
+                stopMining();
                 break;
             }
             status.notifyAll();
@@ -101,17 +102,12 @@ public class MinerService extends Service {
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        state = MINING_ONSTART;
+        return START_STICKY;
+    }
+    public void startMining(String url, int port, String user, String pass, int nThread) {
+        if (smc != null) stopMining();
         status.reSet();
         console.write("Service: Start mining");
-        String url = intent.getStringExtra(PREF_URL);
-        if (url==null || url.isEmpty()) url = DEFAULT_URL;
-        int port = intent.getIntExtra(PREF_PORT, DEFAULT_PORT);
-        String user = intent.getStringExtra(PREF_USER);
-        if (user==null || user.isEmpty()) user = DEFAULT_USER;
-        String pass = intent.getStringExtra(PREF_PASS);
-        if (pass==null || pass.isEmpty()) pass = DEFAULT_PASS;
-        int nThread = intent.getIntExtra(PREF_THREAD, 1);
         try {
             mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
             imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,console);
@@ -120,14 +116,12 @@ public class MinerService extends Service {
             state = MINING_RUNNING;
         } catch (Exception e) {
             e.printStackTrace();
-            stopSelf();
+            state = MINING_ONSTOP;
+            stopMining();
         }
-        return START_STICKY;
     }
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        state = MINING_ONSTOP;
+    public void stopMining() {
+        if (smc == null) return;
         console.write("Service: Stopping mining");
         Toast.makeText(this,"Worker cooling down, this can take a few minutes",Toast.LENGTH_LONG).show();
         try {
@@ -137,6 +131,10 @@ public class MinerService extends Service {
             e.printStackTrace();
         }
         state = MINING_NONE;
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
