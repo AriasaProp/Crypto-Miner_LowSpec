@@ -1,5 +1,6 @@
 package com.ariasaproject.cmls;
 
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
