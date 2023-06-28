@@ -98,6 +98,12 @@ public class MainActivity extends AppCompatActivity {
     
     static final int MSG_STATE = 3;
     
+    private static int updateDelay = 400; // 0.4 sec
+    
+    private static final int MAX_LOG_COUNT = 25;
+    private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
+    RecyclerView.Adapter adpt;
+    
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
     final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
@@ -125,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             }
             break;
         case MSG_CONSOLE: // console update
-            adpt.notifyDataSetChanged();
+            MainActivity.this.adpt.notifyDataSetChanged();
             break;
         case MSG_STATE: // button mining update
             MainActivity.this.MiningStateUpdate(mService.state);
@@ -181,11 +187,6 @@ public class MainActivity extends AppCompatActivity {
             updateThread.interrupt();
         }
     };
-    private static int updateDelay = 400; // 0.4 sec
-    
-    private static final int MAX_LOG_COUNT = 25;
-    private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
-    RecyclerView.Adapter adpt;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
