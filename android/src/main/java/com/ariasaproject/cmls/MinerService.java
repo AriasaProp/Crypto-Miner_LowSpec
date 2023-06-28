@@ -112,7 +112,11 @@ public class MinerService extends Service implements Handler.Callback{
     }
     public void startMining(String url, int port, String user, String pass, int nThread) {
         es.execute(() -> {
-            if (smc != null) smc.stopMining();
+            if (smc != null) {
+                try {
+                    smc.stopMining();
+                } catch (Exception e) {}
+            }
             status.reSet();
             console.write("Service: Start mining");
             try {
