@@ -53,6 +53,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.List;
 import java.util.ArrayList;
 
 import static android.R.id.edit;
@@ -88,53 +89,52 @@ public class MainActivity extends AppCompatActivity {
     CheckBox cb_screen_awake;
 
     MinerService mService = null;
-    public ServiceConnection sc = new ServiceConnection() {
-        static final int MSG_STATUS = 1;
-        static final int STATUS_SPEED = 1;
-        static final int STATUS_ACCEPTED = 2;
-        static final int STATUS_REJECTED = 3;
-        static final int STATUS_STATUS = 4;
-        
-        static final int MSG_CONSOLE = 2;
-        
-        static final int MSG_STATE = 3;
-        
-        final String unit = " h/s";
-        final DecimalFormat df = new DecimalFormat("#.##");
-        final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
-            switch (msg.what) {
+    static final int MSG_STATUS = 1;
+    static final int STATUS_SPEED = 1;
+    static final int STATUS_ACCEPTED = 2;
+    static final int STATUS_REJECTED = 3;
+    static final int STATUS_STATUS = 4;
+    
+    static final int MSG_CONSOLE = 2;
+    
+    static final int MSG_STATE = 3;
+    
+    final String unit = " hash/sec";
+    final DecimalFormat df = new DecimalFormat("#.##");
+    final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
+        switch (msg.what) {
+        default: break;
+        case MSG_STATUS: // status update
+            switch (msg.arg1) {
             default: break;
-            case MSG_STATUS: // status update
-                switch (msg.arg1) {
-                default: break;
-                case STATUS_SPEED:
-                    final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
-                    tv_speed.setText(df.format((float)msg.obj)+unit);
-                    break;
-                case STATUS_ACCEPTED:
-                    final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
-                    txt_accepted.setText(String.valueOf((long)msg.obj));
-                    break;
-                case STATUS_REJECTED:
-                    final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
-                    txt_rejected.setText(String.valueOf((long)msg.obj));
-                    break;
-                case STATUS_STATUS:
-                    final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
-                    txt_status.setText((String)msg.obj);
-                    break;
-                }
+            case STATUS_SPEED:
+                final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
+                tv_speed.setText(df.format((float)msg.obj)+unit);
                 break;
-            case MSG_CONSOLE: // console update
-                adpt.notifyDataSetChanged();
+            case STATUS_ACCEPTED:
+                final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
+                txt_accepted.setText(String.valueOf((long)msg.obj));
                 break;
-            case MSG_STATE: // button mining update
-                MainActivity.this.MiningStateUpdate(mService.state);
+            case STATUS_REJECTED:
+                final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
+                txt_rejected.setText(String.valueOf((long)msg.obj));
+                break;
+            case STATUS_STATUS:
+                final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
+                txt_status.setText((String)msg.obj);
                 break;
             }
-            return true;
-        });
-        final Thread updateThread = new Thread (() -> {
+            break;
+        case MSG_CONSOLE: // console update
+            adpt.notifyDataSetChanged();
+            break;
+        case MSG_STATE: // button mining update
+            MainActivity.this.MiningStateUpdate(mService.state);
+            break;
+        }
+        return true;
+    });
+    final Thread updateThread = new Thread (() -> {
             try {
                 for (;;)	{
                     synchronized (mService) {
@@ -170,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             } catch (InterruptedException e) {}
         });
+    public ServiceConnection sc = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MinerService.LocalBinder binder = (MinerService.LocalBinder) service;
@@ -184,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
     private static int updateDelay = 400; // 0.4 sec
     
     private static final int MAX_LOG_COUNT = 25;
-    private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
+    private List<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     RecyclerView.Adapter adpt;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -213,7 +214,6 @@ public class MainActivity extends AppCompatActivity {
         et_user = (EditText) findViewById((R.id.user_et));
         et_pass = (EditText) findViewById(R.id.password_et);
         sb_thread = (SeekBar)findViewById(R.id.threadSeek);
-        final TextView thread_view = (TextView)findViewById(R.id.thread_view);
         cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake);
         SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
         et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
@@ -224,8 +224,7 @@ public class MainActivity extends AppCompatActivity {
         int t = Runtime.getRuntime().availableProcessors();
         if (t < 1) t = 1;
         sb_thread.setMax(t);
-        sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); //old
-        thread_view.setText(String.format("%02d", sb_thread.getProgress()));
+        final TextView thread_view = (TextView)findViewById(R.id.thread_view);
         sb_thread.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -237,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
+        sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); //old
         //log Adapter
         final RecyclerView consoleView = (RecyclerView)findViewById(R.id.console_view);
         consoleView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -258,19 +258,16 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         consoleView.setAdapter(adpt);
-        
     }
     final StringBuilder sb = new StringBuilder();
-    int lastServiceState = -1;
+    //int lastServiceState = -1;
     void MiningStateUpdate(int state)  {
-        if (state == lastServiceState) return;
+        //if (state == lastServiceState) return;
         final Button b = (Button) findViewById(R.id.status_button_startstop);
         switch (state) {
         default: break;
         case MINING_NONE:
             b.setText(getString(R.string.main_button_start));
-            b.setEnabled(true);
-            b.setClickable(true);
             b.setOnClickListener(v -> {
                 mService.changedState(MINING_ONSTART);
                 String url = sb.append(et_serv.getText()).toString();
@@ -296,30 +293,36 @@ public class MainActivity extends AppCompatActivity {
                 }
                 mService.startMining(url,port,user,pass, sb_thread.getProgress());
             });
+            b.setEnabled(true);
+            b.setClickable(true);
+            ((TextView) findViewById(R.id.status_textView_speed)).setText("0 hash/sec");
+            ((TextView) findViewById(R.id.status_textView_accepted)).setText("0");
+            ((TextView) findViewById(R.id.status_textView_rejected)).setText("0");
+            ((TextView) findViewById(R.id.status_textView_status)).setText("Not Mining");
             break;
         case MINING_ONSTART:
             b.setText(getString(R.string.main_button_onstart));
+            b.setOnClickListener(null);
             b.setEnabled(false);
             b.setClickable(false);
-            b.setOnClickListener(null);
             break;
         case MINING_RUNNING:
-            b.setEnabled(true);
-            b.setClickable(true);
             b.setText(getString(R.string.main_button_stop));
             b.setOnClickListener(v -> {
                 mService.changedState(MINING_ONSTOP);
                 mService.stopMining();
             });
+            b.setEnabled(true);
+            b.setClickable(true);
             break;
         case MINING_ONSTOP:
             b.setText(getString(R.string.main_button_onstop));
+            b.setOnClickListener(null);
             b.setEnabled(false);
             b.setClickable(false);
-            b.setOnClickListener(null);
             break;
         }
-        lastServiceState = state;
+        //lastServiceState = state;
     }
     
     @Override
@@ -342,6 +345,7 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
         if (savedInstanceState != null && savedInstanceState.containsKey(KEY_CONSOLE_ITEMS)) {
             logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
+            adpt.notifyDataSetChanged();
         }
     }
 

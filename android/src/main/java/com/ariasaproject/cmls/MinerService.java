@@ -112,7 +112,6 @@ public class MinerService extends Service implements Handler.Callback{
                     smc.stopMining();
                 } catch (Exception e) {}
             }
-            status.reSet();
             console.write("Service: Start mining");
             try {
                 mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
@@ -125,12 +124,13 @@ public class MinerService extends Service implements Handler.Callback{
                 changedState(MINING_NONE);
                 smc = null;
             }
+            console.write("Service: Started mining");
         });
     }
     public void stopMining() {
         es.execute(() -> {
             if (smc == null) return;
-            console.write("Service: Stopping mining");
+            console.write("Service: Stop mining");
             try {
                 smc.stopMining();
                 smc = null;
@@ -138,10 +138,11 @@ public class MinerService extends Service implements Handler.Callback{
                 e.printStackTrace();
             }
             changedState(MINING_NONE);
+            console.write("Service: Stopped mining");
         });
     }
-    public synchronized void changedState(int state) {
-         this.state = state;
+    public synchronized void changedState(int s) {
+         this.state = s;
          notifyAll();
     }
     @Override

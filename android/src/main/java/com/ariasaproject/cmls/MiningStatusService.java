@@ -1,6 +1,7 @@
 package com.ariasaproject.cmls;
 
 import java.lang.Object;
+import java.util.List;
 import java.util.ArrayList;
 
 import java.util.Date;
@@ -51,21 +52,6 @@ public class MiningStatusService extends Object{
     public long rejected = 0;
     public boolean new_status = false;
     String status = "None";
-    ArrayList<ConsoleItem> console = new ArrayList<ConsoleItem>();
-    
-    public synchronized void reSet() {
-        new_speed = false;
-        speed = 0;
-        new_accepted = false;
-        accepted = 0;
-        new_rejected = false;
-        rejected = 0;
-        new_status = false;
-        status = "None";
-    }
-    
-    public synchronized boolean hasNew() {
-        return new_speed||new_accepted||new_rejected||new_status||(!console.isEmpty());
-    }
+    List<ConsoleItem> console = new ArrayList<ConsoleItem>();
 }
 
