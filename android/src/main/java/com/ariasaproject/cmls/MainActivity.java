@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
     SeekBar sb_thread;
     CheckBox cb_screen_awake;
 
+    MinerService mService = null;
     public ServiceConnection sc = new ServiceConnection() {
         static final int MSG_STATUS = 1;
         static final int STATUS_SPEED = 1;
@@ -91,7 +92,6 @@ public class MainActivity extends AppCompatActivity {
         
         static final int MSG_STATE = 3;
         
-        MinerService mService = null;
         final String unit = " h/s";
         final DecimalFormat df = new DecimalFormat("#.##");
         final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
