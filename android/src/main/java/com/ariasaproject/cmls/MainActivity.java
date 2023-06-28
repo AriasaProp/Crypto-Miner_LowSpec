@@ -67,6 +67,12 @@ public class MainActivity extends AppCompatActivity {
     static final String PREF_PASS= "PASS";
     static final String PREF_THREAD= "THREAD";
     static final String PREF_SCREEN="SCREEN_AWAKE";
+    
+    static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org";
+    static final int DEFAULT_PORT=3333;
+    static final String DEFAULT_USER="Ariasa.test";
+    static final String DEFAULT_PASS="123";
+    
     /*
     static final String PREF_THROTTLE = "THROTTLE";
     static final String PREF_SCANTIME = "SCANTIME";
@@ -210,12 +216,13 @@ public class MainActivity extends AppCompatActivity {
         final TextView thread_view = (TextView)findViewById(R.id.thread_view);
         cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake);
         SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-        et_serv.setText(settings.getString(PREF_URL, ""));
-        et_port.setText(String.valueOf(settings.getInt(PREF_PORT, 0)));
-        et_user.setText(settings.getString(PREF_USER, ""));
-        et_pass.setText(settings.getString(PREF_PASS, ""));
+        et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
+        et_port.setText(String.valueOf(settings.getInt(PREF_PORT, DEFAULT_PORT)));
+        et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
+        et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
         cb_screen_awake.setChecked(settings.getBoolean(PREF_SCREEN, false));
         int t = Runtime.getRuntime().availableProcessors();
+        if (t < 1) t = 1;
         sb_thread.setMax(t);
         sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); //old
         thread_view.setText(String.format("%02d", sb_thread.getProgress()));

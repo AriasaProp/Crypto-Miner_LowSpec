@@ -48,11 +48,6 @@ public class MinerService extends Service implements Handler.Callback{
     public static final int MINING_RUNNING = 2;
     public static final int MINING_ONSTOP = 3;
     
-    static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org";
-    static final int DEFAULT_PORT=3333;
-    static final String DEFAULT_USER="Ariasa.test";
-    static final String DEFAULT_PASS="123";
-    
     IMiningConnection mc;
     IMiningWorker imw;
     SingleMiningChief smc;
@@ -136,7 +131,6 @@ public class MinerService extends Service implements Handler.Callback{
         es.execute(() -> {
             if (smc == null) return;
             console.write("Service: Stopping mining");
-            Toast.makeText(this,"Worker cooling down, this can take a few minutes",Toast.LENGTH_LONG).show();
             try {
                 smc.stopMining();
                 smc = null;
