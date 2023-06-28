@@ -11,6 +11,9 @@ import android.os.IBinder;
 import android.os.Message;
 import android.widget.Toast;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+
 import com.ariasaproject.cmls.MiningStatusService;
 import com.ariasaproject.cmls.MiningStatusService.ConsoleItem;
 import com.ariasaproject.cmls.connection.IMiningConnection;
@@ -30,7 +33,7 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_SCANTIME;
 import static com.ariasaproject.cmls.Constants.DEFAULT_THREAD;
 import static com.ariasaproject.cmls.Constants.DEFAULT_THROTTLE;
 
-public class MinerService extends Service {
+public class MinerService extends Service implements Handler.Callback{
     public static final int MSG_TERMINATED = 1;
     public static final int MSG_UPDATE_SERVICE_STATUS = 2;
     
@@ -56,85 +59,97 @@ public class MinerService extends Service {
     public Console console;
     int state = MINING_NONE;
     public final MiningStatusService status = new MiningStatusService();
-    Handler serviceHandler = new Handler(Looper.getMainLooper(), (msg) -> {
-        synchronized (status) {
-            switch (msg.what) {
-            default:
-                break;
-            case MSG_UPDATE_SERVICE_STATUS:
-                switch (msg.arg1) {
-                    case MSG_ARG1_UPDATE_SPEED:
-                        status.new_speed |= true;
-                        status.speed = (Float) msg.obj;
-                        break;
-                    case MSG_ARG1_UPDATE_ACC:
-                        status.new_accepted |= true;
-                        status.accepted = (Long) msg.obj;
-                        break;
-                    case MSG_ARG1_UPDATE_REJECT:
-                        status.new_rejected |= true;
-                        status.rejected = (Long) msg.obj;
-                        break;
-                    case MSG_ARG1_UPDATE_STATUS:
-                        status.new_status |= true;
-                        status.status = (String) msg.obj;
-                        break;
-                    case MSG_ARG1_UPDATE_CONSOLE:
-                        status.console.add(new ConsoleItem((String)msg.obj));
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            case MSG_TERMINATED:
-                state = MINING_ONSTOP;
-                stopMining();
-                break;
+    @Override
+    public synchronized boolean handleMessage(Message msg) {
+        switch (msg.what) {
+        default:
+            break;
+        case MSG_UPDATE_SERVICE_STATUS:
+            switch (msg.arg1) {
+                case MSG_ARG1_UPDATE_SPEED:
+                    status.new_speed |= true;
+                    status.speed = (Float) msg.obj;
+                    break;
+                case MSG_ARG1_UPDATE_ACC:
+                    status.new_accepted |= true;
+                    status.accepted = (Long) msg.obj;
+                    break;
+                case MSG_ARG1_UPDATE_REJECT:
+                    status.new_rejected |= true;
+                    status.rejected = (Long) msg.obj;
+                    break;
+                case MSG_ARG1_UPDATE_STATUS:
+                    status.new_status |= true;
+                    status.status = (String) msg.obj;
+                    break;
+                case MSG_ARG1_UPDATE_CONSOLE:
+                    status.console.add(new ConsoleItem((String)msg.obj));
+                    break;
+                default:
+                    break;
             }
-            status.notifyAll();
+            break;
+        case MSG_TERMINATED:
+            changedState(MINING_ONSTOP);
+            stopMining();
+            break;
         }
+        notifyAll();
         return true;
-    });
+        
+    }
+    final Handler serviceHandler = new Handler(Looper.getMainLooper(), this);
     // Binder given to clients
     private final LocalBinder mBinder = new LocalBinder();
+    ExecutorService es;
     public void onCreate() {
         console = new Console(serviceHandler);
+        es = Executors.newFixedThreadPool(1);
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
     public void startMining(String url, int port, String user, String pass, int nThread) {
-        if (smc != null) stopMining();
-        status.reSet();
-        console.write("Service: Start mining");
-        try {
-            mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
-            imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,console);
-            smc = new SingleMiningChief(mc,imw,console,serviceHandler);
-            smc.startMining();
-            state = MINING_RUNNING;
-        } catch (Exception e) {
-            e.printStackTrace();
-            state = MINING_ONSTOP;
-            stopMining();
+        es.execute(() -> {
+            if (smc != null) smc.stopMining();
+            status.reSet();
+            console.write("Service: Start mining");
+            try {
+                mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
+                imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,console);
+                smc = new SingleMiningChief(mc,imw,console,serviceHandler);
+                smc.startMining();
+                changedState(MINING_RUNNING);
+            } catch (Exception e) {
+                e.printStackTrace();
+                changedState(MINING_NONE);
+                smc = null;
+            }
         }
     }
     public void stopMining() {
-        if (smc == null) return;
-        console.write("Service: Stopping mining");
-        Toast.makeText(this,"Worker cooling down, this can take a few minutes",Toast.LENGTH_LONG).show();
-        try {
-            smc.stopMining();
-            smc = null;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        state = MINING_NONE;
+        es.execute(() -> {
+            if (smc == null) return;
+            console.write("Service: Stopping mining");
+            Toast.makeText(this,"Worker cooling down, this can take a few minutes",Toast.LENGTH_LONG).show();
+            try {
+                smc.stopMining();
+                smc = null;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            changedState(MINING_NONE);
+        });
+    }
+    public synchronized void changedState(int state) {
+         this.state = state;
+         notifyAll();
     }
     @Override
     public void onDestroy() {
         super.onDestroy();
+        es.shutdown();
     }
 
     @Override

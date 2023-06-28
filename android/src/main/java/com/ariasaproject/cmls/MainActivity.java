@@ -131,9 +131,9 @@ public class MainActivity extends AppCompatActivity {
         final Thread updateThread = new Thread (() -> {
             try {
                 for (;;)	{
-                    statusHandler.sendEmptyMessage(MSG_STATE);
-                    Thread.sleep(updateDelay);
-                    synchronized (mService.status) {
+                    synchronized (mService) {
+                        statusHandler.sendEmptyMessage(MSG_STATE);
+                        //Thread.sleep(updateDelay);
                         if (!mService.status.console.isEmpty()) {
                             for (ConsoleItem c : mService.status.console) {
                                 logList.add(0, c);
@@ -159,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
                             statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_STATUS, 0, mService.status.status));
                             mService.status.new_status = false;
                         }
+                        mService.wait();
                     }
                 }
             } catch (InterruptedException e) {}
@@ -264,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
             b.setEnabled(true);
             b.setClickable(true);
             b.setOnClickListener(v -> {
-                mService.state = MINING_ONSTART;
+                mService.changedState(MINING_ONSTART);
                 String url = sb.append(et_serv.getText()).toString();
                 sb.setLength(0);
                 int port = Integer.parseInt(et_port.getText().toString());
@@ -300,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
             b.setClickable(true);
             b.setText(getString(R.string.main_button_stop));
             b.setOnClickListener(v -> {
-                mService.state = MINING_ONSTOP;
+                mService.changedState(MINING_ONSTOP);
                 mService.stopMining();
             });
             break;
