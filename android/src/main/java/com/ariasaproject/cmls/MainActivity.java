@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
         }
-        if (serviceWasRunning) {
+        if (!serviceWasRunning) {
             Intent intent = new Intent(this, MinerService.class);
             bindService(intent, sc, Context.BIND_AUTO_CREATE);
             startService(intent);
