@@ -53,7 +53,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.List;
 import java.util.ArrayList;
 
 import static android.R.id.edit;
@@ -185,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
     private static int updateDelay = 400; // 0.4 sec
     
     private static final int MAX_LOG_COUNT = 25;
-    private List<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
+    private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     RecyclerView.Adapter adpt;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
