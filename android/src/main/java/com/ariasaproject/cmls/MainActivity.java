@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             MainActivity.this.adpt.notifyDataSetChanged();
             break;
         case MSG_STATE: // button mining update
-            MainActivity.this.MiningStateUpdate(mService.state);
+            MainActivity.this.MiningStateUpdate(msg.arg1);
             break;
         }
         return true;
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 for (;;)	{
                     synchronized (mService) {
-                        statusHandler.sendEmptyMessage(MSG_STATE);
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, mService.state, 0));
                         //Thread.sleep(updateDelay);
                         if (!mService.status.console.isEmpty()) {
                             for (ConsoleItem c : mService.status.console) {
