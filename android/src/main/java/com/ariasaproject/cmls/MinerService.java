@@ -126,7 +126,7 @@ public class MinerService extends Service implements Handler.Callback{
                 changedState(MINING_NONE);
                 smc = null;
             }
-        }
+        });
     }
     public void stopMining() {
         es.execute(() -> {
