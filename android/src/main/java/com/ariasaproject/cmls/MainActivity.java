@@ -187,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
         StrictMode.setThreadPolicy(policy);
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         boolean serviceWasRunning = false;
-        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (MinerService.class.getName().equals(service.service.getClassName())) {
                 serviceWasRunning = true;
                 break;
@@ -198,7 +198,6 @@ public class MainActivity extends AppCompatActivity {
             bindService(intent, sc, Context.BIND_AUTO_CREATE);
             startService(intent);
         }
-        
         if (savedInstanceState != null) {
             logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
         }
