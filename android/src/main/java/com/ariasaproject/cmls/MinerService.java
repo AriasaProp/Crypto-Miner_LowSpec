@@ -30,7 +30,6 @@ import static com.ariasaproject.cmls.MainActivity.PREF_THREAD;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
 import static com.ariasaproject.cmls.Constants.DEFAULT_RETRYPAUSE;
 import static com.ariasaproject.cmls.Constants.DEFAULT_SCANTIME;
-import static com.ariasaproject.cmls.Constants.DEFAULT_THREAD;
 import static com.ariasaproject.cmls.Constants.DEFAULT_THROTTLE;
 
 public class MinerService extends Service implements Handler.Callback{
@@ -98,8 +97,7 @@ public class MinerService extends Service implements Handler.Callback{
                     status.rejected = (Long) msg.obj;
                     break;
                 case MSG_UPDATE_STATUS:
-                    status.new_status |= true;
-                    status.status = (String) msg.obj;
+                    status.console.add(new ConsoleItem("Mining State: " + (String)msg.obj));
                     break;
                 case MSG_UPDATE_CONSOLE:
                     status.console.add(new ConsoleItem((String)msg.obj));

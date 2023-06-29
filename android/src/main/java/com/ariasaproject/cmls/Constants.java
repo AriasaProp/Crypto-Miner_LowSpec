@@ -8,7 +8,6 @@ public class Constants {
     public static final String PREF_PRIORITY="PRIORITY";
 
     public static final int 		DEFAULT_PRIORITY=1;
-    public static final int 		DEFAULT_THREAD=1;
     public static final long 	DEFAULT_SCANTIME=500;
     public static final long 	DEFAULT_RETRYPAUSE=500;
     public static final float 	DEFAULT_THROTTLE=1;

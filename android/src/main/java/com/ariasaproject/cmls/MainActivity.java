@@ -221,13 +221,6 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                             statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_REJECTED, 0, mService.status.rejected));
                             mService.status.new_rejected = false;
                         }
-                        if (mService.status.new_status) {
-                            logList.add(0, new ConsoleItem("Mining State: " + mService.status.status));
-                            if (logList.size() > MAX_LOG_COUNT)
-                                logList.remove(logList.size() - 1);
-                            statusHandler.sendEmptyMessage(MSG_CONSOLE);
-                            mService.status.new_status = false;
-                        }
                         mService.wait();
                     }
                 }

@@ -49,8 +49,6 @@ public class MiningStatusService extends Object{
     public long accepted = 0;
     public boolean new_rejected = false;
     public long rejected = 0;
-    public boolean new_status = false;
-    public String status = "None";
     public ArrayList<ConsoleItem> console = new ArrayList<ConsoleItem>();
 }
 

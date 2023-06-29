@@ -71,7 +71,7 @@ public class SingleMiningChief implements Observer {
         @Override
         public void onNewWork(MiningWork i_work) {
             try {
-                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "New work detected!");
+                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "New work detected!"));
                 setChanged();
                 notifyObservers(IMiningWorker.Notification.NEW_BLOCK_DETECTED);
                 setChanged();
