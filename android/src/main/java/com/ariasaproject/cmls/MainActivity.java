@@ -292,10 +292,10 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 tv_accepted.setText("0");
                 tv_rejected.setText("0");
                 //enable all EditText
-                ed_serv.setEnabled(true);
-                ed_port.setEnabled(true);
-                ed_user.setEnabled(true);
-                ed_pass.setEnabled(true);
+                et_serv.setEnabled(true);
+                et_port.setEnabled(true);
+                et_user.setEnabled(true);
+                et_pass.setEnabled(true);
                 break;
             case MSG_STATE_ONSTART:
                 btn_mine.setText(getString(R.string.main_button_onstart));
@@ -303,10 +303,10 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 btn_mine.setEnabled(false);
                 btn_mine.setClickable(false);
                 //disable all EditText
-                ed_serv.setEnabled(false);
-                ed_port.setEnabled(false);
-                ed_user.setEnabled(false);
-                ed_pass.setEnabled(false);
+                et_serv.setEnabled(false);
+                et_port.setEnabled(false);
+                et_user.setEnabled(false);
+                et_pass.setEnabled(false);
                 break;
             case MSG_STATE_RUNNING:
                 btn_mine.setText(getString(R.string.main_button_stop));
@@ -316,10 +316,10 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 btn_mine.setEnabled(true);
                 btn_mine.setClickable(true);
                 //disable all EditText
-                ed_serv.setEnabled(false);
-                ed_port.setEnabled(false);
-                ed_user.setEnabled(false);
-                ed_pass.setEnabled(false);
+                et_serv.setEnabled(false);
+                et_port.setEnabled(false);
+                et_user.setEnabled(false);
+                et_pass.setEnabled(false);
                 break;
             case MSG_STATE_ONSTOP:
                 btn_mine.setText(getString(R.string.main_button_onstop));
@@ -327,10 +327,10 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 btn_mine.setEnabled(false);
                 btn_mine.setClickable(false);
                 //disable all EditText
-                ed_serv.setEnabled(false);
-                ed_port.setEnabled(false);
-                ed_user.setEnabled(false);
-                ed_pass.setEnabled(false);
+                et_serv.setEnabled(false);
+                et_port.setEnabled(false);
+                et_user.setEnabled(false);
+                et_pass.setEnabled(false);
                 break;
             }
             break;
