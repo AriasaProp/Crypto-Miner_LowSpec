@@ -17,9 +17,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.StrictMode;
 import android.os.Bundle;
+import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.Window;
 import android.view.LayoutInflater;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -32,6 +34,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.preference.Settings;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
