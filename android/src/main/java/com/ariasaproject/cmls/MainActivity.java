@@ -395,7 +395,7 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     protected void onDestroy() {
         super.onDestroy();
         if (isFinishing()) {
-            unbindService(sc);
+            unbindService(this);
             stopService(new Intent(this, MinerService.class));
         }
     }
