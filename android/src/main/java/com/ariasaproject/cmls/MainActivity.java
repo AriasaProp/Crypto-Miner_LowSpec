@@ -30,11 +30,11 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.provider.Settings;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.preference.Settings;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
@@ -227,12 +227,12 @@ public class MainActivity extends AppCompatActivity {
         et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
         et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
         final Window window = getWindow();
-        cb_screen_awake.setChecked((window.getFlags()&FLAG_KEEP_SCREEN_ON) != 0);
+        cb_screen_awake.setChecked((window.getAttributes().flags&FLAG_KEEP_SCREEN_ON) != 0);
         cb_screen_awake.setOnCheckedChangeListener((cb, check) -> {
-            if ((window.getFlags()&FLAG_KEEP_SCREEN_ON) == 0) {
+            if ((window.getAttributes().flags&FLAG_KEEP_SCREEN_ON) == 0) {
                 window.addFlags(FLAG_KEEP_SCREEN_ON);
             } else {
-                window.removeFlags(FLAG_KEEP_SCREEN_ON);
+                window.clearFlags(FLAG_KEEP_SCREEN_ON);
             }
         });
         int t = Runtime.getRuntime().availableProcessors();
