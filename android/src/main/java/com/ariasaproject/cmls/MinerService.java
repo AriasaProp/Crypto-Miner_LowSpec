@@ -68,16 +68,19 @@ public class MinerService extends Service implements Handler.Callback{
         serviceHandler = new Handler(Looper.getMainLooper(), this);
         console = new Console(serviceHandler);
     }
+    
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
+    
     @Override
     public synchronized boolean handleMessage(Message msg) {
         switch (msg.what) {
         default: break;
         case MSG_UPDATE:
             switch (msg.arg1) {
+                default: break;
                 case MSG_UPDATE_SPEED:
                     status.new_speed |= true;
                     status.speed = (Float) msg.obj;
@@ -96,8 +99,6 @@ public class MinerService extends Service implements Handler.Callback{
                     break;
                 case MSG_UPDATE_CONSOLE:
                     status.console.add(new ConsoleItem((String)msg.obj));
-                    break;
-                default:
                     break;
             }
             break;
@@ -159,7 +160,7 @@ public class MinerService extends Service implements Handler.Callback{
         });
     }
     public void stopMining() {
-        serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
+        serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_ONSTOP, 0));
     }
     @Override
     public void onDestroy() {

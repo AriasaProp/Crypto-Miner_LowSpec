@@ -61,34 +61,24 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.ArrayList;
 
-import static android.R.id.edit;
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.L;
-
-public class MainActivity extends AppCompatActivity {
-    static final boolean DEFAULT_SCREEN = true;
+public class MainActivity extends AppCompatActivity implements Handler.Callback, ServiceConnection {
     
     static final String PREF_URL="URL";
     static final String PREF_PORT="PORT";
     static final String PREF_USER= "USER";
     static final String PREF_PASS= "PASS";
     static final String PREF_THREAD= "THREAD";
-    static final String PREF_SCREEN="SCREEN_AWAKE";
     
     static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org";
     static final int DEFAULT_PORT=3333;
     static final String DEFAULT_USER="Ariasa.test";
     static final String DEFAULT_PASS="123";
     
-    /*
-    static final String PREF_THROTTLE = "THROTTLE";
-    static final String PREF_SCANTIME = "SCANTIME";
-    static final String PREF_RETRYPAUSE = "RETRYPAUSE";
-    static final String PREF_PRIORITY="PRIORITY";
-    */
     final static String KEY_CONSOLE_ITEMS = "console_log";
     static {
       System.loadLibrary("ext");
     }
+    TextView tv_speed, tv_accepted, tv_rejected, tv_status;
     EditText et_serv, et_port, et_user, et_pass;
     SeekBar sb_thread;
     CheckBox cb_screen_awake;
@@ -112,39 +102,8 @@ public class MainActivity extends AppCompatActivity {
     
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
-    final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
-        switch (msg.what) {
-        default: break;
-        case MSG_STATUS: // status update
-            switch (msg.arg1) {
-            default: break;
-            case STATUS_SPEED:
-                final TextView tv_speed = (TextView) findViewById(R.id.status_textView_speed);
-                tv_speed.setText(df.format((float)msg.obj)+unit);
-                break;
-            case STATUS_ACCEPTED:
-                final TextView txt_accepted = (TextView) findViewById(R.id.status_textView_accepted);
-                txt_accepted.setText(String.valueOf((long)msg.obj));
-                break;
-            case STATUS_REJECTED:
-                final TextView txt_rejected = (TextView) findViewById(R.id.status_textView_rejected);
-                txt_rejected.setText(String.valueOf((long)msg.obj));
-                break;
-            case STATUS_STATUS:
-                final TextView txt_status = (TextView) findViewById(R.id.status_textView_status);
-                txt_status.setText((String)msg.obj);
-                break;
-            }
-            break;
-        case MSG_CONSOLE: // console update
-            MainActivity.this.adpt.notifyDataSetChanged();
-            break;
-        case MSG_STATE: // button mining update
-            MainActivity.this.MiningStateUpdate(msg.arg1);
-            break;
-        }
-        return true;
-    });
+    final Handler statusHandler = new Handler(Looper.getMainLooper(),
+    );
     final Thread updateThread = new Thread (() -> {
             try {
                 for (;;)	{
@@ -182,16 +141,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (InterruptedException e) {}
         });
     public ServiceConnection sc = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            MinerService.LocalBinder binder = (MinerService.LocalBinder) service;
-            mService = binder.getService();
-            if (!updateThread.isAlive()) updateThread.start();
-        }
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            updateThread.interrupt();
-        }
     };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,6 +164,12 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState != null) {
             logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
         }
+        //text status
+        tv_speed = (TextView) findViewById(R.id.status_textView_speed);
+        tv_accepted = (TextView) findViewById(R.id.status_textView_accepted);
+        tv_rejected = (TextView) findViewById(R.id.status_textView_rejected);
+        tv_status = (TextView) findViewById(R.id.status_textView_status);
+        //editable
         et_serv = (EditText) findViewById(R.id.server_et);
         et_port = (EditText) findViewById(R.id.port_et);
         et_user = (EditText) findViewById((R.id.user_et));
@@ -276,8 +231,51 @@ public class MainActivity extends AppCompatActivity {
         checkBatteryOptimizations();
     }
     
-    private static final int REQUEST_BATTERY_OPTIMIZATIONS = 1001;
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        MinerService.LocalBinder binder = (MinerService.LocalBinder) service;
+        mService = binder.getService();
+        if (!updateThread.isAlive()) updateThread.start();
+    }
     
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        updateThread.interrupt();
+    }
+    
+    @Override
+    public boolean handleMessage(Message msg) {
+        switch (msg.what) {
+        default: break;
+        case MSG_STATUS: // status update
+            switch (msg.arg1) {
+            default: break;
+            case STATUS_SPEED:
+                tv_speed.setText(df.format((float)msg.obj)+unit);
+                break;
+            case STATUS_ACCEPTED:
+                tv_accepted.setText(String.valueOf((long)msg.obj));
+                break;
+            case STATUS_REJECTED:
+                tv_rejected.setText(String.valueOf((long)msg.obj));
+                break;
+            case STATUS_STATUS:
+                tv_status.setText((String)msg.obj);
+                break;
+            }
+            break;
+        case MSG_CONSOLE: // console update
+            adpt.notifyDataSetChanged();
+            break;
+        case MSG_STATE: // button mining update
+            MiningStateUpdate(msg.arg1);
+            break;
+        }
+        return true;
+    }
+    
+    
+    private static final int REQUEST_BATTERY_OPTIMIZATIONS = 1001;
     private void checkBatteryOptimizations() {
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         if (powerManager != null && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
@@ -292,13 +290,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_BATTERY_OPTIMIZATIONS) {
+        switch (requestCode) {
+        default: break;
+        case REQUEST_BATTERY_OPTIMIZATIONS:
             PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
             if (powerManager != null && powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
                 // Izin diberikan, lanjutkan dengan operasi normal
             } else {
                 // Izin ditolak, berikan pengguna instruksi lebih lanjut atau tindakan yang sesuai
             }
+            break;
         }
     }
 
@@ -333,10 +334,10 @@ public class MainActivity extends AppCompatActivity {
             });
             b.setEnabled(true);
             b.setClickable(true);
-            ((TextView) findViewById(R.id.status_textView_speed)).setText("0 hash/sec");
-            ((TextView) findViewById(R.id.status_textView_accepted)).setText("0");
-            ((TextView) findViewById(R.id.status_textView_rejected)).setText("0");
-            ((TextView) findViewById(R.id.status_textView_status)).setText("Not Mining");
+            tv_speed.setText("0 hash/sec");
+            tv_accepted.setText("0");
+            tv_rejected.setText("0");
+            tv_status.setText("Not Mining");
             break;
         case MSG_STATE_ONSTART:
             b.setText(getString(R.string.main_button_onstart));
