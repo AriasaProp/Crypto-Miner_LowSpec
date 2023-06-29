@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     
     private static int updateDelay = 400; // 0.4 sec
     
-    private static final int MAX_LOG_COUNT = 25;
+    private static final int MAX_LOG_COUNT = 50;
     private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     RecyclerView.Adapter adpt;
     @Override
@@ -245,7 +245,6 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     }
     
     final StringBuilder sb = new StringBuilder();
-    int lastServiceState = -1;
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
@@ -271,60 +270,57 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
             adpt.notifyDataSetChanged();
             break;
         case MSG_STATE: // button mining update
-            if (msg.arg1 != lastServiceState) {
-                switch (msg.arg1) {
-                default: break;
-                case MSG_STATE_NONE:
-                    btn_mine.setText(getString(R.string.main_button_start));
-                    btn_mine.setOnClickListener(v -> {
-                        String url = sb.append(et_serv.getText()).toString();
-                        sb.setLength(0);
-                        int port = Integer.parseInt(et_port.getText().toString());
-                        sb.setLength(0);
-                        String user = sb.append(et_user.getText()).toString();
-                        sb.setLength(0);
-                        String pass = sb.append(et_pass.getText()).toString();
-                        sb.setLength(0);
-                        SharedPreferences settings = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.putString(PREF_URL, url);
-                        editor.putInt(PREF_PORT, port);
-                        editor.putString(PREF_USER, user);
-                        editor.putString(PREF_PASS, pass);
-                        editor.putInt(PREF_THREAD, sb_thread.getProgress());
-                        editor.commit();
-                        
-                        MainActivity.this.mService.startMining(url,port,user,pass, sb_thread.getProgress());
-                    });
-                    btn_mine.setEnabled(true);
-                    btn_mine.setClickable(true);
-                    tv_speed.setText("0 hash/sec");
-                    tv_accepted.setText("0");
-                    tv_rejected.setText("0");
-                    tv_status.setText("Not Mining");
-                    break;
-                case MSG_STATE_ONSTART:
-                    btn_mine.setText(getString(R.string.main_button_onstart));
-                    btn_mine.setOnClickListener(null);
-                    btn_mine.setEnabled(false);
-                    btn_mine.setClickable(false);
-                    break;
-                case MSG_STATE_RUNNING:
-                    btn_mine.setText(getString(R.string.main_button_stop));
-                    btn_mine.setOnClickListener(v -> {
-                        MainActivity.this.mService.stopMining();
-                    });
-                    btn_mine.setEnabled(true);
-                    btn_mine.setClickable(true);
-                    break;
-                case MSG_STATE_ONSTOP:
-                    btn_mine.setText(getString(R.string.main_button_onstop));
-                    btn_mine.setOnClickListener(null);
-                    btn_mine.setEnabled(false);
-                    btn_mine.setClickable(false);
-                    break;
-                }
-                lastServiceState = msg.arg1;
+            switch (msg.arg1) {
+            default: break;
+            case MSG_STATE_NONE:
+                btn_mine.setText(getString(R.string.main_button_start));
+                btn_mine.setOnClickListener(v -> {
+                    String url = sb.append(et_serv.getText()).toString();
+                    sb.setLength(0);
+                    int port = Integer.parseInt(et_port.getText().toString());
+                    sb.setLength(0);
+                    String user = sb.append(et_user.getText()).toString();
+                    sb.setLength(0);
+                    String pass = sb.append(et_pass.getText()).toString();
+                    sb.setLength(0);
+                    SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = settings.edit();
+                    editor.putString(PREF_URL, url);
+                    editor.putInt(PREF_PORT, port);
+                    editor.putString(PREF_USER, user);
+                    editor.putString(PREF_PASS, pass);
+                    editor.putInt(PREF_THREAD, sb_thread.getProgress());
+                    editor.commit();
+                    
+                    mService.startMining(url,port,user,pass, sb_thread.getProgress());
+                });
+                btn_mine.setEnabled(true);
+                btn_mine.setClickable(true);
+                tv_speed.setText("0 hash/sec");
+                tv_accepted.setText("0");
+                tv_rejected.setText("0");
+                tv_status.setText("Not Mining");
+                break;
+            case MSG_STATE_ONSTART:
+                btn_mine.setText(getString(R.string.main_button_onstart));
+                btn_mine.setOnClickListener(null);
+                btn_mine.setEnabled(false);
+                btn_mine.setClickable(false);
+                break;
+            case MSG_STATE_RUNNING:
+                btn_mine.setText(getString(R.string.main_button_stop));
+                btn_mine.setOnClickListener(v -> {
+                    mService.stopMining();
+                });
+                btn_mine.setEnabled(true);
+                btn_mine.setClickable(true);
+                break;
+            case MSG_STATE_ONSTOP:
+                btn_mine.setText(getString(R.string.main_button_onstop));
+                btn_mine.setOnClickListener(null);
+                btn_mine.setEnabled(false);
+                btn_mine.setClickable(false);
+                break;
             }
             break;
         }

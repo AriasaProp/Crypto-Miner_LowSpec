@@ -34,6 +34,12 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_THREAD;
 import static com.ariasaproject.cmls.Constants.DEFAULT_THROTTLE;
 
 public class MinerService extends Service implements Handler.Callback{
+    /*
+    public static class MinerData extends Object{
+        String url, user, pass;
+        int port, nThread;
+    }
+    */
     public static final int MSG_STATE = 1;
     public static final int MSG_UPDATE = 2;
     
@@ -108,11 +114,29 @@ public class MinerService extends Service implements Handler.Callback{
                 case MSG_STATE_NONE:
                     break;
                 case MSG_STATE_ONSTART:
+                    if (state == MSG_STATE_NONE) {
+                        es.execute(() -> {
+                            console.write("Service: Start mining");
+                            try {
+                                mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
+                                imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,console);
+                                smc = new SingleMiningChief(mc,imw,console,serviceHandler);
+                                smc.startMining();
+                                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_RUNNING, 0));
+                                console.write("Service: Started mining");
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
+                                smc = null;
+                                console.write("Service: Started mining is failed");
+                            }
+                        });
+                    }
                     break;
                 case MSG_STATE_RUNNING:
                     break;
                 case MSG_STATE_ONSTOP:
-                    if (this.state == MSG_STATE_RUNNING) {
+                    if (state == MSG_STATE_RUNING) {
                         es.execute(() -> {
                             if (smc == null) return;
                             console.write("Service: Stop mining");
@@ -124,40 +148,26 @@ public class MinerService extends Service implements Handler.Callback{
                             }
                             serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
                             console.write("Service: Stopped mining");
-                            MinerService.this.notifyAll();
                         });
                     }
                     break;
             }
-            this.state = msg.arg1;
+            state = msg.arg1;
             break;
         }
         notifyAll();
         return true;
         
     }
-    public void startMining(String url, int port, String user, String pass, int nThread) {
+    String url, user, pass;
+    int port, nThread;
+    public void startMining(String u, int p, String user, String pass, int n) {
+        this.url = u;
+        this.user = user;
+        this.pass = pass;
+        this.port = p;
+        this.nThread = n;
         serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_ONSTART, 0));
-        es.execute(() -> {
-            if (smc != null) {
-                try {
-                    smc.stopMining();
-                } catch (Exception e) {}
-            }
-            console.write("Service: Start mining");
-            try {
-                mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
-                imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,console);
-                smc = new SingleMiningChief(mc,imw,console,serviceHandler);
-                smc.startMining();
-                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_RUNNING, 0));
-            } catch (Exception e) {
-                e.printStackTrace();
-                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
-                smc = null;
-            }
-            console.write("Service: Started mining");
-        });
     }
     public void stopMining() {
         serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_ONSTOP, 0));
