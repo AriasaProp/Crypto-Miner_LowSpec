@@ -6,8 +6,8 @@ import android.os.Message;
 
 import java.lang.Object;
 
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_SERVICE_STATUS;
-import static com.ariasaproject.cmls.MinerService.MSG_ARG1_UPDATE_CONSOLE;
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
 
 public class Console {
     final Handler sHandler;
@@ -18,6 +18,6 @@ public class Console {
 
     public void write (String s) {
         if(s!=null)
-            sHandler.sendMessage(sHandler.obtainMessage(MSG_UPDATE_SERVICE_STATUS, MSG_ARG1_UPDATE_CONSOLE, 0, s));
+            sHandler.sendMessage(sHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, s));
     }
 }

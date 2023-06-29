@@ -59,8 +59,7 @@ public class MinerService extends Service implements Handler.Callback{
     public Console console;
     int state = MINING_NONE;
     public final MiningStatusService status = new MiningStatusService();
-    @Override
-    final Handler serviceHandler;
+    Handler serviceHandler;
     // Binder given to clients
     private final LocalBinder mBinder = new LocalBinder();
     ExecutorService es;
@@ -73,6 +72,7 @@ public class MinerService extends Service implements Handler.Callback{
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
+    @Override
     public synchronized boolean handleMessage(Message msg) {
         switch (msg.what) {
         default: break;
@@ -103,28 +103,29 @@ public class MinerService extends Service implements Handler.Callback{
             break;
         case MSG_STATE:
             switch (msg.arg1) {
-            default: break;
-            case MSG_STATE_NONE:
-                break;
-            case MSG_STATE_ONSTART:
-                break;
-            case MSG_STATE_RUNNING:
-                break;
-            case MSG_STATE_ONSTOP:
-                if (this.state == MSG_STATE_NONE) break;
-                es.execute(() -> {
-                    if (smc == null) return;
-                    console.write("Service: Stop mining");
-                    try {
-                        smc.stopMining();
-                        smc = null;
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                default: break;
+                case MSG_STATE_NONE:
+                    break;
+                case MSG_STATE_ONSTART:
+                    break;
+                case MSG_STATE_RUNNING:
+                    break;
+                case MSG_STATE_ONSTOP:
+                    if (this.state != MSG_STATE_NONE) {
+                        es.execute(() -> {
+                            if (smc == null) return;
+                            console.write("Service: Stop mining");
+                            try {
+                                smc.stopMining();
+                                smc = null;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            sendMessage(obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
+                            console.write("Service: Stopped mining");
+                        });
                     }
-                    serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
-                    console.write("Service: Stopped mining");
-                });
-                break;
+                    break;
             }
             this.state = msg.arg1;
             break;
