@@ -37,10 +37,10 @@ public class MinerService extends Service implements Handler.Callback{
     public static final int MSG_STATE = 1;
     public static final int MSG_UPDATE = 2;
     
-    public static final int MSG_STATE_NONE = 1;
-    public static final int MSG_STATE_ONSTART = 2;
-    public static final int MSG_STATE_RUNNING = 3;
-    public static final int MSG_STATE_ONSTOP = 2;
+    public static final int MSG_STATE_NONE = 0;
+    public static final int MSG_STATE_ONSTART = 1;
+    public static final int MSG_STATE_RUNNING = 2;
+    public static final int MSG_STATE_ONSTOP = 3;
     
     public static final int MSG_UPDATE_SPEED = 1;
     public static final int MSG_UPDATE_ACC = 2;
@@ -121,7 +121,7 @@ public class MinerService extends Service implements Handler.Callback{
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            sendMessage(obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
+                            serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
                             console.write("Service: Stopped mining");
                         });
                     }
