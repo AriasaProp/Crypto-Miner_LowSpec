@@ -34,14 +34,19 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_THREAD;
 import static com.ariasaproject.cmls.Constants.DEFAULT_THROTTLE;
 
 public class MinerService extends Service implements Handler.Callback{
-    public static final int MSG_TERMINATED = 1;
-    public static final int MSG_UPDATE_SERVICE_STATUS = 2;
+    public static final int MSG_STATE = 1;
+    public static final int MSG_UPDATE = 2;
     
-    public static final int MSG_ARG1_UPDATE_SPEED = 1;
-    public static final int MSG_ARG1_UPDATE_ACC = 2;
-    public static final int MSG_ARG1_UPDATE_REJECT = 3;
-    public static final int MSG_ARG1_UPDATE_STATUS = 4;
-    public static final int MSG_ARG1_UPDATE_CONSOLE = 5;
+    public static final int MSG_STATE_NONE = 1;
+    public static final int MSG_STATE_ONSTART = 2;
+    public static final int MSG_STATE_RUNNING = 3;
+    public static final int MSG_STATE_ONSTOP = 2;
+    
+    public static final int MSG_UPDATE_SPEED = 1;
+    public static final int MSG_UPDATE_ACC = 2;
+    public static final int MSG_UPDATE_REJECT = 3;
+    public static final int MSG_UPDATE_STATUS = 4;
+    public static final int MSG_UPDATE_CONSOLE = 5;
     
     public static final int MINING_NONE = 0;
     public static final int MINING_ONSTART = 1;
@@ -55,57 +60,81 @@ public class MinerService extends Service implements Handler.Callback{
     int state = MINING_NONE;
     public final MiningStatusService status = new MiningStatusService();
     @Override
+    final Handler serviceHandler;
+    // Binder given to clients
+    private final LocalBinder mBinder = new LocalBinder();
+    ExecutorService es;
+    public void onCreate() {
+        es = Executors.newFixedThreadPool(1);
+        serviceHandler = new Handler(Looper.getMainLooper(), this);
+        console = new Console(serviceHandler);
+    }
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return START_STICKY;
+    }
     public synchronized boolean handleMessage(Message msg) {
         switch (msg.what) {
-        default:
-            break;
-        case MSG_UPDATE_SERVICE_STATUS:
+        default: break;
+        case MSG_UPDATE:
             switch (msg.arg1) {
-                case MSG_ARG1_UPDATE_SPEED:
+                case MSG_UPDATE_SPEED:
                     status.new_speed |= true;
                     status.speed = (Float) msg.obj;
                     break;
-                case MSG_ARG1_UPDATE_ACC:
+                case MSG_UPDATE_ACC:
                     status.new_accepted |= true;
                     status.accepted = (Long) msg.obj;
                     break;
-                case MSG_ARG1_UPDATE_REJECT:
+                case MSG_UPDATE_REJECT:
                     status.new_rejected |= true;
                     status.rejected = (Long) msg.obj;
                     break;
-                case MSG_ARG1_UPDATE_STATUS:
+                case MSG_UPDATE_STATUS:
                     status.new_status |= true;
                     status.status = (String) msg.obj;
                     break;
-                case MSG_ARG1_UPDATE_CONSOLE:
+                case MSG_UPDATE_CONSOLE:
                     status.console.add(new ConsoleItem((String)msg.obj));
                     break;
                 default:
                     break;
             }
             break;
-        case MSG_TERMINATED:
-            changedState(MINING_ONSTOP);
-            stopMining();
+        case MSG_STATE:
+            switch (msg.arg1) {
+            default: break;
+            case MSG_STATE_NONE:
+                break;
+            case MSG_STATE_ONSTART:
+                break;
+            case MSG_STATE_RUNNING:
+                break;
+            case MSG_STATE_ONSTOP:
+                if (this.state == MSG_STATE_NONE) break;
+                es.execute(() -> {
+                    if (smc == null) return;
+                    console.write("Service: Stop mining");
+                    try {
+                        smc.stopMining();
+                        smc = null;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
+                    console.write("Service: Stopped mining");
+                });
+                break;
+            }
+            this.state = msg.arg1;
             break;
         }
         notifyAll();
         return true;
         
     }
-    final Handler serviceHandler = new Handler(Looper.getMainLooper(), this);
-    // Binder given to clients
-    private final LocalBinder mBinder = new LocalBinder();
-    ExecutorService es;
-    public void onCreate() {
-        console = new Console(serviceHandler);
-        es = Executors.newFixedThreadPool(1);
-    }
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_STICKY;
-    }
     public void startMining(String url, int port, String user, String pass, int nThread) {
+        serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_ONSTART, 0));
         es.execute(() -> {
             if (smc != null) {
                 try {
@@ -118,32 +147,17 @@ public class MinerService extends Service implements Handler.Callback{
                 imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,console);
                 smc = new SingleMiningChief(mc,imw,console,serviceHandler);
                 smc.startMining();
-                changedState(MINING_RUNNING);
+                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_RUNNING, 0));
             } catch (Exception e) {
                 e.printStackTrace();
-                changedState(MINING_NONE);
+                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
                 smc = null;
             }
             console.write("Service: Started mining");
         });
     }
     public void stopMining() {
-        es.execute(() -> {
-            if (smc == null) return;
-            console.write("Service: Stop mining");
-            try {
-                smc.stopMining();
-                smc = null;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            changedState(MINING_NONE);
-            console.write("Service: Stopped mining");
-        });
-    }
-    public synchronized void changedState(int s) {
-         this.state = s;
-         notifyAll();
+        serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
     }
     @Override
     public void onDestroy() {

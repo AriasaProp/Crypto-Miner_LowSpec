@@ -32,10 +32,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import static com.ariasaproject.cmls.MinerService.MINING_NONE;
-import static com.ariasaproject.cmls.MinerService.MINING_ONSTART;
-import static com.ariasaproject.cmls.MinerService.MINING_RUNNING;
-import static com.ariasaproject.cmls.MinerService.MINING_ONSTOP;
+import static com.ariasaproject.cmls.MinerService.MSG_STATE_NONE;
+import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
+import static com.ariasaproject.cmls.MinerService.MSG_STATE_RUNNING;
+import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTOP;
 
 import com.ariasaproject.cmls.MiningStatusService;
 import com.ariasaproject.cmls.MiningStatusService.ConsoleItem;
@@ -266,10 +266,9 @@ public class MainActivity extends AppCompatActivity {
         final Button b = (Button) findViewById(R.id.status_button_startstop);
         switch (state) {
         default: break;
-        case MINING_NONE:
+        case MSG_STATE_NONE:
             b.setText(getString(R.string.main_button_start));
             b.setOnClickListener(v -> {
-                mService.changedState(MINING_ONSTART);
                 String url = sb.append(et_serv.getText()).toString();
                 sb.setLength(0);
                 int port = Integer.parseInt(et_port.getText().toString());
@@ -300,22 +299,21 @@ public class MainActivity extends AppCompatActivity {
             ((TextView) findViewById(R.id.status_textView_rejected)).setText("0");
             ((TextView) findViewById(R.id.status_textView_status)).setText("Not Mining");
             break;
-        case MINING_ONSTART:
+        case MSG_STATE_ONSTART:
             b.setText(getString(R.string.main_button_onstart));
             b.setOnClickListener(null);
             b.setEnabled(false);
             b.setClickable(false);
             break;
-        case MINING_RUNNING:
+        case MSG_STATE_RUNNING:
             b.setText(getString(R.string.main_button_stop));
             b.setOnClickListener(v -> {
-                mService.changedState(MINING_ONSTOP);
                 mService.stopMining();
             });
             b.setEnabled(true);
             b.setClickable(true);
             break;
-        case MINING_ONSTOP:
+        case MSG_STATE_ONSTOP:
             b.setText(getString(R.string.main_button_onstop));
             b.setOnClickListener(null);
             b.setEnabled(false);
