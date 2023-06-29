@@ -10,6 +10,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
+import android.os.PowerManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -223,14 +224,14 @@ public class MainActivity extends AppCompatActivity {
         et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
         et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
         final Window window = getWindow();
-        cb_screen_awake.setChecked((window.getFlags()&FLAG_KEEP_SCREEN_ON) == FLAG_KEEP_SCREEN_ON);
+        cb_screen_awake.setChecked((window.getFlags()&FLAG_KEEP_SCREEN_ON) != 0);
         cb_screen_awake.setOnCheckedChangeListener((cb, check) -> {
-            if ((window.getFlags()&FLAG_KEEP_SCREEN_ON) != 0) {
-                window.removeFlags(FLAG_KEEP_SCREEN_ON);
-            } else {
+            if ((window.getFlags()&FLAG_KEEP_SCREEN_ON) == 0) {
                 window.addFlags(FLAG_KEEP_SCREEN_ON);
+            } else {
+                window.removeFlags(FLAG_KEEP_SCREEN_ON);
             }
-        })
+        });
         int t = Runtime.getRuntime().availableProcessors();
         if (t < 1) t = 1;
         sb_thread.setMax(t);
@@ -268,7 +269,36 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         consoleView.setAdapter(adpt);
+        //check feature 
+        checkBatteryOptimizations();
     }
+    
+    private static final int REQUEST_BATTERY_OPTIMIZATIONS = 1001;
+    
+    private void checkBatteryOptimizations() {
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        if (powerManager != null && !powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
+            // Jika izin tidak diizinkan, tampilkan dialog untuk meminta izin
+            Intent intent = new Intent();
+            intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, REQUEST_BATTERY_OPTIMIZATIONS);
+        }
+    }
+    
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_BATTERY_OPTIMIZATIONS) {
+            PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (powerManager != null && powerManager.isIgnoringBatteryOptimizations(getPackageName())) {
+                // Izin diberikan, lanjutkan dengan operasi normal
+            } else {
+                // Izin ditolak, berikan pengguna instruksi lebih lanjut atau tindakan yang sesuai
+            }
+        }
+    }
+
     final StringBuilder sb = new StringBuilder();
     //int lastServiceState = -1;
     void MiningStateUpdate(int state)  {
