@@ -62,7 +62,6 @@ public class MinerService extends Service implements Handler.Callback{
     IMiningConnection mc;
     IMiningWorker imw;
     SingleMiningChief smc;
-    public Console console;
     int state = MINING_NONE;
     public final MiningStatusService status = new MiningStatusService();
     Handler serviceHandler;
@@ -72,7 +71,6 @@ public class MinerService extends Service implements Handler.Callback{
     public void onCreate() {
         es = Executors.newFixedThreadPool(1);
         serviceHandler = new Handler(Looper.getMainLooper(), this);
-        console = new Console(serviceHandler);
     }
     
     @Override
@@ -116,19 +114,20 @@ public class MinerService extends Service implements Handler.Callback{
                 case MSG_STATE_ONSTART:
                     if (state == MSG_STATE_NONE) {
                         es.execute(() -> {
-                            console.write("Service: Start mining");
+                            status.console.add(new ConsoleItem("Service: Start mining"));
                             try {
                                 mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
-                                imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,console);
-                                smc = new SingleMiningChief(mc,imw,console,serviceHandler);
+                                imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,serviceHandler);
+                                smc = new SingleMiningChief(mc,imw,serviceHandler);
                                 smc.startMining();
+                                status.console.add(new ConsoleItem("Service: Started mining"));
                                 serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_RUNNING, 0));
-                                console.write("Service: Started mining");
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
                                 smc = null;
-                                console.write("Service: Started mining is failed");
+                                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
+                                status.console.add(new ConsoleItem("Service: Error " + e.getMessage()));
+                                status.console.add(new ConsoleItem("Service: Started mining is failed"));
                             }
                         });
                     }
@@ -138,15 +137,15 @@ public class MinerService extends Service implements Handler.Callback{
                 case MSG_STATE_ONSTOP:
                     if (state == MSG_STATE_RUNNING) {
                         es.execute(() -> {
-                            console.write("Service: Stop mining");
+                            status.console.add(new ConsoleItem("Service: Stop mining"));
                             try {
                                 smc.stopMining();
                                 smc = null;
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
+                            status.console.add(new ConsoleItem("Service: Stopped mining"));
                             serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
-                            console.write("Service: Stopped mining");
                         });
                     }
                     break;

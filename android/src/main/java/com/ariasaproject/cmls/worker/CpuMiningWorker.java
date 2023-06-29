@@ -1,8 +1,9 @@
 package com.ariasaproject.cmls.worker;
 
-import com.ariasaproject.cmls.Console;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.hasher.Hasher;
+
+import android.os.Handler;
 
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -11,15 +12,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
 import static com.ariasaproject.cmls.Constants.DEFAULT_RETRYPAUSE;
-import static com.ariasaproject.cmls.R.id.parent;
 import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.activeCount;
 
 public class CpuMiningWorker extends Observable implements IMiningWorker {
-    private Console _console;
+    private final Handler mainHandler;
     private int _number_of_thread;
     private int _thread_priorirty;
     private Worker[] _workr_thread;
@@ -78,7 +77,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                     e1.printStackTrace();
                 }
             } catch (InterruptedException e) {
-                _console.write("Thread killed. #Hashes="+this.number_of_hashed);
+                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Thread killed. #Hashes="+this.number_of_hashed));
                 calcSpeedPerThread(number_of_hashed);
                 _last_time=System.currentTimeMillis();
             }
@@ -92,8 +91,8 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         notifyObservers(Notification.SPEED);
     }
 
-    public CpuMiningWorker(int i_number_of_thread , long retry_pause, int priority,Console console) {
-        _console = console;
+    public CpuMiningWorker(int i_number_of_thread , long retry_pause, int priority,Handler h) {
+        mainHandler = h;
         _thread_priorirty = priority;
         this._retrypause = retry_pause;
         this._number_of_thread=i_number_of_thread;
@@ -146,11 +145,11 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     public void stopWork() throws Exception {
         for (Worker t : _workr_thread) {
             if (t != null) {
-                _console.write("Worker: Killing thread ID: " + t.getId());
+                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killing thread ID: " + t.getId()));
                 t.interrupt();
             }
         }
-        _console.write("Worker: Threads killed");
+        mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads killed"));
     }
 
     @Override
@@ -177,12 +176,12 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     }
 
     public void ConsoleWrite(String c) {
-        _console.write(c);
+        mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, c));
     }
 
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
     public synchronized void invokeNonceFound(MiningWork i_work, int i_nonce) {
-        _console.write("Mining: Nonce found! +"+((0xffffffffffffffffL)&i_nonce));
+        mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! +"+((0xffffffffffffffffL)&i_nonce)));
         for(IWorkerEvent i : _as_listener){
             i.onNonceFound(i_work,i_nonce);
         }

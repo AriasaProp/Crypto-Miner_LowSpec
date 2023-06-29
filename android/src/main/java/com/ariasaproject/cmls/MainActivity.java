@@ -78,18 +78,18 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     static {
       System.loadLibrary("ext");
     }
-    TextView tv_speed, tv_accepted, tv_rejected, tv_status;
+    TextView tv_speed, tv_accepted, tv_rejected;
     EditText et_serv, et_port, et_user, et_pass;
     Button btn_mine;
     SeekBar sb_thread;
     CheckBox cb_screen_awake;
 
     MinerService mService = null;
+    
     static final int MSG_STATUS = 1;
     static final int STATUS_SPEED = 1;
     static final int STATUS_ACCEPTED = 2;
     static final int STATUS_REJECTED = 3;
-    static final int STATUS_STATUS = 4;
     
     static final int MSG_CONSOLE = 2;
     
@@ -126,13 +126,12 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
         tv_speed = (TextView) findViewById(R.id.status_textView_speed);
         tv_accepted = (TextView) findViewById(R.id.status_textView_accepted);
         tv_rejected = (TextView) findViewById(R.id.status_textView_rejected);
-        tv_status = (TextView) findViewById(R.id.status_textView_status);
         //button
         btn_mine = (Button) findViewById(R.id.status_button_startstop);
         //editable
         et_serv = (EditText) findViewById(R.id.server_et);
         et_port = (EditText) findViewById(R.id.port_et);
-        et_user = (EditText) findViewById((R.id.user_et));
+        et_user = (EditText) findViewById(R.id.user_et);
         et_pass = (EditText) findViewById(R.id.password_et);
         sb_thread = (SeekBar)findViewById(R.id.threadSeek);
         //checkbox
@@ -223,7 +222,10 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                             mService.status.new_rejected = false;
                         }
                         if (mService.status.new_status) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_STATUS, 0, mService.status.status));
+                            logList.add(0, new ConsoleItem("Mining State: " + mService.status.status));
+                            if (logList.size() > MAX_LOG_COUNT)
+                                logList.remove(logList.size() - 1);
+                            statusHandler.sendEmptyMessage(MSG_CONSOLE);
                             mService.status.new_status = false;
                         }
                         mService.wait();
@@ -261,9 +263,6 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
             case STATUS_REJECTED:
                 tv_rejected.setText(String.valueOf((long)msg.obj));
                 break;
-            case STATUS_STATUS:
-                tv_status.setText((String)msg.obj);
-                break;
             }
             break;
         case MSG_CONSOLE: // console update
@@ -299,13 +298,22 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 tv_speed.setText("0 hash/sec");
                 tv_accepted.setText("0");
                 tv_rejected.setText("0");
-                tv_status.setText("Not Mining");
+                //enable all EditText
+                ed_serv.setEnabled(true);
+                ed_port.setEnabled(true);
+                ed_user.setEnabled(true);
+                ed_pass.setEnabled(true);
                 break;
             case MSG_STATE_ONSTART:
                 btn_mine.setText(getString(R.string.main_button_onstart));
                 btn_mine.setOnClickListener(null);
                 btn_mine.setEnabled(false);
                 btn_mine.setClickable(false);
+                //disable all EditText
+                ed_serv.setEnabled(false);
+                ed_port.setEnabled(false);
+                ed_user.setEnabled(false);
+                ed_pass.setEnabled(false);
                 break;
             case MSG_STATE_RUNNING:
                 btn_mine.setText(getString(R.string.main_button_stop));
@@ -314,12 +322,22 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 });
                 btn_mine.setEnabled(true);
                 btn_mine.setClickable(true);
+                //disable all EditText
+                ed_serv.setEnabled(false);
+                ed_port.setEnabled(false);
+                ed_user.setEnabled(false);
+                ed_pass.setEnabled(false);
                 break;
             case MSG_STATE_ONSTOP:
                 btn_mine.setText(getString(R.string.main_button_onstop));
                 btn_mine.setOnClickListener(null);
                 btn_mine.setEnabled(false);
                 btn_mine.setClickable(false);
+                //disable all EditText
+                ed_serv.setEnabled(false);
+                ed_port.setEnabled(false);
+                ed_user.setEnabled(false);
+                ed_pass.setEnabled(false);
                 break;
             }
             break;
