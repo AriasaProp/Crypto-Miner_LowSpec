@@ -12,6 +12,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
+
 import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
 import static com.ariasaproject.cmls.Constants.DEFAULT_RETRYPAUSE;
 import static java.lang.Thread.MIN_PRIORITY;

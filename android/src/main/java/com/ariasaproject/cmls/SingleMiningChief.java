@@ -28,6 +28,7 @@ import static com.ariasaproject.cmls.MinerService.MSG_STATE;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
 
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTOP;
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
 
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_SPEED;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_ACC;
