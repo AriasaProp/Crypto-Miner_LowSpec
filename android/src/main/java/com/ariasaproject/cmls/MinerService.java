@@ -111,7 +111,7 @@ public class MinerService extends Service implements Handler.Callback{
                 case MSG_STATE_RUNNING:
                     break;
                 case MSG_STATE_ONSTOP:
-                    if (this.state != MSG_STATE_NONE) {
+                    if (this.state == MSG_STATE_RUNNING) {
                         es.execute(() -> {
                             if (smc == null) return;
                             console.write("Service: Stop mining");
@@ -123,6 +123,7 @@ public class MinerService extends Service implements Handler.Callback{
                             }
                             serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
                             console.write("Service: Stopped mining");
+                            MinerService.this.notifyAll();
                         });
                     }
                     break;

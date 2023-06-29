@@ -32,6 +32,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_NONE;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_RUNNING;
@@ -220,7 +222,15 @@ public class MainActivity extends AppCompatActivity {
         et_port.setText(String.valueOf(settings.getInt(PREF_PORT, DEFAULT_PORT)));
         et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
         et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
-        cb_screen_awake.setChecked(settings.getBoolean(PREF_SCREEN, false));
+        final Window window = getWindow();
+        cb_screen_awake.setChecked((window.getFlags()&FLAG_KEEP_SCREEN_ON) == FLAG_KEEP_SCREEN_ON);
+        cb_screen_awake.setOnCheckedChangeListener((cb, check) -> {
+            if ((window.getFlags()&FLAG_KEEP_SCREEN_ON) != 0) {
+                window.removeFlags(FLAG_KEEP_SCREEN_ON);
+            } else {
+                window.addFlags(FLAG_KEEP_SCREEN_ON);
+            }
+        })
         int t = Runtime.getRuntime().availableProcessors();
         if (t < 1) t = 1;
         sb_thread.setMax(t);
@@ -284,12 +294,8 @@ public class MainActivity extends AppCompatActivity {
                 editor.putString(PREF_USER, user);
                 editor.putString(PREF_PASS, pass);
                 editor.putInt(PREF_THREAD, sb_thread.getProgress());
-                editor.putBoolean(PREF_SCREEN, cb_screen_awake.isChecked());
                 editor.commit();
                 
-                if(settings.getBoolean(PREF_SCREEN, DEFAULT_SCREEN)) {
-                   MainActivity.this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                }
                 mService.startMining(url,port,user,pass, sb_thread.getProgress());
             });
             b.setEnabled(true);
