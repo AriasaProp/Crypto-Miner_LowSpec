@@ -240,10 +240,12 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     public void onServiceConnected(ComponentName name, IBinder service) {
         mBinder = (MinerService.LocalBinder) service;
         mService = mBinder.getService();
+        if (!updateThread.isAlive()) updateThread.start();
     }
     
     @Override
     public void onServiceDisconnected(ComponentName name) {
+        if (updateThread.isAlive()) updateThread.interrupt();
     }
     
     final StringBuilder sb = new StringBuilder();
@@ -283,11 +285,10 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                     String pass = sb.append(et_pass.getText()).toString();
                     sb.setLength(0);
                     tv_showInput.setText(String.format(
-                        "server -> %s:%d \nauth-> %s:%s\nuse %d threads",
+                        "server -> %s:%d \nauth -> %s:%s\nuse %d threads",
                         url, port, user, pass, sb_thread.getProgress()
                     ));
-                    SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = settings.edit();
+                    SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
                     editor.putString(PREF_URL, url);
                     editor.putInt(PREF_PORT, port);
                     editor.putString(PREF_USER, user);
@@ -384,7 +385,6 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     @Override
     protected void onResume() {
         super.onResume();
-        if (!updateThread.isAlive()) updateThread.start();
     }
     
     @Override
@@ -403,7 +403,6 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
 
     @Override
     protected void onPause() {
-        updateThread.interrupt();
         super.onPause();
     }
 
