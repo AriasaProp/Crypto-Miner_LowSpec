@@ -102,9 +102,11 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     private static final int MAX_LOG_COUNT = 50;
     private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     RecyclerView.Adapter adpt;
+    int stateMiningUpdate;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        stateMiningUpdate = -1;
         setContentView(R.layout.activity_main);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -116,9 +118,9 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 break;
             }
         }
+        Intent intent = new Intent(this, MinerService.class);
+        bindService(intent, this, Context.BIND_AUTO_CREATE);
         if (!serviceWasRunning) {
-            Intent intent = new Intent(this, MinerService.class);
-            bindService(intent, this, Context.BIND_AUTO_CREATE);
             startService(intent);
         }
         if (savedInstanceState != null) {
@@ -207,7 +209,8 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
             try {
                 for (;;)	{
                     synchronized (mService) {
-                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, mService.state, 0));
+                        if (stateMiningUpdate != mService.state)
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
                         //Thread.sleep(updateDelay);
                         if (!mBinder.console.isEmpty()) {
                             for (ConsoleItem c : mBinder.console) {
@@ -414,9 +417,9 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     protected void onDestroy() {
         super.onDestroy();
         if (isFinishing()) {
-            unbindService(this);
             stopService(new Intent(this, MinerService.class));
         }
+        unbindService(this);
     }
     public native String callNative(); 
     public static class ConsoleItemHolder extends RecyclerView.ViewHolder {
