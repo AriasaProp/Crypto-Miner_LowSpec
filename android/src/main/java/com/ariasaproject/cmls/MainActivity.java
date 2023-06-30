@@ -78,7 +78,9 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     static {
       System.loadLibrary("ext");
     }
+    ViewGroup section_server, section_auth, section_thread;
     TextView tv_speed, tv_accepted, tv_rejected;
+    TextView tv_showInput;
     EditText et_serv, et_port, et_user, et_pass;
     Button btn_mine;
     SeekBar sb_thread;
@@ -122,6 +124,12 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
         if (savedInstanceState != null) {
             logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
         }
+        //define section layout
+        section_server = (ViewGroup) findViewById(R.id.server_section);
+        section_auth = (ViewGroup) findViewById(R.id.auth_section);
+        section_thread = (ViewGroup) findViewById(R.id.thread_section);
+        //define showInput
+        tv_showInput = (TextView) findViewById(R.id.show_userInput);
         //text status
         tv_speed = (TextView) findViewById(R.id.status_textView_speed);
         tv_accepted = (TextView) findViewById(R.id.status_textView_accepted);
@@ -269,12 +277,16 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 btn_mine.setOnClickListener(v -> {
                     String url = sb.append(et_serv.getText()).toString();
                     sb.setLength(0);
-                    int port = Integer.parseInt(et_port.getText().toString());
+                    int port = Integer.parseInt(sb.append(et_port.getText()).toString());
                     sb.setLength(0);
                     String user = sb.append(et_user.getText()).toString();
                     sb.setLength(0);
                     String pass = sb.append(et_pass.getText()).toString();
                     sb.setLength(0);
+                    tv_showInput.setText(String.format(
+                        "server -> %s:%d \nauth-> %s:%s\nuse %d threads",
+                        url, port, user, pass, sb_thread.getProgress()
+                    ));
                     SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = settings.edit();
                     editor.putString(PREF_URL, url);
@@ -291,22 +303,22 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 tv_speed.setText("0 hash/sec");
                 tv_accepted.setText("0");
                 tv_rejected.setText("0");
-                //enable all EditText
-                et_serv.setEnabled(true);
-                et_port.setEnabled(true);
-                et_user.setEnabled(true);
-                et_pass.setEnabled(true);
+                //enable all user Input
+                section_server.setVisibility(View.VISIBLE);
+                section_auth.setVisibility(View.VISIBLE);
+                section_thread.setVisibility(View.VISIBLE);
+                tv_showInput.setVisibility(View.GONE);
                 break;
             case MSG_STATE_ONSTART:
                 btn_mine.setText(getString(R.string.main_button_onstart));
                 btn_mine.setOnClickListener(null);
                 btn_mine.setEnabled(false);
                 btn_mine.setClickable(false);
-                //disable all EditText
-                et_serv.setEnabled(false);
-                et_port.setEnabled(false);
-                et_user.setEnabled(false);
-                et_pass.setEnabled(false);
+                //disable all user Input
+                section_server.setVisibility(View.GONE);
+                section_auth.setVisibility(View.GONE);
+                section_thread.setVisibility(View.GONE);
+                tv_showInput.setVisibility(View.VISIBLE);
                 break;
             case MSG_STATE_RUNNING:
                 btn_mine.setText(getString(R.string.main_button_stop));
@@ -315,22 +327,22 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 });
                 btn_mine.setEnabled(true);
                 btn_mine.setClickable(true);
-                //disable all EditText
-                et_serv.setEnabled(false);
-                et_port.setEnabled(false);
-                et_user.setEnabled(false);
-                et_pass.setEnabled(false);
+                //disable all user Input
+                section_server.setVisibility(View.GONE);
+                section_auth.setVisibility(View.GONE);
+                section_thread.setVisibility(View.GONE);
+                tv_showInput.setVisibility(View.VISIBLE);
                 break;
             case MSG_STATE_ONSTOP:
                 btn_mine.setText(getString(R.string.main_button_onstop));
                 btn_mine.setOnClickListener(null);
                 btn_mine.setEnabled(false);
                 btn_mine.setClickable(false);
-                //disable all EditText
-                et_serv.setEnabled(false);
-                et_port.setEnabled(false);
-                et_user.setEnabled(false);
-                et_pass.setEnabled(false);
+                //disable all user Input
+                section_server.setVisibility(View.GONE);
+                section_auth.setVisibility(View.GONE);
+                section_thread.setVisibility(View.GONE);
+                tv_showInput.setVisibility(View.VISIBLE);
                 break;
             }
             break;
