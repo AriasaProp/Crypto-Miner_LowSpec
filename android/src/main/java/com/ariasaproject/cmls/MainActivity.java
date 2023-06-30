@@ -120,6 +120,8 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
             Intent intent = new Intent(this, MinerService.class);
             bindService(intent, this, Context.BIND_AUTO_CREATE);
             startService(intent);
+        } else {
+            mService.notifyAll();
         }
         if (savedInstanceState != null) {
             logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
