@@ -74,7 +74,10 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     static final String DEFAULT_USER="Ariasa.test";
     static final String DEFAULT_PASS="123";
     
-    final static String KEY_CONSOLE_ITEMS = "console_log";
+    private static final String KEYBUNDLE_CONSOLE = "bundle_console";
+    private static final String KEYBUNDLE_TEXTS = "bundle_texts"
+    private static final String KEYBUNDLE_INTS = "bundle_ints"
+    
     static {
       System.loadLibrary("ext");
     }
@@ -106,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        stateMiningUpdate = -1;
         setContentView(R.layout.activity_main);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -118,13 +120,11 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 break;
             }
         }
+        stateMiningUpdate = -1;
         Intent intent = new Intent(this, MinerService.class);
         bindService(intent, this, Context.BIND_AUTO_CREATE);
         if (!serviceWasRunning) {
             startService(intent);
-        }
-        if (savedInstanceState != null) {
-            logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
         }
         //define section layout
         section_server = (ViewGroup) findViewById(R.id.server_section);
@@ -144,25 +144,6 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
         et_user = (EditText) findViewById(R.id.user_et);
         et_pass = (EditText) findViewById(R.id.password_et);
         sb_thread = (SeekBar)findViewById(R.id.threadSeek);
-        //checkbox
-        cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake);
-        SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
-        et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
-        et_port.setText(String.valueOf(settings.getInt(PREF_PORT, DEFAULT_PORT)));
-        et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
-        et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
-        final Window window = getWindow();
-        cb_screen_awake.setChecked((window.getAttributes().flags&FLAG_KEEP_SCREEN_ON) != 0);
-        cb_screen_awake.setOnCheckedChangeListener((cb, check) -> {
-            if (check) {
-                window.addFlags(FLAG_KEEP_SCREEN_ON);
-            } else {
-                window.clearFlags(FLAG_KEEP_SCREEN_ON);
-            }
-        });
-        int t = Runtime.getRuntime().availableProcessors();
-        if (t < 1) t = 1;
-        sb_thread.setMax(t);
         final TextView thread_view = (TextView)findViewById(R.id.thread_view);
         sb_thread.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -175,7 +156,41 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
-        sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); //old
+        int t = Runtime.getRuntime().availableProcessors();
+        if (t < 1) t = 1;
+        sb_thread.setMax(t);
+        //checkbox
+        cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake);
+        if (savedInstanceState != null) {
+            logList = savedInstanceState.getParcelableArrayList(KEYBUNDLE_CONSOLE);
+            CharSequence[] texts = savedInstanceState.getCharSequenceArray(KEYBUNDLE_TEXTS);
+            tv_speed.setText(texts[0]);
+            tv_accepted.setText(texts[1]);
+            tv_rejected.setText(texts[2]);
+            tv_showInput.setText(texts[3]);
+            et_serv.setText(texts[4]);
+            et_port.setText(texts[5]);
+            et_user.setText(texts[6]);
+            et_pass.setText(texts[7]);
+            int[] ints = savedInstanceState.getIntArray(KEYBUNDLE_INTS);
+            sb_thread.setProgress(ints[0]); //old
+        } else {
+            SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
+            et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
+            et_port.setText(String.valueOf(settings.getInt(PREF_PORT, DEFAULT_PORT)));
+            et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
+            et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
+            sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); //old
+        }
+        final Window window = getWindow();
+        cb_screen_awake.setChecked((window.getAttributes().flags&FLAG_KEEP_SCREEN_ON) != 0);
+        cb_screen_awake.setOnCheckedChangeListener((cb, check) -> {
+            if (check) {
+                window.addFlags(FLAG_KEEP_SCREEN_ON);
+            } else {
+                window.clearFlags(FLAG_KEEP_SCREEN_ON);
+            }
+        });
         //log Adapter
         final RecyclerView consoleView = (RecyclerView)findViewById(R.id.console_view);
         consoleView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -204,56 +219,8 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
     MinerService.LocalBinder mBinder;
-    final Handler statusHandler = new Handler(Looper.getMainLooper(), this);
-    final Thread updateThread = new Thread (() -> {
-            try {
-                for (;;)	{
-                    synchronized (mService) {
-                        if (stateMiningUpdate != mService.state)
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
-                        //Thread.sleep(updateDelay);
-                        if (!mBinder.console.isEmpty()) {
-                            for (ConsoleItem c : mBinder.console) {
-                                logList.add(0, c);
-                            }
-                            while (logList.size() > MAX_LOG_COUNT)
-                                logList.remove(logList.size() - 1);
-                            mBinder.console.clear();
-                            statusHandler.sendEmptyMessage(MSG_CONSOLE);
-                        }
-                        if (mBinder.new_speed) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_SPEED, 0, mBinder.speed));
-                            mBinder.new_speed = false;
-                        }
-                        if (mBinder.new_accepted) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_ACCEPTED, 0, mBinder.accepted));
-                            mBinder.new_accepted = false;
-                        }
-                        if (mBinder.new_rejected) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_REJECTED, 0, mBinder.rejected));
-                            mBinder.new_rejected = false;
-                        }
-                        mService.wait();
-                    }
-                }
-            } catch (InterruptedException e) {}
-        });
-    
-    @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
-        mBinder = (MinerService.LocalBinder) service;
-        mService = mBinder.getService();
-        if (!updateThread.isAlive()) updateThread.start();
-    }
-    
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-        if (updateThread.isAlive()) updateThread.interrupt();
-    }
-    
     final StringBuilder sb = new StringBuilder();
-    @Override
-    public boolean handleMessage(Message msg) {
+    final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
         switch (msg.what) {
         default: break;
         case MSG_STATUS: // status update
@@ -344,13 +311,59 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 //disable all user Input
                 section_server.setVisibility(View.GONE);
                 section_auth.setVisibility(View.GONE);
-                section_thread.setVisibility(View.GONE);
+                section_thread.setVisibility(View.GONE);url, port, user, pass, sb_thread.getprogress()
+                tv_showInput.setText("Mining On Stop .....");
                 tv_showInput.setVisibility(View.VISIBLE);
                 break;
             }
             break;
         }
         return true;
+    });
+    final Thread updateThread = new Thread (() -> {
+            try {
+                for (;;)	{
+                    synchronized (mService) {
+                        if (stateMiningUpdate != mService.state)
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
+                        //Thread.sleep(updateDelay);
+                        if (!mBinder.console.isEmpty()) {
+                            for (ConsoleItem c : mBinder.console) {
+                                logList.add(0, c);
+                            }
+                            while (logList.size() > MAX_LOG_COUNT)
+                                logList.remove(logList.size() - 1);
+                            mBinder.console.clear();
+                            statusHandler.sendEmptyMessage(MSG_CONSOLE);
+                        }
+                        if (mBinder.new_speed) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_SPEED, 0, mBinder.speed));
+                            mBinder.new_speed = false;
+                        }
+                        if (mBinder.new_accepted) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_ACCEPTED, 0, mBinder.accepted));
+                            mBinder.new_accepted = false;
+                        }
+                        if (mBinder.new_rejected) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_REJECTED, 0, mBinder.rejected));
+                            mBinder.new_rejected = false;
+                        }
+                        mService.wait();
+                    }
+                }
+            } catch (InterruptedException e) {}
+        });
+    
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        mBinder = (MinerService.LocalBinder) service;
+        mService = mBinder.getService();
+        if (!updateThread.isAlive()) updateThread.start();
+    }
+    
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        if (updateThread.isAlive()) updateThread.interrupt();
     }
     
     private static final int REQUEST_BATTERY_OPTIMIZATIONS = 1001;
@@ -393,14 +406,38 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(KEY_CONSOLE_ITEMS, logList);
+        outState.putParcelableArrayList(KEYBUNDLE_CONSOLE, logList);
+        CharSequence[] texts = new CharSequence[8];
+        texts[0] = tv_speed.getText();
+        texts[1] = tv_accepted.getText();
+        texts[2] = tv_rejected.getText();
+        texts[3] = tv_showInput.getText();
+        texts[4] = et_serv.getText();
+        texts[5] = et_port.getText();
+        texts[6] = et_user.getText();
+        texts[7] = et_pass.getText();
+        outState.putCharSequenceArray(KEYBUNDLE_TEXTS, texts);
+        int[] ints = new ints[1];
+        ints[0] = sb_thread.getProgress();
+        outState.putIntArray(KEYBUNDLE_INTS, ints);
+        
+        
     }
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        if (savedInstanceState != null && savedInstanceState.containsKey(KEY_CONSOLE_ITEMS)) {
-            logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
+        if (savedInstanceState != null) {
+            logList = savedInstanceState.getParcelableArrayList(KEYBUNDLE_CONSOLE);
             adpt.notifyDataSetChanged();
+            CharSequence[] texts = savedInstanceState.getCharSequenceArray(KEYBUNDLE_TEXTS);
+            tv_speed.setText(texts[0]);
+            tv_accepted.setText(texts[1]);
+            tv_rejected.setText(texts[2]);
+            tv_showInput.setText(texts[3]);
+            et_serv.setText(texts[4]);
+            et_port.setText(texts[5]);
+            et_user.setText(texts[6]);
+            et_pass.setText(texts[7]);
         }
     }
 
