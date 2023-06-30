@@ -417,7 +417,7 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
         texts[6] = et_user.getText();
         texts[7] = et_pass.getText();
         outState.putCharSequenceArray(KEYBUNDLE_TEXTS, texts);
-        int[] ints = new ints[1];
+        int[] ints = new int[1];
         ints[0] = sb_thread.getProgress();
         outState.putIntArray(KEYBUNDLE_INTS, ints);
         
