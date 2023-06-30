@@ -201,6 +201,7 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
+    MinerService.LocalBinder mBinder;
     final Handler statusHandler = new Handler(Looper.getMainLooper(), this);
     final Thread updateThread = new Thread (() -> {
             try {
@@ -208,26 +209,26 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                     synchronized (mService) {
                         statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, mService.state, 0));
                         //Thread.sleep(updateDelay);
-                        if (!mService.status.console.isEmpty()) {
-                            for (ConsoleItem c : mService.status.console) {
+                        if (!mBinder.console.isEmpty()) {
+                            for (ConsoleItem c : mBinder.console) {
                                 logList.add(0, c);
                             }
                             while (logList.size() > MAX_LOG_COUNT)
                                 logList.remove(logList.size() - 1);
-                            mService.status.console.clear();
+                            mBinder.console.clear();
                             statusHandler.sendEmptyMessage(MSG_CONSOLE);
                         }
-                        if (mService.status.new_speed) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_SPEED, 0, mService.status.speed));
-                            mService.status.new_speed = false;
+                        if (mBinder.new_speed) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_SPEED, 0, mBinder.speed));
+                            mBinder.new_speed = false;
                         }
-                        if (mService.status.new_accepted) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_ACCEPTED, 0, mService.status.accepted));
-                            mService.status.new_accepted = false;
+                        if (mBinder.new_accepted) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_ACCEPTED, 0, mBinder.accepted));
+                            mBinder.new_accepted = false;
                         }
-                        if (mService.status.new_rejected) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_REJECTED, 0, mService.status.rejected));
-                            mService.status.new_rejected = false;
+                        if (mBinder.new_rejected) {
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_REJECTED, 0, mBinder.rejected));
+                            mBinder.new_rejected = false;
                         }
                         mService.wait();
                     }
@@ -237,8 +238,8 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        MinerService.LocalBinder binder = (MinerService.LocalBinder) service;
-        mService = binder.getService();
+        mBinder = (MinerService.LocalBinder) service;
+        mService = mBinder.getService();
         if (!updateThread.isAlive()) updateThread.start();
     }
     
