@@ -61,7 +61,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements Handler.Callback, ServiceConnection {
+public class MainActivity extends AppCompatActivity implements ServiceConnection {
     
     static final String PREF_URL="URL";
     static final String PREF_PORT="PORT";
