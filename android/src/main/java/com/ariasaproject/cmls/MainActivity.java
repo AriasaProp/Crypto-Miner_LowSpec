@@ -120,8 +120,6 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
             Intent intent = new Intent(this, MinerService.class);
             bindService(intent, this, Context.BIND_AUTO_CREATE);
             startService(intent);
-        } else {
-            mService.notifyAll();
         }
         if (savedInstanceState != null) {
             logList = savedInstanceState.getParcelableArrayList(KEY_CONSOLE_ITEMS);
@@ -242,12 +240,10 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     public void onServiceConnected(ComponentName name, IBinder service) {
         mBinder = (MinerService.LocalBinder) service;
         mService = mBinder.getService();
-        if (!updateThread.isAlive()) updateThread.start();
     }
     
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        updateThread.interrupt();
     }
     
     final StringBuilder sb = new StringBuilder();
@@ -388,6 +384,8 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     @Override
     protected void onResume() {
         super.onResume();
+        mService.reSet();
+        if (!updateThread.isAlive()) updateThread.start();
     }
     
     @Override
@@ -406,6 +404,7 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
 
     @Override
     protected void onPause() {
+        updateThread.interrupt();
         super.onPause();
     }
 
