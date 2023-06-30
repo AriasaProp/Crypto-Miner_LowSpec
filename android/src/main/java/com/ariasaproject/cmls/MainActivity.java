@@ -16,6 +16,8 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.StrictMode;
+import android.os.Parcelable;
+import android.os.Parcel;
 import android.os.Bundle;
 import android.net.Uri;
 import android.view.View;
@@ -43,8 +45,6 @@ import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_RUNNING;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTOP;
 
-import com.ariasaproject.cmls.MiningStatusService;
-import com.ariasaproject.cmls.MiningStatusService.ConsoleItem;
 import com.ariasaproject.cmls.connection.IMiningConnection;
 import com.ariasaproject.cmls.connection.StratumMiningConnection;
 import com.ariasaproject.cmls.stratum.StratumSocket;
@@ -431,6 +431,38 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
         public void bindLog(String t, String m) {
             time.setText(t);
             msg.setText(m);
+        }
+    }
+    private static final DateFormat logDateFormat = new SimpleDateFormat("[HH:mm:ss] ");
+    public static class ConsoleItem extends Object implements Parcelable {
+        public final String time, msg;
+        public ConsoleItem(String m) {
+            time = logDateFormat.format(new Date());
+            msg = m;
+        }
+        protected ConsoleItem(Parcel in) {
+            String[] strings = new String[2];
+            in.readStringArray(strings);
+            time = strings[0];
+            msg = strings[1];
+        }
+        public static final Parcelable.Creator<ConsoleItem> CREATOR = new Parcelable.Creator<ConsoleItem>() {
+            @Override
+            public ConsoleItem createFromParcel(Parcel in) {
+                return new ConsoleItem(in);
+            }
+            @Override
+            public ConsoleItem[] newArray(int size) {
+                return new ConsoleItem[size];
+            }
+        };
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeStringArray(new String[] { time, msg });
         }
     }
 }

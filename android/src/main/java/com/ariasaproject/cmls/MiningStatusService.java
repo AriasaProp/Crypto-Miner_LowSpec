@@ -9,8 +9,9 @@ import java.text.SimpleDateFormat;
 
 import android.os.Parcelable;
 import android.os.Parcel;
+import android.os.Binder;
 
-public class MiningStatusService extends Object{
+public class MiningStatusService extends Binder{
     private static final DateFormat logDateFormat = new SimpleDateFormat("[HH:mm:ss] ");
     public static class ConsoleItem extends Object implements Parcelable {
         public final String time, msg;

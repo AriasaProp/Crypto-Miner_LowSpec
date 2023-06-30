@@ -9,17 +9,20 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.IBinder;
 import android.os.Message;
-import android.widget.Toast;
+import android.os.Binder;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 
-import com.ariasaproject.cmls.MiningStatusService;
-import com.ariasaproject.cmls.MiningStatusService.ConsoleItem;
 import com.ariasaproject.cmls.connection.IMiningConnection;
 import com.ariasaproject.cmls.connection.StratumMiningConnection;
 import com.ariasaproject.cmls.worker.CpuMiningWorker;
 import com.ariasaproject.cmls.worker.IMiningWorker;
+import com.ariasaproject.cmls.MainActivity.ConsoleItem;
 
 import static com.ariasaproject.cmls.MainActivity.PREF_URL;
 import static com.ariasaproject.cmls.MainActivity.PREF_PORT;
@@ -62,10 +65,9 @@ public class MinerService extends Service implements Handler.Callback{
     IMiningWorker imw;
     SingleMiningChief smc;
     int state = MINING_NONE;
-    public final MiningStatusService status = new MiningStatusService();
     Handler serviceHandler;
     // Binder given to clients
-    private final LocalBinder mBinder = new LocalBinder();
+    private final LocalBinder status = new LocalBinder();
     ExecutorService es;
     public void onCreate() {
         es = Executors.newFixedThreadPool(1);
@@ -176,12 +178,20 @@ public class MinerService extends Service implements Handler.Callback{
 
     @Override
     public IBinder onBind(Intent intent) {
-        return mBinder;
+        return status;
     }
     
     public class LocalBinder extends Binder {
         MinerService getService() {
             return MinerService.this;
         }
+        public boolean new_speed = false;
+        public float speed = 0;
+        public boolean new_accepted = false;
+        public long accepted = 0;
+        public boolean new_rejected = false;
+        public long rejected = 0;
+        public ArrayList<ConsoleItem> console = new ArrayList<ConsoleItem>();
     }
 }
+
