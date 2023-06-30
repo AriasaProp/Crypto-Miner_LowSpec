@@ -182,9 +182,9 @@ public class MinerService extends Service implements Handler.Callback{
     }
     
     public synchronized void reSet() {
-        new_speed = true;
-        new_accepted = true;
-        new_rejected = true;
+        status.new_speed = true;
+        status.new_accepted = true;
+        status.new_rejected = true;
         notifyAll();
     }
     
