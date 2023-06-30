@@ -210,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 for (;;)	{
                     synchronized (mService) {
                         if (stateMiningUpdate != mService.state)
-                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
+                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
                         //Thread.sleep(updateDelay);
                         if (!mBinder.console.isEmpty()) {
                             for (ConsoleItem c : mBinder.console) {
