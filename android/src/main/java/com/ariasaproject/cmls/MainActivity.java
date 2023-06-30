@@ -75,8 +75,8 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     static final String DEFAULT_PASS="123";
     
     private static final String KEYBUNDLE_CONSOLE = "bundle_console";
-    private static final String KEYBUNDLE_TEXTS = "bundle_texts"
-    private static final String KEYBUNDLE_INTS = "bundle_ints"
+    private static final String KEYBUNDLE_TEXTS = "bundle_texts";
+    private static final String KEYBUNDLE_INTS = "bundle_ints";
     
     static {
       System.loadLibrary("ext");
@@ -311,7 +311,7 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
                 //disable all user Input
                 section_server.setVisibility(View.GONE);
                 section_auth.setVisibility(View.GONE);
-                section_thread.setVisibility(View.GONE);url, port, user, pass, sb_thread.getprogress()
+                section_thread.setVisibility(View.GONE);
                 tv_showInput.setText("Mining On Stop .....");
                 tv_showInput.setVisibility(View.VISIBLE);
                 break;
