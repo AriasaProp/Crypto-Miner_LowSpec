@@ -384,7 +384,6 @@ public class MainActivity extends AppCompatActivity implements Handler.Callback,
     @Override
     protected void onResume() {
         super.onResume();
-        mService.reSet();
         if (!updateThread.isAlive()) updateThread.start();
     }
     

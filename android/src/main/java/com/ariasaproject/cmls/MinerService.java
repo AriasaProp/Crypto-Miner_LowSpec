@@ -181,13 +181,6 @@ public class MinerService extends Service implements Handler.Callback{
         return status;
     }
     
-    public synchronized void reSet() {
-        status.new_speed = true;
-        status.new_accepted = true;
-        status.new_rejected = true;
-        notifyAll();
-    }
-    
     public class LocalBinder extends Binder {
         MinerService getService() {
             return MinerService.this;
