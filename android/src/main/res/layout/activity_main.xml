@@ -19,7 +19,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:orientation="horizontal" >
         <com.google.android.material.textfield.TextInputLayout
-            style="@android:style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
             android:layout_weight="0.8"
             android:layout_height="wrap_content"
@@ -35,7 +35,7 @@
                 android:text="stratum+tcp://us2.litecoinpool.org" />
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout
-            style="@android:style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
             android:layout_weight="0.2"
             android:layout_height="wrap_content"
@@ -62,7 +62,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:orientation="horizontal" >
         <com.google.android.material.textfield.TextInputLayout
-            style="@android:style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:id="@+id/user_view"
             android:layout_width="0dp"
             android:layout_weight="0.5"
@@ -77,7 +77,7 @@
                 android:text="Ariasa.test" />
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout
-            style="@android:style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:id="@+id/password_view"
             android:layout_width="0dp"
             android:layout_weight="0.5"
