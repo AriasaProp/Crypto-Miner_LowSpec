@@ -26,6 +26,7 @@ import android.view.WindowManager;
 import android.view.Window;
 import android.view.LayoutInflater;
 import android.widget.ArrayAdapter;
+import android.widget.SeekBar;
 import android.widget.Toast;
 import android.provider.Settings;
 
