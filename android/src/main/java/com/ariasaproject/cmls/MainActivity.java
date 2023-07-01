@@ -26,17 +26,17 @@ import android.view.WindowManager;
 import android.view.Window;
 import android.view.LayoutInflater;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.provider.Settings;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.appcompat.widget.AppCompatEditText;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.appcompat.widget.AppCompatSeekBar;
+import androidx.appcompat.widget.AppCompatTextView;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
@@ -82,12 +82,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
       System.loadLibrary("ext");
     }
     ViewGroup section_server, section_auth, section_thread;
-    TextView tv_speed, tv_accepted, tv_rejected;
-    TextView tv_showInput;
-    EditText et_serv, et_port, et_user, et_pass;
-    Button btn_startmine, btn_stopmine;
-    SeekBar sb_thread;
-    CheckBox cb_screen_awake;
+    AppCompatTextView tv_speed, tv_accepted, tv_rejected;
+    AppCompatTextView tv_showInput;
+    AppCompatEditText et_serv, et_port, et_user, et_pass;
+    AppCompatButton btn_startmine, btn_stopmine;
+    AppCompatSeekBar sb_thread;
+    AppCompatCheckBox cb_screen_awake;
 
     MinerService mService = null;
     
@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     
     private static int updateDelay = 400; // 0.4 sec
     
+    private final StringBuilder sb = new StringBuilder();
     private static final int MAX_LOG_COUNT = 50;
     private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
     RecyclerView.Adapter adpt;
@@ -131,47 +132,21 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         section_auth = (ViewGroup) findViewById(R.id.auth_section);
         section_thread = (ViewGroup) findViewById(R.id.thread_section);
         //define showInput
-        tv_showInput = (TextView) findViewById(R.id.show_userInput);
+        tv_showInput = (AppCompatTextView) findViewById(R.id.show_userInput);
         //text status
-        tv_speed = (TextView) findViewById(R.id.status_textView_speed);
-        tv_accepted = (TextView) findViewById(R.id.status_textView_accepted);
-        tv_rejected = (TextView) findViewById(R.id.status_textView_rejected);
+        tv_speed = (AppCompatTextView) findViewById(R.id.status_textView_speed);
+        tv_accepted = (AppCompatTextView) findViewById(R.id.status_textView_accepted);
+        tv_rejected = (AppCompatTextView) findViewById(R.id.status_textView_rejected);
         //button
-        btn_startmine = (Button) findViewById(R.id.button_startmine);
-        btn_startmine.setOnClickListener(v -> {
-            String url = sb.append(et_serv.getText()).toString();
-            sb.setLength(0);
-            int port = Integer.parseInt(sb.append(et_port.getText()).toString());
-            sb.setLength(0);
-            String user = sb.append(et_user.getText()).toString();
-            sb.setLength(0);
-            String pass = sb.append(et_pass.getText()).toString();
-            sb.setLength(0);
-            tv_showInput.setText(String.format(
-                "server -> %s:%d \nauth -> %s:%s\nuse %d threads",
-                url, port, user, pass, sb_thread.getProgress()
-            ));
-            SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
-            editor.putString(PREF_URL, url);
-            editor.putInt(PREF_PORT, port);
-            editor.putString(PREF_USER, user);
-            editor.putString(PREF_PASS, pass);
-            editor.putInt(PREF_THREAD, sb_thread.getProgress());
-            editor.commit();
-            
-            mService.startMining(url,port,user,pass, sb_thread.getProgress());
-        });
-        btn_stopmine = (Button) findViewById(R.id.button_stopmine);
-        btn_stopmine.setOnClickListener(v -> {
-            mService.stopMining();
-        });
+        btn_startmine = (AppCompatButton) findViewById(R.id.button_startmine);
+        btn_stopmine = (AppCompatButton) findViewById(R.id.button_stopmine);
         //editable
-        et_serv = (EditText) findViewById(R.id.server_et);
-        et_port = (EditText) findViewById(R.id.port_et);
-        et_user = (EditText) findViewById(R.id.user_et);
-        et_pass = (EditText) findViewById(R.id.password_et);
-        sb_thread = (SeekBar)findViewById(R.id.threadSeek);
-        final TextView thread_view = (TextView)findViewById(R.id.thread_view);
+        et_serv = (AppCompatEditText) findViewById(R.id.server_et);
+        et_port = (AppCompatEditText) findViewById(R.id.port_et);
+        et_user = (AppCompatEditText) findViewById(R.id.user_et);
+        et_pass = (AppCompatEditText) findViewById(R.id.password_et);
+        sb_thread = (AppCompatSeekBar)findViewById(R.id.threadSeek);
+        final AppCompatTextView thread_view = (AppCompatTextView)findViewById(R.id.thread_view);
         sb_thread.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -187,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         if (t < 1) t = 1;
         sb_thread.setMax(t);
         //checkbox
-        cb_screen_awake = (CheckBox) findViewById(R.id.settings_checkBox_keepscreenawake);
+        cb_screen_awake = (AppCompatCheckBox) findViewById(R.id.settings_checkBox_keepscreenawake);
         if (savedInstanceState != null) {
             logList = savedInstanceState.getParcelableArrayList(KEYBUNDLE_CONSOLE);
             CharSequence[] texts = savedInstanceState.getCharSequenceArray(KEYBUNDLE_TEXTS);
@@ -246,7 +221,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
     MinerService.LocalBinder mBinder;
-    final StringBuilder sb = new StringBuilder();
     final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
         switch (msg.what) {
         default: break;
@@ -315,7 +289,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 section_server.setVisibility(View.GONE);
                 section_auth.setVisibility(View.GONE);
                 section_thread.setVisibility(View.GONE);
-                tv_showInput.setText("Mining On Stop .....");
                 tv_showInput.setVisibility(View.VISIBLE);
                 break;
             }
@@ -396,6 +369,34 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             break;
         }
     }
+    //button function
+    public void toStartMining(View v) {
+        String url = sb.append(et_serv.getText()).toString();
+        sb.setLength(0);
+        int port = Integer.parseInt(sb.append(et_port.getText()).toString());
+        sb.setLength(0);
+        String user = sb.append(et_user.getText()).toString();
+        sb.setLength(0);
+        String pass = sb.append(et_pass.getText()).toString();
+        sb.setLength(0);
+        tv_showInput.setText(String.format(
+            "server -> %s:%d \nauth -> %s:%s\nuse %d threads",
+            url, port, user, pass, sb_thread.getProgress()
+        ));
+        SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
+        editor.putString(PREF_URL, url);
+        editor.putInt(PREF_PORT, port);
+        editor.putString(PREF_USER, user);
+        editor.putString(PREF_PASS, pass);
+        editor.putInt(PREF_THREAD, sb_thread.getProgress());
+        editor.commit();
+        
+        mService.startMining(url,port,user,pass, sb_thread.getProgress());
+    }
+    public void toStopMining(View v) {
+        mService.stopMining();
+        tv_showInput.setText("Mining On Stop .....");
+    }
     @Override
     protected void onStart() {
         super.onStart();
@@ -465,8 +466,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
     public native String callNative(); 
     public static class ConsoleItemHolder extends RecyclerView.ViewHolder {
-        private TextView time;
-        private TextView msg;
+        private AppCompatTextView time;
+        private AppCompatTextView msg;
     
         public ConsoleItemHolder(View itemView) {
             super(itemView);

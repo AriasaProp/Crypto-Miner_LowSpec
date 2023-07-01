@@ -14,13 +14,13 @@
         android:layout_height="wrap_content"
         android:weightSum="1"
         android:orientation="horizontal" >
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:background="@drawable/round_fill"
             android:gravity="center"
             android:text="URL" />
-        <EditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/server_et"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -28,13 +28,13 @@
             android:maxLines="1"
             android:inputType="textUri"
             android:text="stratum+tcp://us2.litecoinpool.org" />
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:background="@drawable/round_fill"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
             android:text=" : " />
-        <EditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/port_et"
             android:layout_width="0dp"
             android:layout_weight="0.2"
@@ -49,27 +49,27 @@
         android:weightSum="1"
         android:background="@drawable/round_stroke"
         android:orientation="horizontal" >
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/user_view"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
             android:background="@drawable/round_fill"
             android:text="User " />
-        <EditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/user_et"
             android:layout_width="0dp"
             android:layout_weight="0.5"
             android:layout_height="wrap_content"
             android:text="Ariasa.test" />
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/password_view"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:gravity="center"
             android:background="@drawable/round_fill"
             android:text="Pass " />
-        <EditText
+        <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/password_et"
             android:layout_width="0dp"
             android:layout_weight="0.5"
@@ -84,26 +84,26 @@
         android:orientation="horizontal"
         android:background="@drawable/round_stroke"
         android:weightSum="1">
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:background="@drawable/round_fill"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:text="Threads: " />
-        <SeekBar
+        <androidx.appcompat.widget.AppCompatSeekBar
             android:id="@+id/threadSeek"
             android:min="1"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content" />
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/thread_view"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:gravity="center"
             android:text="01" />
     </LinearLayout>
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/show_userInput"
         android:background="@drawable/round_fill"
         android:layout_width="match_parent"
@@ -117,11 +117,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/status_textview_speed" />
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/status_textView_speed"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -133,59 +133,51 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:weightSum="1">
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Accepted:" />
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/status_textView_accepted"
             android:layout_width="0dp"
             android:layout_weight="0.5"
             android:layout_height="wrap_content"
             android:textColor="@android:color/holo_green_dark" />
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Rejected:" />
-        <TextView
+        <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/status_textView_rejected"
             android:layout_width="0dp"
             android:layout_weight="0.5"
             android:layout_height="wrap_content"
             android:textColor="@android:color/holo_green_dark" />
     </LinearLayout>
-    <TableLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
-        <TableRow
-            android:id="@+id/tableRow5"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content" >
-            <CheckBox
-                android:id="@+id/settings_checkBox_keepscreenawake"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="20dp"
-                android:text="@string/checkbox_keepscreenawake" />
-
-        </TableRow>
-    </TableLayout>
-    <Button
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/settings_checkBox_keepscreenawake"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="20dp"
+        android:text="@string/checkbox_keepscreenawake" />
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/button_startmine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:enabled="false"
         android:background="@drawable/button_start_mine"
+        android:onclick="toStartMining"
         android:text="@string/button_startmine" />
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/button_stopmine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
         android:enabled="false"
         android:background="@drawable/button_stop_mine"
+        android:onclick="toStopMining"
         android:text="@string/button_stopmine" />
-    <TextView
+    <androidx.appcompat.widget.AppCompatTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Console:" />

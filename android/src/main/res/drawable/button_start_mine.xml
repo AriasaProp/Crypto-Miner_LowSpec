@@ -11,9 +11,9 @@
         android:state_pressed="false" >
         <shape>
             <gradient
-                android:angle="180"
+                android:angle="270"
                 android:centerX="0.5"
-                android:centerY="0.7"
+                android:centerY="0.8"
                 android:startColor="@color/btnMine_startLighten"
                 android:centerColor="@color/btnMine_startLighten"
                 android:endColor="@color/btnMine_startDarken" />
