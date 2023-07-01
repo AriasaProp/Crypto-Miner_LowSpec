@@ -18,33 +18,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:orientation="horizontal" >
-        <androidx.appcompat.widget.AppCompatTextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:background="@drawable/round_fill"
-            android:gravity="center"
-            android:text="URL" />
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/server_et"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
             android:layout_weight="0.8"
-            android:maxLines="1"
-            android:inputType="textUri"
-            android:text="stratum+tcp://us2.litecoinpool.org" />
-        <androidx.appcompat.widget.AppCompatTextView
-            android:background="@drawable/round_fill"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text=" : " />
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/port_et"
+            android:layout_height="wrap_content"
+            android:hint="Pool Server">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/server_et"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="textUri"
+                android:text="stratum+tcp://us2.litecoinpool.org" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
             android:layout_weight="0.2"
             android:layout_height="wrap_content"
-            android:inputType="number"
-            android:text="3333" />
+            android:hint="Pool Port">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/port_et"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="number"
+                android:text="3333" />
+        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
     <LinearLayout
         android:id="@+id/auth_section"
@@ -56,33 +55,34 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:orientation="horizontal" >
-        <androidx.appcompat.widget.AppCompatTextView
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/user_view"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:background="@drawable/round_fill"
-            android:text="User " />
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/user_et"
             android:layout_width="0dp"
             android:layout_weight="0.5"
             android:layout_height="wrap_content"
-            android:text="Ariasa.test" />
-        <androidx.appcompat.widget.AppCompatTextView
+            android:hint="Username">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/user_et"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="textUri"
+                android:text="Ariasa.test" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/password_view"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:background="@drawable/round_fill"
-            android:text="Pass " />
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/password_et"
             android:layout_width="0dp"
             android:layout_weight="0.5"
             android:layout_height="wrap_content"
-            android:inputType="textPassword"
-            android:text="123" />
+            android:hint="Password">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/password_et"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="textPassword"
+                android:text="123" />
+        </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
     <LinearLayout
         android:id="@+id/thread_section"
@@ -211,7 +211,7 @@
         android:id="@+id/console_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="@id/button_stopmine"
+        app:layout_constraintTop_toBottomOf="@id/button_stopmine"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:text="Console:" />

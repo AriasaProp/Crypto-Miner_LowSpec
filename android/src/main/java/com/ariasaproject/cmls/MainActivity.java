@@ -41,6 +41,8 @@ import androidx.appcompat.widget.AppCompatTextView;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
+import com.google.android.material.textfield.TextInputEditText;
+
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_NONE;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_RUNNING;
@@ -85,7 +87,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     ViewGroup section_server, section_auth, section_thread;
     AppCompatTextView tv_speed, tv_accepted, tv_rejected;
     AppCompatTextView tv_showInput;
-    AppCompatEditText et_serv, et_port, et_user, et_pass;
+    TextInputEditText et_serv, et_port, et_user, et_pass;
     AppCompatButton btn_startmine, btn_stopmine;
     AppCompatSeekBar sb_thread;
     AppCompatCheckBox cb_screen_awake;
@@ -142,10 +144,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         btn_startmine = (AppCompatButton) findViewById(R.id.button_startmine);
         btn_stopmine = (AppCompatButton) findViewById(R.id.button_stopmine);
         //editable
-        et_serv = (AppCompatEditText) findViewById(R.id.server_et);
-        et_port = (AppCompatEditText) findViewById(R.id.port_et);
-        et_user = (AppCompatEditText) findViewById(R.id.user_et);
-        et_pass = (AppCompatEditText) findViewById(R.id.password_et);
+        et_serv = (TextInputEditText) findViewById(R.id.server_et);
+        et_port = (TextInputEditText) findViewById(R.id.port_et);
+        et_user = (TextInputEditText) findViewById(R.id.user_et);
+        et_pass = (TextInputEditText) findViewById(R.id.password_et);
         sb_thread = (AppCompatSeekBar)findViewById(R.id.threadSeek);
         final AppCompatTextView thread_view = (AppCompatTextView)findViewById(R.id.thread_view);
         sb_thread.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -298,38 +300,38 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         return true;
     });
     final Thread updateThread = new Thread (() -> {
-            try {
-                for (;;)	{
-                    synchronized (mService) {
-                        if (stateMiningUpdate != mService.state)
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
-                        //Thread.sleep(updateDelay);
-                        if (!mBinder.console.isEmpty()) {
-                            for (ConsoleItem c : mBinder.console) {
-                                logList.add(0, c);
-                            }
-                            while (logList.size() > MAX_LOG_COUNT)
-                                logList.remove(logList.size() - 1);
-                            mBinder.console.clear();
-                            statusHandler.sendEmptyMessage(MSG_CONSOLE);
+        try {
+            for (;;)	{
+                synchronized (mService) {
+                    if (stateMiningUpdate != mService.state)
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
+                    //Thread.sleep(updateDelay);
+                    if (!mBinder.console.isEmpty()) {
+                        for (ConsoleItem c : mBinder.console) {
+                            logList.add(0, c);
                         }
-                        if (mBinder.new_speed) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_SPEED, 0, mBinder.speed));
-                            mBinder.new_speed = false;
-                        }
-                        if (mBinder.new_accepted) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_ACCEPTED, 0, mBinder.accepted));
-                            mBinder.new_accepted = false;
-                        }
-                        if (mBinder.new_rejected) {
-                            statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_REJECTED, 0, mBinder.rejected));
-                            mBinder.new_rejected = false;
-                        }
-                        mService.wait();
+                        while (logList.size() > MAX_LOG_COUNT)
+                            logList.remove(logList.size() - 1);
+                        mBinder.console.clear();
+                        statusHandler.sendEmptyMessage(MSG_CONSOLE);
                     }
+                    if (mBinder.new_speed) {
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_SPEED, 0, mBinder.speed));
+                        mBinder.new_speed = false;
+                    }
+                    if (mBinder.new_accepted) {
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_ACCEPTED, 0, mBinder.accepted));
+                        mBinder.new_accepted = false;
+                    }
+                    if (mBinder.new_rejected) {
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_REJECTED, 0, mBinder.rejected));
+                        mBinder.new_rejected = false;
+                    }
+                    mService.wait();
                 }
-            } catch (InterruptedException e) {}
-        });
+            }
+        } catch (InterruptedException e) {}
+    });
     
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
