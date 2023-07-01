@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     TextView tv_speed, tv_accepted, tv_rejected;
     TextView tv_showInput;
     EditText et_serv, et_port, et_user, et_pass;
-    Button btn_mine;
+    Button btn_startmine, btn_stopmine;
     SeekBar sb_thread;
     CheckBox cb_screen_awake;
 
@@ -137,7 +137,34 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         tv_accepted = (TextView) findViewById(R.id.status_textView_accepted);
         tv_rejected = (TextView) findViewById(R.id.status_textView_rejected);
         //button
-        btn_mine = (Button) findViewById(R.id.status_button_startstop);
+        btn_startmine = (Button) findViewById(R.id.button_startmine);
+        btn_startmine.setOnClickListener(v -> {
+            String url = sb.append(et_serv.getText()).toString();
+            sb.setLength(0);
+            int port = Integer.parseInt(sb.append(et_port.getText()).toString());
+            sb.setLength(0);
+            String user = sb.append(et_user.getText()).toString();
+            sb.setLength(0);
+            String pass = sb.append(et_pass.getText()).toString();
+            sb.setLength(0);
+            tv_showInput.setText(String.format(
+                "server -> %s:%d \nauth -> %s:%s\nuse %d threads",
+                url, port, user, pass, sb_thread.getProgress()
+            ));
+            SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
+            editor.putString(PREF_URL, url);
+            editor.putInt(PREF_PORT, port);
+            editor.putString(PREF_USER, user);
+            editor.putString(PREF_PASS, pass);
+            editor.putInt(PREF_THREAD, sb_thread.getProgress());
+            editor.commit();
+            
+            mService.startMining(url,port,user,pass, sb_thread.getProgress());
+        });
+        btn_stopmine = (Button) findViewById(R.id.button_stopmine);
+        btn_stopmine.setOnClickListener(v -> {
+            mService.stopMining();
+        });
         //editable
         et_serv = (EditText) findViewById(R.id.server_et);
         et_port = (EditText) findViewById(R.id.port_et);
@@ -244,32 +271,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             switch (msg.arg1) {
             default: break;
             case MSG_STATE_NONE:
-                btn_mine.setText(getString(R.string.main_button_start));
-                btn_mine.setOnClickListener(v -> {
-                    String url = sb.append(et_serv.getText()).toString();
-                    sb.setLength(0);
-                    int port = Integer.parseInt(sb.append(et_port.getText()).toString());
-                    sb.setLength(0);
-                    String user = sb.append(et_user.getText()).toString();
-                    sb.setLength(0);
-                    String pass = sb.append(et_pass.getText()).toString();
-                    sb.setLength(0);
-                    tv_showInput.setText(String.format(
-                        "server -> %s:%d \nauth -> %s:%s\nuse %d threads",
-                        url, port, user, pass, sb_thread.getProgress()
-                    ));
-                    SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
-                    editor.putString(PREF_URL, url);
-                    editor.putInt(PREF_PORT, port);
-                    editor.putString(PREF_USER, user);
-                    editor.putString(PREF_PASS, pass);
-                    editor.putInt(PREF_THREAD, sb_thread.getProgress());
-                    editor.commit();
-                    
-                    mService.startMining(url,port,user,pass, sb_thread.getProgress());
-                });
-                btn_mine.setEnabled(true);
-                btn_mine.setClickable(true);
+                btn_stopmine.setVisibility(View.GONE);
+                btn_stopmine.setEnabled(false);
+                btn_startmine.setVisibility(View.VISIBLE);
+                btn_startmine.setEnabled(true);
                 tv_speed.setText("0 hash/sec");
                 tv_accepted.setText("0");
                 tv_rejected.setText("0");
@@ -280,10 +285,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 tv_showInput.setVisibility(View.GONE);
                 break;
             case MSG_STATE_ONSTART:
-                btn_mine.setText(getString(R.string.main_button_onstart));
-                btn_mine.setOnClickListener(null);
-                btn_mine.setEnabled(false);
-                btn_mine.setClickable(false);
+                btn_stopmine.setVisibility(View.GONE);
+                btn_stopmine.setEnabled(false);
+                btn_startmine.setVisibility(View.VISIBLE);
+                btn_startmine.setEnabled(false);
                 //disable all user Input
                 section_server.setVisibility(View.GONE);
                 section_auth.setVisibility(View.GONE);
@@ -291,12 +296,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 tv_showInput.setVisibility(View.VISIBLE);
                 break;
             case MSG_STATE_RUNNING:
-                btn_mine.setText(getString(R.string.main_button_stop));
-                btn_mine.setOnClickListener(v -> {
-                    mService.stopMining();
-                });
-                btn_mine.setEnabled(true);
-                btn_mine.setClickable(true);
+                btn_stopmine.setVisibility(View.VISIBLE);
+                btn_stopmine.setEnabled(true);
+                btn_startmine.setVisibility(View.GONE);
+                btn_startmine.setEnabled(false);
                 //disable all user Input
                 section_server.setVisibility(View.GONE);
                 section_auth.setVisibility(View.GONE);
@@ -304,10 +307,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 tv_showInput.setVisibility(View.VISIBLE);
                 break;
             case MSG_STATE_ONSTOP:
-                btn_mine.setText(getString(R.string.main_button_onstop));
-                btn_mine.setOnClickListener(null);
-                btn_mine.setEnabled(false);
-                btn_mine.setClickable(false);
+                btn_stopmine.setVisibility(View.VISIBLE);
+                btn_stopmine.setEnabled(false);
+                btn_startmine.setVisibility(View.GONE);
+                btn_startmine.setEnabled(false);
                 //disable all user Input
                 section_server.setVisibility(View.GONE);
                 section_auth.setVisibility(View.GONE);

@@ -2,10 +2,8 @@
     <string name="app_name">CryptoMiner - LowSpec</string>
     
     <!-- known use part !-->
-    <string name="main_button_start">Start Mine</string>
-    <string name="main_button_onstart">Starting Mine</string>
-    <string name="main_button_stop">Stop Mine</string>
-    <string name="main_button_onstop">Stopping Mine</string>
+    <string name="button_startmine">Start Mine</string>
+    <string name="button_stopmine">Stop Mine</string>
 
     <!-- unknown use part !-->
     <string name="main_tv_server">Server Address</string>

@@ -171,13 +171,20 @@
         </TableRow>
     </TableLayout>
     <Button
-        android:id="@+id/status_button_startstop"
+        android:id="@+id/button_startmine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clickable="false"
         android:enabled="false"
         android:background="@drawable/button_start_mine"
-        android:text="Not Ready" />
+        android:text="@string/button_startmine" />
+    <Button
+        android:id="@+id/button_stopmine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:enabled="false"
+        android:background="@drawable/button_stop_mine"
+        android:text="@string/button_stopmine" />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
