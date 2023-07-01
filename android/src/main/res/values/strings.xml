@@ -4,6 +4,9 @@
     <!-- known use part !-->
     <string name="button_startmine">Start Mine</string>
     <string name="button_stopmine">Stop Mine</string>
+    <string name="helpertext_server">Require</string>
+    <string name="helpertext_port">0 ~ 65535</string>
+    
 
     <!-- unknown use part !-->
     <string name="main_tv_server">Server Address</string>
