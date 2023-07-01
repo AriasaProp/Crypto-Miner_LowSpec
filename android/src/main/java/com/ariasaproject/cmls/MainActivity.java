@@ -438,6 +438,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             et_port.setText(texts[5]);
             et_user.setText(texts[6]);
             et_pass.setText(texts[7]);
+            int[] ints = savedInstanceState.getIntArray(KEYBUNDLE_INTS);
+            sb_thread.setProgress(ints[0]); //old
         }
     }
 

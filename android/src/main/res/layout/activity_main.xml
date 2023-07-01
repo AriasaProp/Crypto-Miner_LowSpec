@@ -168,6 +168,7 @@
         android:layout_height="wrap_content"
         android:clickable="false"
         android:enabled="false"
+        android:background="@drawable/button_startMine"
         android:text="Not Ready" />
     <TextView
         android:layout_width="wrap_content"
