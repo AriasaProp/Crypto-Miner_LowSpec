@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <color name="btnMine_startLighten">#0044FF</color>
+    <color name="btnMine_startDarken">#00209C</color>
+    <color name="btnMine_startDisable">#6000209C</color>
+    
+</resources>
