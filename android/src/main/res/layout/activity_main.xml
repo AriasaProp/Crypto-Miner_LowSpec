@@ -10,7 +10,6 @@
     android:orientation="vertical" >
     <LinearLayout
         android:id="@+id/server_section"
-        android:background="@drawable/round_stroke"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:weightSum="1"
@@ -19,7 +18,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:orientation="horizontal" >
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
             android:layout_weight="0.8"
             android:layout_height="wrap_content"
@@ -35,7 +33,6 @@
                 android:text="stratum+tcp://us2.litecoinpool.org" />
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
             android:layout_weight="0.2"
             android:layout_height="wrap_content"
@@ -56,13 +53,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:weightSum="1"
-        android:background="@drawable/round_stroke"
         app:layout_constraintTop_toBottomOf="@id/server_section"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:orientation="horizontal" >
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:id="@+id/user_view"
             android:layout_width="0dp"
             android:layout_weight="0.5"
@@ -76,8 +71,8 @@
                 android:inputType="textUri"
                 android:text="Ariasa.test" />
         </com.google.android.material.textfield.TextInputLayout>
+        <!-- style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense" -->
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:id="@+id/password_view"
             android:layout_width="0dp"
             android:layout_weight="0.5"
@@ -98,7 +93,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@drawable/round_stroke"
         app:layout_constraintTop_toBottomOf="@id/auth_section"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
