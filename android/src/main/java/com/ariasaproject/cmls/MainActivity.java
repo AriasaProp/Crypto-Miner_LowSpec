@@ -139,9 +139,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         //define showInput
         tv_showInput = (AppCompatTextView) findViewById(R.id.show_userInput);
         //text status
-        tv_speed = (AppCompatTextView) findViewById(R.id.status_textView_speed);
-        tv_accepted = (AppCompatTextView) findViewById(R.id.status_textView_accepted);
-        tv_rejected = (AppCompatTextView) findViewById(R.id.status_textView_rejected);
+        tv_speed = (AppCompatTextView) findViewById(R.id.speed_tv);
+        tv_accepted = (AppCompatTextView) findViewById(R.id.accepted_tv);
+        tv_rejected = (AppCompatTextView) findViewById(R.id.rejected_tv);
         //button
         btn_startmine = (AppCompatButton) findViewById(R.id.button_startmine);
         btn_stopmine = (AppCompatButton) findViewById(R.id.button_stopmine);

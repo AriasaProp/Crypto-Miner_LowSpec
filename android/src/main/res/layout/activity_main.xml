@@ -90,10 +90,10 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:weightSum="1">
         <androidx.appcompat.widget.AppCompatTextView
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:background="@drawable/round_fill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
             android:text="Threads: " />
         <androidx.appcompat.widget.AppCompatSeekBar
             android:id="@+id/threadSeek"
@@ -103,12 +103,14 @@
             android:layout_height="wrap_content" />
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/thread_view"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text="01" />
     </LinearLayout>
     <androidx.appcompat.widget.AppCompatTextView
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
         android:id="@+id/show_userInput"
         android:background="@drawable/round_fill"
         android:layout_width="match_parent"
@@ -121,55 +123,69 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:text="Pool Mining Information" />
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/status_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/show_userInput"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:orientation="horizontal" >
+        app:layout_constraintEnd_toEndOf="parent" >
         <androidx.appcompat.widget.AppCompatTextView
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:id="@+id/speed_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             android:text="@string/status_textview_speed" />
         <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/status_textView_speed"
-            android:layout_width="wrap_content"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:id="@+id/speed_tv"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/speed_label"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="0 h/s"
+            android:text="0 hash/sec"
+            android:gravity="right"
             android:textColor="@android:color/holo_green_dark" />
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/status2_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/status_container"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:weightSum="1">
         <androidx.appcompat.widget.AppCompatTextView
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:id="@+id/accepted_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/speed_label"
+            app:layout_constraintStart_toStartOf="parent"
             android:text="Accepted:" />
         <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/status_textView_accepted"
-            android:layout_width="0dp"
-            android:layout_weight="0.5"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:id="@+id/accepted_tv"
+            app:layout_constraintTop_toBottomOf="@id/speed_tv"
+            app:layout_constraintStart_toEndOf="@id/accepted_label"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:gravity="right"
             android:layout_height="wrap_content"
             android:textColor="@android:color/holo_green_dark" />
         <androidx.appcompat.widget.AppCompatTextView
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:id="@+id/rejected_label"
+            app:layout_constraintTop_toBottomOf="@id/accepted_label"
+            app:layout_constraintStart_toStartOf="parent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Rejected:" />
         <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/status_textView_rejected"
-            android:layout_width="0dp"
-            android:layout_weight="0.5"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:id="@+id/rejected_tv"
+            app:layout_constraintTop_toBottomOf="@id/accepted_tv"
+            app:layout_constraintStart_toEndOf="@id/rejected_label"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:gravity="right"
             android:layout_height="wrap_content"
-            android:textColor="@android:color/holo_green_dark" />
-    </LinearLayout>
+            android:textColor="@android:color/holo_red_dark" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
     <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/settings_checkBox_keepscreenawake"
         android:layout_width="wrap_content"
