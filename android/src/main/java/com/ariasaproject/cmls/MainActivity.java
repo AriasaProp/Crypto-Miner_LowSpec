@@ -38,10 +38,10 @@ import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.AppCompatSeekBar;
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.appcompat.widget.AppCompatEditText;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
-import com.google.android.material.textfield.TextInputEditText;
 
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_NONE;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
@@ -84,10 +84,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     static {
       System.loadLibrary("ext");
     }
-    ViewGroup section_server, section_auth, section_thread;
+    ViewGroup server_container, port_container, user_container, pass_container, section_thread;
     AppCompatTextView tv_speed, tv_accepted, tv_rejected;
     AppCompatTextView tv_showInput;
-    TextInputEditText et_serv, et_port, et_user, et_pass;
+    AppCompatEditText et_serv, et_port, et_user, et_pass;
     AppCompatButton btn_startmine, btn_stopmine;
     AppCompatSeekBar sb_thread;
     AppCompatCheckBox cb_screen_awake;
@@ -131,8 +131,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             startService(intent);
         }
         //define section layout
-        section_server = (ViewGroup) findViewById(R.id.server_section);
-        section_auth = (ViewGroup) findViewById(R.id.auth_section);
+        server_container = (ViewGroup) findViewById(R.id.server_container);
+        port_container = (ViewGroup) findViewById(R.id.port_container);
+        user_container = (ViewGroup) findViewById(R.id.user_container);
+        pass_container = (ViewGroup) findViewById(R.id.pass_container);
         section_thread = (ViewGroup) findViewById(R.id.thread_section);
         //define showInput
         tv_showInput = (AppCompatTextView) findViewById(R.id.show_userInput);
@@ -144,10 +146,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         btn_startmine = (AppCompatButton) findViewById(R.id.button_startmine);
         btn_stopmine = (AppCompatButton) findViewById(R.id.button_stopmine);
         //editable
-        et_serv = (TextInputEditText) findViewById(R.id.server_et);
-        et_port = (TextInputEditText) findViewById(R.id.port_et);
-        et_user = (TextInputEditText) findViewById(R.id.user_et);
-        et_pass = (TextInputEditText) findViewById(R.id.password_et);
+        et_serv = (AppCompatEditText) findViewById(R.id.server_et);
+        et_port = (AppCompatEditText) findViewById(R.id.port_et);
+        et_user = (AppCompatEditText) findViewById(R.id.user_et);
+        et_pass = (AppCompatEditText) findViewById(R.id.password_et);
         sb_thread = (AppCompatSeekBar)findViewById(R.id.threadSeek);
         final AppCompatTextView thread_view = (AppCompatTextView)findViewById(R.id.thread_view);
         sb_thread.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -256,8 +258,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 tv_accepted.setText("0");
                 tv_rejected.setText("0");
                 //enable all user Input
-                section_server.setVisibility(View.VISIBLE);
-                section_auth.setVisibility(View.VISIBLE);
+                server_container.setVisibility(View.VISIBLE);
+                port_container.setVisibility(View.VISIBLE);
+                user_container.setVisibility(View.VISIBLE);
+                pass_container.setVisibility(View.VISIBLE);
                 section_thread.setVisibility(View.VISIBLE);
                 tv_showInput.setVisibility(View.GONE);
                 break;
@@ -267,8 +271,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 btn_startmine.setVisibility(View.VISIBLE);
                 btn_startmine.setEnabled(false);
                 //disable all user Input
-                section_server.setVisibility(View.GONE);
-                section_auth.setVisibility(View.GONE);
+                server_container.setVisibility(View.GONE);
+                port_container.setVisibility(View.GONE);
+                user_container.setVisibility(View.GONE);
+                pass_container.setVisibility(View.GONE);
                 section_thread.setVisibility(View.GONE);
                 tv_showInput.setVisibility(View.VISIBLE);
                 break;
@@ -278,8 +284,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 btn_startmine.setVisibility(View.GONE);
                 btn_startmine.setEnabled(false);
                 //disable all user Input
-                section_server.setVisibility(View.GONE);
-                section_auth.setVisibility(View.GONE);
+                server_container.setVisibility(View.GONE);
+                port_container.setVisibility(View.GONE);
+                user_container.setVisibility(View.GONE);
+                pass_container.setVisibility(View.GONE);
                 section_thread.setVisibility(View.GONE);
                 tv_showInput.setVisibility(View.VISIBLE);
                 break;
@@ -289,8 +297,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 btn_startmine.setVisibility(View.GONE);
                 btn_startmine.setEnabled(false);
                 //disable all user Input
-                section_server.setVisibility(View.GONE);
-                section_auth.setVisibility(View.GONE);
+                server_container.setVisibility(View.GONE);
+                port_container.setVisibility(View.GONE);
+                user_container.setVisibility(View.GONE);
+                pass_container.setVisibility(View.GONE);
                 section_thread.setVisibility(View.GONE);
                 tv_showInput.setVisibility(View.VISIBLE);
                 break;
