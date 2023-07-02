@@ -1,16 +1,15 @@
 <resources>
     <style name="AppTheme" parent="BaseTheme">
-        <item name="android:styleSeekBar">@style/OwnSeekBar</item>
     </style>
     
     <style name="BaseTheme" parent="Theme.AppCompat.Light">
     </style>
 
-    
     <style name="OwnSeekBar" parent="Widget.AppCompat.SeekBar">
         <item name="android:progressDrawable">@drawable/seekbar_progress</item>
         <item name="android:thumb">@drawable/seekbar_thumb</item>
         <item name="android:background">@drawable/seekbar_background</item>
     </style>
+    
     
 </resources>

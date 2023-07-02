@@ -96,6 +96,7 @@
             android:layout_height="wrap_content"
             android:text="Threads: " />
         <androidx.appcompat.widget.AppCompatSeekBar
+            style="@style/OwnSeekBar"
             android:id="@+id/threadSeek"
             android:min="1"
             android:layout_width="0dp"
