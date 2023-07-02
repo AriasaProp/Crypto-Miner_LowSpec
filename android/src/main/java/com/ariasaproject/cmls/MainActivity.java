@@ -84,7 +84,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     static {
       System.loadLibrary("ext");
     }
-    ViewGroup server_container, port_container, user_container, pass_container, section_thread;
+    
+    ViewGroup server_container, port_container, user_container, pass_container, section_thread, status_container;
+    
     AppCompatTextView tv_speed, tv_accepted, tv_rejected;
     AppCompatTextView tv_showInput;
     AppCompatEditText et_serv, et_port, et_user, et_pass;
@@ -136,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         user_container = (ViewGroup) findViewById(R.id.user_container);
         pass_container = (ViewGroup) findViewById(R.id.pass_container);
         section_thread = (ViewGroup) findViewById(R.id.thread_section);
+        status_container = (ViewGroup) findViewById(R.id.status_container);
         //define showInput
         tv_showInput = (AppCompatTextView) findViewById(R.id.show_userInput);
         //text status
@@ -263,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 user_container.setVisibility(View.VISIBLE);
                 pass_container.setVisibility(View.VISIBLE);
                 section_thread.setVisibility(View.VISIBLE);
-                tv_showInput.setVisibility(View.GONE);
+                status_container.setVisibility(View.GONE);
                 break;
             case MSG_STATE_ONSTART:
                 btn_stopmine.setVisibility(View.GONE);
@@ -276,7 +279,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 user_container.setVisibility(View.GONE);
                 pass_container.setVisibility(View.GONE);
                 section_thread.setVisibility(View.GONE);
-                tv_showInput.setVisibility(View.VISIBLE);
+                status_container.setVisibility(View.VISIBLE);
                 break;
             case MSG_STATE_RUNNING:
                 btn_stopmine.setVisibility(View.VISIBLE);
@@ -289,7 +292,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 user_container.setVisibility(View.GONE);
                 pass_container.setVisibility(View.GONE);
                 section_thread.setVisibility(View.GONE);
-                tv_showInput.setVisibility(View.VISIBLE);
+                status_container.setVisibility(View.VISIBLE);
                 break;
             case MSG_STATE_ONSTOP:
                 btn_stopmine.setVisibility(View.VISIBLE);
@@ -302,7 +305,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 user_container.setVisibility(View.GONE);
                 pass_container.setVisibility(View.GONE);
                 section_thread.setVisibility(View.GONE);
-                tv_showInput.setVisibility(View.VISIBLE);
+                status_container.setVisibility(View.VISIBLE);
                 break;
             }
             break;
@@ -408,7 +411,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
     public void toStopMining(View v) {
         mService.stopMining();
-        tv_showInput.setText("Mining On Stop .....");
     }
     @Override
     protected void onStart() {
