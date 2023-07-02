@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
       System.loadLibrary("ext");
     }
     
-    ViewGroup server_container, port_container, user_container, pass_container, section_thread, status_container;
+    ViewGroup input_container, status_container;
     
     AppCompatTextView tv_speed, tv_accepted, tv_rejected;
     AppCompatTextView tv_showInput;
@@ -133,11 +133,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             startService(intent);
         }
         //define section layout
-        server_container = (ViewGroup) findViewById(R.id.server_container);
-        port_container = (ViewGroup) findViewById(R.id.port_container);
-        user_container = (ViewGroup) findViewById(R.id.user_container);
-        pass_container = (ViewGroup) findViewById(R.id.pass_container);
-        section_thread = (ViewGroup) findViewById(R.id.thread_section);
+        input_container = (ViewGroup) findViewById(R.id.input_container);
         status_container = (ViewGroup) findViewById(R.id.status_container);
         //define showInput
         tv_showInput = (AppCompatTextView) findViewById(R.id.show_userInput);
@@ -261,11 +257,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 tv_accepted.setText("0");
                 tv_rejected.setText("0");
                 //enable all user Input
-                server_container.setVisibility(View.VISIBLE);
-                port_container.setVisibility(View.VISIBLE);
-                user_container.setVisibility(View.VISIBLE);
-                pass_container.setVisibility(View.VISIBLE);
-                section_thread.setVisibility(View.VISIBLE);
+                input_container.setVisibility(View.VISIBLE);
                 status_container.setVisibility(View.GONE);
                 break;
             case MSG_STATE_ONSTART:
@@ -274,11 +266,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 btn_startmine.setVisibility(View.VISIBLE);
                 btn_startmine.setEnabled(false);
                 //disable all user Input
-                server_container.setVisibility(View.GONE);
-                port_container.setVisibility(View.GONE);
-                user_container.setVisibility(View.GONE);
-                pass_container.setVisibility(View.GONE);
-                section_thread.setVisibility(View.GONE);
+                input_container.setVisibility(View.GONE);
                 status_container.setVisibility(View.VISIBLE);
                 break;
             case MSG_STATE_RUNNING:
@@ -287,11 +275,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 btn_startmine.setVisibility(View.GONE);
                 btn_startmine.setEnabled(false);
                 //disable all user Input
-                server_container.setVisibility(View.GONE);
-                port_container.setVisibility(View.GONE);
-                user_container.setVisibility(View.GONE);
-                pass_container.setVisibility(View.GONE);
-                section_thread.setVisibility(View.GONE);
+                input_container.setVisibility(View.GONE);
                 status_container.setVisibility(View.VISIBLE);
                 break;
             case MSG_STATE_ONSTOP:
@@ -300,11 +284,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 btn_startmine.setVisibility(View.GONE);
                 btn_startmine.setEnabled(false);
                 //disable all user Input
-                server_container.setVisibility(View.GONE);
-                port_container.setVisibility(View.GONE);
-                user_container.setVisibility(View.GONE);
-                pass_container.setVisibility(View.GONE);
-                section_thread.setVisibility(View.GONE);
+                input_container.setVisibility(View.GONE);
                 status_container.setVisibility(View.VISIBLE);
                 break;
             }

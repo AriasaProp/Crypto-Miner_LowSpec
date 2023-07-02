@@ -6,115 +6,122 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     tools:context="com.ariasaproject.cmls"
-    android:padding="6dp"
-    android:orientation="vertical" >
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/server_container"
-        android:layout_width="0dp"
+    android:padding="6dp" >
+    
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/input_container"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintWidth_percent="0.8"
-        app:helperText="@string/helpertext_server"
-        app:helperTextTextColor="@android:color/holo_red_dark"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:hint="Pool Server">
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/server_et"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:inputType="textUri"
-            android:text="stratum+tcp://us2.litecoinpool.org" />
-    </com.google.android.material.textfield.TextInputLayout>
-    <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/port_container"
+        app:layout_constraintEnd_toEndOf="parent" >
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/server_container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            app:helperText="@string/helpertext_port"
+            app:layout_constraintWidth_percent="0.8"
+            app:helperText="@string/helpertext_server"
             app:helperTextTextColor="@android:color/holo_red_dark"
-            app:layout_constraintWidth_percent="0.2"
-            app:layout_constraintStart_toEndOf="@id/server_container"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:hint="Pool Port">
+            app:layout_constraintStart_toStartOf="parent"
+            android:hint="Pool Server">
             <androidx.appcompat.widget.AppCompatEditText
-                android:id="@+id/port_et"
+                android:id="@+id/server_et"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
-                android:inputType="number"
-                android:text="3333" />
+                android:inputType="textUri"
+                android:text="stratum+tcp://us2.litecoinpool.org" />
         </com.google.android.material.textfield.TextInputLayout>
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/user_container"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintWidth_percent="0.5"
-        app:layout_constraintTop_toBottomOf="@id/server_container"
-        app:layout_constraintStart_toStartOf="parent"
-        android:hint="Username">
-        <androidx.appcompat.widget.AppCompatEditText
-            android:id="@+id/user_et"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:maxLines="1"
-            android:inputType="textUri"
-            android:text="Ariasa.test" />
-    </com.google.android.material.textfield.TextInputLayout>
-    <!-- style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense" -->
-    <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/pass_container"
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/port_container"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:helperText="@string/helpertext_port"
+                app:helperTextTextColor="@android:color/holo_red_dark"
+                app:layout_constraintWidth_percent="0.2"
+                app:layout_constraintStart_toEndOf="@id/server_container"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:hint="Pool Port">
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/port_et"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:inputType="number"
+                    android:text="3333" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/user_container"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintWidth_percent="0.5"
-            app:layout_constraintTop_toBottomOf="@id/port_container"
-            app:layout_constraintStart_toEndOf="@id/user_container"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:passwordToggleEnabled="true"
-            android:hint="Password">
+            app:layout_constraintTop_toBottomOf="@id/server_container"
+            app:layout_constraintStart_toStartOf="parent"
+            android:hint="Username">
             <androidx.appcompat.widget.AppCompatEditText
-                android:id="@+id/password_et"
+                android:id="@+id/user_et"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:maxLines="1"
-                android:inputType="textPassword"
-                android:text="123" />
+                android:inputType="textUri"
+                android:text="Ariasa.test" />
         </com.google.android.material.textfield.TextInputLayout>
-    <LinearLayout
-        android:id="@+id/thread_section"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/user_container"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:weightSum="1">
+        <!-- style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense" -->
+        <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/pass_container"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:layout_constraintWidth_percent="0.5"
+                app:layout_constraintTop_toBottomOf="@id/port_container"
+                app:layout_constraintStart_toEndOf="@id/user_container"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:passwordToggleEnabled="true"
+                android:hint="Password">
+                <androidx.appcompat.widget.AppCompatEditText
+                    android:id="@+id/password_et"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:inputType="textPassword"
+                    android:text="123" />
+            </com.google.android.material.textfield.TextInputLayout>
         <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/thread_label"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:background="@drawable/round_fill"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/user_container"
+            app:layout_constraintStart_toStartOf="parent"
             android:text="Threads: " />
         <androidx.appcompat.widget.AppCompatSeekBar
             style="@style/OwnSeekBar"
             android:id="@+id/threadSeek"
             android:min="1"
             android:layout_width="0dp"
-            android:layout_weight="1"
+            app:layout_constraintTop_toBottomOf="@id/user_container"
+            app:layout_constraintStart_toEndOf="@id/thread_label"
+            app:layout_constraintEnd_toStartOf="@id/thread_view"
             android:layout_height="wrap_content" />
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/thread_view"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/pass_container"
+            app:layout_constraintStart_toEndOf="@id/thread_label"
+            app:layout_constraintEnd_toEndOf="parent"
             android:gravity="center"
             android:text="01" />
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/status_container"
+        android:layout_margin="2dp"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/thread_section"
+        app:layout_constraintTop_toBottomOf="@id/input_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" >
       
@@ -123,8 +130,6 @@
             android:id="@+id/show_userInput"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="2dp"
-            android:visibility="gone"
             android:gravity="center"
             android:singleLine="false"
             app:layout_constraintTop_toTopOf="parent"
