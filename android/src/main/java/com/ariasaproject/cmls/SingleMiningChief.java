@@ -206,20 +206,12 @@ public class SingleMiningChief implements Observer {
             mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_REJECT, 0, rejected));
             mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status));
             break;
-        case SPEED:
-            if (status.equals(STATUS_TERMINATED) || status.equals(STATUS_NOT_MINING))
-                speed = 0;
-            else
-                speed = (float) ((CpuMiningWorker)_worker).get_speed();
-            mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed));
-            break;
         case NEW_WORK:
             if (lastWorkTime > 0L) {
                 long hashes = _worker.getNumberOfHash() - lastWorkHashes;
-                speed = (float) ((CpuMiningWorker)_worker).get_speed();
                 status= STATUS_MINING;
                 mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, String.format("Miner: %d Hashes, %.6f Hash/s", hashes, speed)));
-                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed));
+                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0));
                 mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status));
             }
             lastWorkTime = System.currentTimeMillis();

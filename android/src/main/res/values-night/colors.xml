@@ -5,9 +5,9 @@
     <color name="btnMine_startDarken">#00209C</color>
     <color name="btnMine_startDisable">#6000209C</color>
     
-    <color name="btnMine_stopLighten">#FF0000</color>
-    <color name="btnMine_stopDarken">#9C0000</color>
-    <color name="btnMine_stopDisable">#609C0000</color>
+    <color name="btnMine_stopLighten">#FC0000</color>
+    <color name="btnMine_stopDarken">#9A0000</color>
+    <color name="btnMine_stopDisable">#609A0000</color>
     
     <color name="opositeTransparent">#50FFFFFF</color>
     <color name="oposite">#FFFFFF</color>

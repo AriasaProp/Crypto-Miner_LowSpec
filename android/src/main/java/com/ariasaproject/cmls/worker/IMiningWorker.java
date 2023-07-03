@@ -13,7 +13,6 @@ public interface IMiningWorker {
         LONG_POLLING_ENABLED,
         CONNECTING,
         NEW_BLOCK_DETECTED,
-        SPEED,
         NEW_WORK,
         POW_TRUE,
         POW_FALSE,
@@ -21,7 +20,6 @@ public interface IMiningWorker {
     };
     public boolean doWork(MiningWork i_work) throws Exception;
     public void stopWork() throws Exception;
-    public int getProgress();
     public long getNumberOfHash();
     public void addListener(IWorkerEvent i_listener) throws Exception;
 }
