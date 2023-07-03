@@ -37,7 +37,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     public void calcSpeedPerThread() {
         long curr_time =  System.currentTimeMillis();
         float delta_time = Math.max(1,curr_time-_last_time)/1000.0f;
-        float _speed = hashes.get()/delta_time;
+        float _speed = (float)hashes.get()/delta_time;
         IR.updateSpeed(_speed);
     }
     private long _last_time=0;
@@ -48,6 +48,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
             stopWork();
             calcSpeedPerThread();
         }
+        IR.sendMessage("Worker: Threads started");
         hashes.set(0);
         _last_time = System.currentTimeMillis();
         for(int i = 0; i < _number_of_thread; i++){
@@ -57,6 +58,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
             if (!workr.isAlive()) {
                 try {
                     workr.start();
+                    IR.sendMessage("Worker: Threads started ID: " + workr.getId());
                 } catch (IllegalThreadStateException e){
                     workr.interrupt();
                 }
@@ -66,13 +68,13 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     }
     @Override
     public void stopWork() throws Exception {
+        IR.sendMessage("Worker: Killing threads");
         for (Worker t : _workr_thread) {
             if (t.isAlive()) {
-                IR.sendMessage("Worker: Killing thread ID: " + t.getId());
                 t.interrupt();
+                IR.sendMessage("Worker: Killed thread ID: " + t.getId());
             }
         }
-        IR.sendMessage("Worker: Threads killed");
     }
 
     @Override
