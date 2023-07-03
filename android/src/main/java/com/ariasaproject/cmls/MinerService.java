@@ -78,6 +78,16 @@ public class MinerService extends Service implements Handler.Callback{
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
+    final CpuMiningWorker.InfoReceive ci = new CpuMiningWorker.InfoReceive(){
+        @Override
+        public void sendMessage(String s) {
+            MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, s));
+        }
+        @Override
+        public void updateSpeed(float f) {
+            MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, f));
+        }
+    };
     
     @Override
     public synchronized boolean handleMessage(Message msg) {
@@ -117,16 +127,7 @@ public class MinerService extends Service implements Handler.Callback{
                             MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Start mining"));
                             try {
                                 mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
-                                imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY,new CpuMiningWorker.InfoReceive(){
-                                    @Override
-                                    public void sendMessage(String s) {
-                                        MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, s));
-                                    }
-                                    @Override
-                                    public void updateSpeed(double d) {
-                                        MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, d));
-                                    }
-                                });
+                                imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY, ci);
                                 smc = new SingleMiningChief(mc,imw,serviceHandler);
                                 smc.startMining();
                                 MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Started mining"));
@@ -199,13 +200,13 @@ public class MinerService extends Service implements Handler.Callback{
         MinerService getService() {
             return MinerService.this;
         }
-        public volatile boolean new_speed = false;
-        public volatile float speed = 0;
-        public volatile boolean new_accepted = false;
-        public volatile long accepted = 0;
-        public volatile boolean new_rejected = false;
-        public volatile long rejected = 0;
-        public volatile ArrayList<ConsoleItem> console = new ArrayList<ConsoleItem>();
+        public boolean new_speed = false;
+        public float speed = 0;
+        public boolean new_accepted = false;
+        public long accepted = 0;
+        public boolean new_rejected = false;
+        public long rejected = 0;
+        public ArrayList<ConsoleItem> console = new ArrayList<ConsoleItem>();
     }
 }
 

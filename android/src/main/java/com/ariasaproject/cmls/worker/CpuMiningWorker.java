@@ -19,62 +19,6 @@ import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.activeCount;
 
 public class CpuMiningWorker extends Observable implements IMiningWorker {
-    private class Worker extends Thread implements Runnable {
-        MiningWork _work;
-        int _start;
-        int _step;
-        public long number_of_hashed;
-        public Worker() {}
-        public void setWork(MiningWork i_work,int i_start,int i_step) {
-            this._work=i_work;
-            this._start=i_start;
-            this._step=i_step;
-        }
-        private final static int NUMBER_OF_ROUND=1; //Original: 100
-        public volatile boolean running = false;
-
-        @Override
-        public void run() {
-            running = true;
-            number_of_hashed=0;
-            try{
-                int nonce = _start;
-                MiningWork work = _work;
-                Hasher hasher = new Hasher();
-                byte[] target = work.target.refHex();
-                for(;;){
-                    for(long i=NUMBER_OF_ROUND-1;i>=0;i--){
-                        byte[] hash = hasher.hash(work.header.refHex(), nonce);
-                        for (int i2 = hash.length - 1; i2 >= 0; i2--) {
-                            if ((hash[i2] & 0xff) > (target[i2] & 0xff)) {
-                                break;
-                            }
-                            if ((hash[i2] & 0xff) < (target[i2] & 0xff)) {
-                                CpuMiningWorker.this.invokeNonceFound(work,nonce);
-                                break;
-                            }
-                        }
-                        nonce += _step;
-                    }
-                    this.number_of_hashed+=NUMBER_OF_ROUND;
-                    Thread.sleep(10L);
-                }
-            } catch (GeneralSecurityException e){
-                e.printStackTrace();
-                setChanged();
-                notifyObservers(Notification.SYSTEM_ERROR);
-                try {
-                    stopWork();
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-            } catch (InterruptedException e) {
-                IR.sendMessage("Thread killed. #Hashes="+this.number_of_hashed);
-                calcSpeedPerThread(number_of_hashed);
-                _last_time=System.currentTimeMillis();
-            }
-        }
-    }
     private int _number_of_thread;
     private int _thread_priorirty;
     private Worker[] _workr_thread;
@@ -175,6 +119,57 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     }
     public static interface InfoReceive {
         public abstract void sendMessage(String s);
-        public abstract void updateSpeed(double d);
+        public abstract void updateSpeed(float d);
+    }
+    class Worker extends Thread implements Runnable {
+        MiningWork _work;
+        int _start;
+        int _step;
+        public long number_of_hashed;
+        public Worker() {}
+        public void setWork(MiningWork i_work,int i_start,int i_step) {
+            this._work=i_work;
+            this._start=i_start;
+            this._step=i_step;
+        }
+
+        @Override
+        public void run() {
+            number_of_hashed=0;
+            try{
+                int nonce = _start;
+                MiningWork work = _work;
+                Hasher hasher = new Hasher();
+                byte[] target = work.target.refHex();
+                for(;;){
+                    byte[] hash = hasher.hash(work.header.refHex(), nonce);
+                    for (int i2 = hash.length - 1; i2 >= 0; i2--) {
+                        if ((hash[i2] & 0xff) > (target[i2] & 0xff)) {
+                            break;
+                        }
+                        if ((hash[i2] & 0xff) < (target[i2] & 0xff)) {
+                            CpuMiningWorker.this.invokeNonceFound(work,nonce);
+                            break;
+                        }
+                    }
+                    nonce += _step;
+                    this.number_of_hashed++;
+                    Thread.sleep(10L);
+                }
+            } catch (GeneralSecurityException e){
+                e.printStackTrace();
+                setChanged();
+                notifyObservers(Notification.SYSTEM_ERROR);
+                try {
+                    stopWork();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+            } catch (InterruptedException e) {
+                IR.sendMessage("Thread killed. #Hashes="+this.number_of_hashed);
+                calcSpeedPerThread(number_of_hashed);
+                _last_time=System.currentTimeMillis();
+            }
+        }
     }
 }
