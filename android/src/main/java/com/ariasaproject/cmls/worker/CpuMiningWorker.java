@@ -24,7 +24,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     private final int _thread_priorirty;
     private final Worker[] _workr_thread;
     private final InfoReceive IR;
-    private final AtomicLong hashed = new AtomicLong(0);
+    private final AtomicLong hashes = new AtomicLong(0);
     public CpuMiningWorker(int i_number_of_thread, int priority, InfoReceive ir) {
         IR = ir;
         _thread_priorirty = priority;
@@ -136,7 +136,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                         }
                     }
                     
-                    hashed.incrementAndGet();
+                    hashes.incrementAndGet();
                     Thread.sleep(10L);
                 }
             } catch (GeneralSecurityException e){
