@@ -15,7 +15,6 @@ import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
 
 import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
-import static com.ariasaproject.cmls.Constants.DEFAULT_RETRYPAUSE;
 import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.activeCount;
 
