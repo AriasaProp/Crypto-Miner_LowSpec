@@ -9,7 +9,7 @@ import java.util.Observable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.AtomicLong;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
@@ -31,7 +31,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         _number_of_thread=i_number_of_thread;
         _workr_thread = new Worker[_number_of_thread];
         for(int i = 0;i < _number_of_thread; i++){
-            _workr_thread[i]=new Worker();
+            _workr_thread[i] = new Worker();
         }
 
     }
@@ -78,7 +78,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
 
     @Override
     public long getNumberOfHash() {
-        return _tot_hashed;
+        return hashes.get();
     }
     
     public boolean getThreadsStatus() {
