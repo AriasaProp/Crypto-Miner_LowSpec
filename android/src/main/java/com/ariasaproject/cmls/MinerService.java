@@ -180,10 +180,12 @@ public class MinerService extends Service implements Handler.Callback{
     }
     @Override
     public synchronized void onDestroy() {
-        while (state != MINING_NONE) {
-            stopMining();
-            wait();
-        }
+        try {
+            while (state != MINING_NONE) {
+                stopMining();
+                wait();
+            }
+        } catch (Exception e) {}
         super.onDestroy();
         es.shutdown();
     }
