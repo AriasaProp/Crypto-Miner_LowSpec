@@ -37,8 +37,8 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     }
     public void calcSpeedPerThread(long numOfHashes) {
         long curr_time =  System.currentTimeMillis();
-        double delta_time = Math.max(1,curr_time-this._last_time)/1000.0;
-        double _speed = ((double)numOfHashes/delta_time);
+        float delta_time = Math.max(1,curr_time-this._last_time)/1000.0f;
+        float _speed = numOfHashes/delta_time;
         IR.updateSpeed(_speed);
     }
     private long _last_time=0;
@@ -55,8 +55,8 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
             }
             _num_hashed = hashes;
             _tot_hashed += _num_hashed;
-            double delta_time = Math.max(1,System.currentTimeMillis()-this._last_time)/1000.0;
-            double _speed = ((double)_num_hashed/delta_time);
+            float delta_time = Math.max(1,System.currentTimeMillis()-this._last_time)/1000.0f;
+            float _speed = _num_hashed/delta_time;
             IR.updateSpeed(_speed);
         }
         this._last_time=System.currentTimeMillis();
