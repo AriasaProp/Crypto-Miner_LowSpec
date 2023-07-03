@@ -31,9 +31,6 @@ import static com.ariasaproject.cmls.MainActivity.PREF_PASS;
 import static com.ariasaproject.cmls.MainActivity.PREF_THREAD;
 
 import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
-import static com.ariasaproject.cmls.Constants.DEFAULT_RETRYPAUSE;
-import static com.ariasaproject.cmls.Constants.DEFAULT_SCANTIME;
-import static com.ariasaproject.cmls.Constants.DEFAULT_THROTTLE;
 
 public class MinerService extends Service implements Handler.Callback{
     /*
@@ -127,7 +124,7 @@ public class MinerService extends Service implements Handler.Callback{
                             MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Start mining"));
                             try {
                                 mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
-                                imw = new CpuMiningWorker(nThread,DEFAULT_RETRYPAUSE,DEFAULT_PRIORITY, ci);
+                                imw = new CpuMiningWorker(nThread,DEFAULT_PRIORITY, ci);
                                 smc = new SingleMiningChief(mc,imw,serviceHandler);
                                 smc.startMining();
                                 MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Started mining"));

@@ -23,13 +23,11 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     private final int _number_of_thread;
     private final int _thread_priorirty;
     private final Worker[] _workr_thread;
-    private final long _retrypause;
     private final InfoReceive IR;
     private final AtomicLong hashed = new AtomicLong(0);
-    public CpuMiningWorker(int i_number_of_thread , long retry_pause, int priority, InfoReceive ir) {
+    public CpuMiningWorker(int i_number_of_thread, int priority, InfoReceive ir) {
         IR = ir;
         _thread_priorirty = priority;
-        _retrypause = retry_pause;
         _number_of_thread=i_number_of_thread;
         _workr_thread = new Worker[_number_of_thread];
         for(int i = 0;i < _number_of_thread; i++){
@@ -51,8 +49,10 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
             stopWork();
             calcSpeedPerThread();
         }
+        hashes.set(0);
         _last_time = System.currentTimeMillis();
         for(int i = 0; i < _number_of_thread; i++){
+            Worker workr = _workr_thread[i];
             workr.setWork(i_work, i, _number_of_thread);
             workr.setPriority(_thread_priorirty);
             if (!workr.isAlive()) {
