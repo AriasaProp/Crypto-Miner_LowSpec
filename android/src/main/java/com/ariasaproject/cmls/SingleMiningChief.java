@@ -35,8 +35,6 @@ import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_ACC;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_REJECT;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_STATUS;
 
-import static com.ariasaproject.cmls.R.id.parent;
-
 public class SingleMiningChief implements Observer {
     private static final long DEFAULT_SCAN_TIME = 5000;
     private static final long DEFAULT_RETRY_PAUSE = 30000;
@@ -57,12 +55,10 @@ public class SingleMiningChief implements Observer {
     public String status = "None";
 
     public class EventListener extends Observable implements IConnectionEvent,IWorkerEvent {
-        private SingleMiningChief _parent;
         private int _number_of_accept;
         private int _number_of_all;
 
-        EventListener(SingleMiningChief i_parent) {
-            this._parent=i_parent;
+        EventListener() {
             this.resetCounter();
         }
         public void resetCounter() {
@@ -72,38 +68,34 @@ public class SingleMiningChief implements Observer {
         @Override
         public void onNewWork(MiningWork i_work) {
             try {
-                mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "New work detected!"));
+                SingleMiningChief.this.mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "New work detected!"));
                 setChanged();
                 notifyObservers(IMiningWorker.Notification.NEW_BLOCK_DETECTED);
                 setChanged();
                 notifyObservers(IMiningWorker.Notification.NEW_WORK);
-                synchronized(this){
-                    this._parent._worker.doWork(i_work);
-                }
+                SingleMiningChief.this._worker.doWork(i_work);
             } catch (Exception e){
                 e.printStackTrace();
             }
         }
         @Override
-        public void onSubmitResult(MiningWork i_listener, int i_nonce,boolean i_result)
-        {
+        public void onSubmitResult(MiningWork i_listener, int i_nonce,boolean i_result) {
             this._number_of_accept+=(i_result?1:0);
             this._number_of_all++;
             setChanged();
             notifyObservers(i_result ? IMiningWorker.Notification.POW_TRUE : IMiningWorker.Notification.POW_FALSE);
         }
-        public boolean onDisconnect()
-        {
+        public boolean onDisconnect() {
             return false;
         }
         @Override
-        public void onNonceFound(MiningWork i_work, int i_nonce)
-        {
+        public void onNonceFound(MiningWork i_work, int i_nonce) {
             try {
-                this._parent._connection.submitWork(i_work,i_nonce);
+                SingleMiningChief.this.mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Event: Nonce found "+i_nonce));
+                SingleMiningChief.this._connection.submitWork(i_work,i_nonce);
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
+                SingleMiningChief.this.mainHandler.sendMessage(mainHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Event: Nonce submit error  "+e.getMessage()));
             }
         }
 
@@ -114,7 +106,7 @@ public class SingleMiningChief implements Observer {
         mainHandler=h;
         this._connection=i_connection;
         this._worker=i_worker;
-        this._eventlistener=new EventListener(this);
+        this._eventlistener=new EventListener();
         this._connection.addListener(this._eventlistener);
         this._worker.addListener(this._eventlistener);
     }

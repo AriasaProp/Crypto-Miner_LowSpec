@@ -33,12 +33,9 @@ import java.util.concurrent.TimeUnit;
 import static com.ariasaproject.cmls.Constants.CLIENT_NAME_STRING;
 import static com.ariasaproject.cmls.R.id.parent;
 
-public class StratumMiningConnection extends Observable implements IMiningConnection
-{
-    private class SubmitOrder
-    {
-        public SubmitOrder(long i_id, StratumMiningWork i_work, int i_nonce)
-        {
+public class StratumMiningConnection extends Observable implements IMiningConnection {
+    private class SubmitOrder {
+        public SubmitOrder(long i_id, StratumMiningWork i_work, int i_nonce) {
             this.id=i_id;
             this.work=i_work;
             this.nonce=i_nonce;
@@ -48,8 +45,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         public final MiningWork work;
         public final int nonce;
     }
-    private class AsyncRxSocketThread extends Thread
-    {
+    private class AsyncRxSocketThread extends Thread {
         private ArrayList<SubmitOrder> _submit_q=new ArrayList<SubmitOrder>();
         private ArrayList<StratumJson> _json_q=new ArrayList<StratumJson>();
         private StratumMiningConnection _parent;

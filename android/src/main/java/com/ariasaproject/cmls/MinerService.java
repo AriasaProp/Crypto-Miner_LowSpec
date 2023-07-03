@@ -67,7 +67,7 @@ public class MinerService extends Service implements Handler.Callback{
     private final LocalBinder status = new LocalBinder();
     ExecutorService es;
     public void onCreate() {
-        es = Executors.newFixedThreadPool(1);
+        es = Executors.newSingleThreadExecutor();
         serviceHandler = new Handler(Looper.getMainLooper(), this);
     }
     
