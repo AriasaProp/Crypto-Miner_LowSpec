@@ -75,8 +75,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             }
         }
 
-        private void onJsonRx(StratumJson i_json)
-        {
+        private void onJsonRx(StratumJson i_json) {
             Class<?> iid=i_json.getClass();
 
             if(iid==StratumJsonMethodGetVersion.class)
