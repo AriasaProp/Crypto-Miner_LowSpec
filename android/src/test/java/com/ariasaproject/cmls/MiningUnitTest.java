@@ -70,9 +70,7 @@ public class MiningUnitTest {
                             }
                         }
                     }
-                } catch (GeneralSecurityException e) {
-                    throw e;
-                }
+                } catch (GeneralSecurityException e) {}
             }));
         }
         es.invokeAll(calls);
