@@ -32,7 +32,7 @@ public class MiningUnitTest {
         boolean findNonce = true;
         for (int nonce = 0; (nonce > -1) && findNonce; nonce++) {
             hash = h.hash(header, nonce);
-            for (int i = res.length - 1; i >= 0; i--) {
+            for (int i = hash.length - 1; i >= 0; i--) {
                 if ((hash[i] & 0xff) > (target[i] & 0xff)) {
                     break;
                 }
