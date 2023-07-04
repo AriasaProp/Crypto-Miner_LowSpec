@@ -23,10 +23,6 @@ public class MiningWork
         this.header=new HexArray(headerByData(i_data.refHex()));
         return;
     }
-    public void dump() {
-        System.out.println("data:"+this.data.getStr());
-        System.out.println("target:"+this.target.getStr());
-    }
     public String makeSubmitData(int i_nonce) {
         byte[] d = this.data.refHex().clone();
         d[79] = (byte) (i_nonce >>  0);
