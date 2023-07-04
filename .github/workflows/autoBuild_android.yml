@@ -3,7 +3,7 @@ name: Auto-Build Android
 on:
   push:
     paths:
-      - 'android/main/**'
+      - 'android/src/main/**'
 
 jobs:
   build:

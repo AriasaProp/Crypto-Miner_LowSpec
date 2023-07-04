@@ -51,6 +51,5 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-core:2.8.5'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.8.5'
     
-    testImplementation 'junit:junit:4.13.8'
-    testImplementation 'androidx.test.core:core:1.4.0'
+    testImplementation 'junit:junit:4.13.2'
 }

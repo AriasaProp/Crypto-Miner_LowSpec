@@ -1,4 +1,4 @@
-name: Auto-Build Android
+name: Auto-Test Android
 
 on:
   push:
