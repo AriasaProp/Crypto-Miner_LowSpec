@@ -27,7 +27,7 @@ public class MiningUnitTest {
         byte[] hash = h.hash(refHeader.refHex());
         assertEquals(
           "d9eb8663ffec241c2fb118adb7de97a82c803b6ff46d57667935c81001000000",
-          new HexArray(hash).toStr()
+          new HexArray(hash).getStr()
         );
     }
     /*
