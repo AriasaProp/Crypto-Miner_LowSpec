@@ -28,10 +28,10 @@ public class MiningUnitTest {
         System.out.println("Hashing Target to below: \n"+refTarget.getStr());
         System.out.println("Hashing Header to process: \n"+refHeader.getStr());
         Hasher h = new Hasher();
-        byte[] res, header = refHeader.refHex(), target = refTarget.refHex();
+        byte[] hash, header = refHeader.refHex(), target = refTarget.refHex();
         boolean findNonce = true;
         for (int nonce = 0; (nonce > -1) && findNonce; nonce++) {
-            res = h.hash(header.refHex(), nonce);
+            hash = h.hash(header, nonce);
             for (int i = res.length - 1; i >= 0; i--) {
                 if ((hash[i] & 0xff) > (target[i] & 0xff)) {
                     break;
@@ -44,7 +44,7 @@ public class MiningUnitTest {
             }
         }
         if(findNonce)
-            throw RuntimeException("Hashing was wrong, didn't find any nonce!");
+            throw new RuntimeException("Hashing was wrong, didn't find any nonce!");
         else
             System.out.println("Hashing Test Success");
         System.out.println("Test Success");
