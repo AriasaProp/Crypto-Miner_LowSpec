@@ -5,6 +5,8 @@ import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.HexArray;
 import com.ariasaproject.cmls.hasher.Hasher;
 
+import java.security.GeneralSecurityException;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
