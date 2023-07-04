@@ -181,20 +181,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             this._server=server;
         }
     }
-
-//    public interface AsyncResponse {
-//        void proccessFinish(StratumSocket sock_res);
-//    }
-
     public class SocketConnectAsyncTask extends AsyncTask<SocketParams,Void,StratumSocket> {
-
-//        public AsyncResponse delegate=null;
-
-//        @Override
-//        protected void onPostExecute(StratumSocket sock_res) {
-//            delegate.proccessFinish(sock_res);
-//        }
-
         @Override
         protected StratumSocket doInBackground(SocketParams... params) {
             try {
