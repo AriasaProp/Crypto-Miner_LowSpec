@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org";
     static final int DEFAULT_PORT=3333;
     static final String DEFAULT_USER="Ariasa.test";
-    static final String DEFAULT_PASS="123";
+    static final String DEFAULT_PASS="1234";
     
     private static final String KEYBUNDLE_CONSOLE = "bundle_console";
     private static final String KEYBUNDLE_TEXTS = "bundle_texts";
@@ -116,8 +116,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        /*
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
+        */
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         boolean serviceWasRunning = false;
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
