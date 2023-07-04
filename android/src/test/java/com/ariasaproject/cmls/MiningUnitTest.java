@@ -8,6 +8,7 @@ import com.ariasaproject.cmls.hasher.Hasher;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.List;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class MiningUnitTest {
         HexArray refHeader = new HexArray("00000000FFFF0000000000000000000000000000000000000000000000000000");
         final byte[] header = refHeader.refHex(), target = refTarget.refHex();
         AtomicBoolean findNonce = new AtomicBoolean(true);
-        ExecutorService es = Executors.newFixedThreadExecutor(5);
+        ExecutorService es = Executors.newFixedThreadPool(5);
         List<Callable<Object>> calls = new ArrayList<Callable<Object>>(5);
         for (int a = 0; a < 5; a++) {
             final int b = a;
