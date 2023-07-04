@@ -15,6 +15,7 @@ public class MiningUnitTest {
     private static final String DEFAULT_PASS = "123";
     @Test
     public void miningProsesTest() throws Exception {
+        System.out.println("Start Test");
         
         System.out.println("Start Connection Test");
         StratumMiningConnection smc=new StratumMiningConnection(DEFAULT_URL,DEFAULT_USER,DEFAULT_PASS);
