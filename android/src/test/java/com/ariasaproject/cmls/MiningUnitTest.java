@@ -54,18 +54,22 @@ public class MiningUnitTest {
         for (int a = 0; a < 5; a++) {
             final int b = a;
             calls.add(Executors.callable(() -> {
-                Hasher h = new Hasher();
-                for (int nonce = b; (nonce > -1) && findNonce.get(); nonce+=5) {
-                    byte[] hash = h.hash(header, nonce);
-                    for (int i = hash.length - 1; i >= 0; i--) {
-                        if ((hash[i] & 0xff) > (target[i] & 0xff)) {
-                            break;
-                        }
-                        if ((hash[i] & 0xff) < (target[i] & 0xff)) {
-                            findNonce.set(false);
-                            break;
+                try {
+                    Hasher h = new Hasher();
+                    for (int nonce = b; (nonce > -1) && findNonce.get(); nonce+=5) {
+                        byte[] hash = h.hash(header, nonce);
+                        for (int i = hash.length - 1; i >= 0; i--) {
+                            if ((hash[i] & 0xff) > (target[i] & 0xff)) {
+                                break;
+                            }
+                            if ((hash[i] & 0xff) < (target[i] & 0xff)) {
+                                findNonce.set(false);
+                                break;
+                            }
                         }
                     }
+                } catch (GeneralSecurityException e) {
+                    throw e;
                 }
             }));
         }
