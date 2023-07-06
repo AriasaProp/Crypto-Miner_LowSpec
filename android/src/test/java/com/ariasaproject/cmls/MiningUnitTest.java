@@ -37,6 +37,7 @@ public class MiningUnitTest {
     final String ST="{\"params\": [128], \"id\": null, \"method\": \"mining.set_difficulty\"}";
     final String WORK_DATA="000000018e50f956acdabb3f8e981a4797466043021388791bfa70b1c1a1ba54a8fbdf5093b73998a3b9d1ad9ee12578b6ffb49088bb9321fcb159e15f10b397cb514e4952b54c291c00adb700000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000";
     final String WORK_TARGET="000000000000000000000000000000000000000000000000000000feff010000";
+    final int MaxThreadTest = 5;
     @Test
     public void HashingTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
@@ -51,14 +52,15 @@ public class MiningUnitTest {
         assertEquals(WORK_TARGET, w.target.getStr());
         final byte[] header = w.header.refHex(), target = w.target.refHex();
         AtomicBoolean findNonce = new AtomicBoolean(true);
-        ExecutorService es = Executors.newFixedThreadPool(5);
-        List<Callable<Object>> calls = new ArrayList<Callable<Object>>(5);
-        for (int a = 0; a < 5; a++) {
+        
+        ExecutorService es = Executors.newFixedThreadPool(MaxThreadTest);
+        List<Callable<Object>> calls = new ArrayList<Callable<Object>>(MaxThreadTest);
+        for (int a = 0; a < MaxThreadTest; a++) {
             final int b = a;
             calls.add(Executors.callable(() -> {
                 try {
                     Hasher h = new Hasher();
-                    for (int nonce = b; (nonce > -1) && findNonce.get(); nonce+=5) {
+                    for (int nonce = a; (nonce >= a) && findNonce.get(); nonce+=MaxThreadTest) {
                         byte[] hash = h.hash(header, nonce);
                       	for (int i = hash.length - 1; i >= 0; i--) {
                           	if ((hash[i] & 0xff) > (target[i] & 0xff)) break;

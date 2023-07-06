@@ -7,14 +7,13 @@ import javax.crypto.spec.SecretKeySpec;
 
 import static java.lang.Integer.rotateLeft;
 import static java.lang.System.arraycopy;
-/*
 public class Hasher {
     private Mac mac;
     private byte[] H = new byte[32];
     private byte[] B = new byte[132]; //128 + 4
     private int[] X = new int[32];
     private int[] V = new int[32768]; //32 * 1024
-    int[] xs = new int[16];
+    //int[] xs = new int[16];
     int i, j, k, l;
 
     public Hasher() throws GeneralSecurityException {
@@ -23,6 +22,7 @@ public class Hasher {
     public byte[] hash(byte[] header) throws GeneralSecurityException {
         return hash(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
     }
+/*
     public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
         arraycopy(header, 0, B, 0, 76);
         B[76] = (byte) (nonce >> 24);
@@ -176,22 +176,7 @@ public class Hasher {
     }
 }
 */
-public class Hasher {
-    private Mac mac;
-    private byte[] H = new byte[32];
-    private byte[] B = new byte[128 + 4];
-    private int[] X = new int[32];
-    private int[] V = new int[32 * 1024];
-    
-    public Hasher() throws GeneralSecurityException {
-        mac = Mac.getInstance("HmacSHA256");
-    }
-    public byte[] hash(byte[] header) throws GeneralSecurityException {
-        return hash(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
-    }
-    
     public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
-        int i, j, k;
         arraycopy(header, 0, B, 0, 76);
         B[76] = (byte) (nonce >> 0);
         B[77] = (byte) (nonce >> 8);
