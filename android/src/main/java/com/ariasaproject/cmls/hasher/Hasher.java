@@ -33,7 +33,6 @@ public class Hasher {
         B[80] = 0;
         B[81] = 0;
         B[82] = 0;
-/*
         for (i = 0; i < 4; i++) {
             B[83] = (byte) (i + 1);
             mac.update(B, 0, 84);
@@ -47,6 +46,7 @@ public class Hasher {
             }
         }
 
+/*
         for (i = 0; i < 32768; i+=32) { // 1024*32
             arraycopy(X, 0, V, i, 32);
             //xorSalsa8
@@ -177,18 +177,7 @@ public class Hasher {
     }
 }
 */
-        for (i = 0; i < 4; i++) {
-            B[83] = (byte) (i + 1);
-            mac.update(B, 0, 84);
-            mac.doFinal(H, 0);
-            
-            for (j = 0; j < 8; j++) {
-                X[i * 8 + j] = (H[j * 4 + 0] & 0xff) << 0
-                              | (H[j * 4 + 1] & 0xff) << 8
-                              | (H[j * 4 + 2] & 0xff) << 16
-                              | (H[j * 4 + 3] & 0xff) << 24;
-            }
-        }
+
         for (i = 0; i < 1024; i++) {
             arraycopy(X, 0, V, i * 32, 32);
             xorSalsa8(0, 16);
