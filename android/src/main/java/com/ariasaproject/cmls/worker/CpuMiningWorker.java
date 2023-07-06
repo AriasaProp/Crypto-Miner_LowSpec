@@ -56,7 +56,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         _last_time = System.currentTimeMillis();
         for(int i = 0; i < _number_of_thread; i++){
             Worker workr = _workr_thread[i];
-            workr.setWork(i_work, i, _number_of_thread);
+            workr.setWork(i_work, i);
             workr.setPriority(_thread_priorirty);
             if (!workr.isAlive()) {
                 try {
