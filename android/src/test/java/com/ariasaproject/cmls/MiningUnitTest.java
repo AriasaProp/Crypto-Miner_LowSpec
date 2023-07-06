@@ -1,6 +1,7 @@
 package com.ariasaroject.cmls;
 
 import com.ariasaproject.cmls.connection.*;
+import com.ariasaproject.cmls.stratum.*;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.HexArray;
 import com.ariasaproject.cmls.hasher.Hasher;
