@@ -20,6 +20,9 @@ public class Hasher {
     public Hasher() throws GeneralSecurityException {
         mac = Mac.getInstance("HmacSHA256");
     }
+    public byte[] hash(byte[] header) throws GeneralSecurityException {
+        return hash(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
+    }
     public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
         arraycopy(header, 0, B, 0, 76);
         B[76] = (byte) (nonce >> 24);
