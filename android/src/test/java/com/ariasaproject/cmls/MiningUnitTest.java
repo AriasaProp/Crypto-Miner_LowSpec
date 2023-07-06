@@ -56,7 +56,6 @@ public class MiningUnitTest {
             final int b = a;
             calls.add(Executors.callable(() -> {
                 try {
-                    try {
                     Hasher h = new Hasher();
                     for (int nonce = b; (nonce > -1) && findNonce.get(); nonce+=5) {
                         findNonce.set(meetsTarget(nonce, h, header, target));
