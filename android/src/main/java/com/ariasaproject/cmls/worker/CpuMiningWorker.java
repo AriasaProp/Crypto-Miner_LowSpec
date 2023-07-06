@@ -40,7 +40,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     public void calcSpeedPerThread() {
         calcSpeedPerThread(System.currentTimeMillis());
     }
-    public void calcSpeedPerThread(long cur_time) {
+    public void calcSpeedPerThread(long curr_time) {
         float delta_time = Math.max(1,curr_time-_last_time)/1000.0f;
         float _speed = (float)hashes.get()/delta_time;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);

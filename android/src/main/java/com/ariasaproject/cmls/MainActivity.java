@@ -304,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     if (!mBinder.console.isEmpty()) {
                         logList.addAll(mBinder.console);
                         if (logList.size() > MAX_LOG_COUNT)
-                            logList.remove(0, logList.size() - MAX_LOG_COUNT);
+                            logList.removeRange(0, logList.size() - MAX_LOG_COUNT);
                         mBinder.console.clear();
                         statusHandler.sendEmptyMessage(MSG_CONSOLE);
                     }
