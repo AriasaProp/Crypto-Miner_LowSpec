@@ -303,8 +303,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                         statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
                     if (!mBinder.console.isEmpty()) {
                         logList.addAll(mBinder.console);
-                        if (logList.size() > MAX_LOG_COUNT)
-                            MainActivity.this.logList.removeRange(0, logList.size() - MAX_LOG_COUNT);
+                        while (logList.size() > MAX_LOG_COUNT)
+                            logList.remove(0);
                         mBinder.console.clear();
                         statusHandler.sendEmptyMessage(MSG_CONSOLE);
                     }

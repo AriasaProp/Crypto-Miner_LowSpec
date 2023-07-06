@@ -7,6 +7,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import static java.lang.Integer.rotateLeft;
 import static java.lang.System.arraycopy;
+
 public class Hasher {
     private Mac mac;
     private byte[] H = new byte[32];
@@ -22,7 +23,6 @@ public class Hasher {
     public byte[] hash(byte[] header) throws GeneralSecurityException {
         return hash(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
     }
-/*
     public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
         arraycopy(header, 0, B, 0, 76);
         B[76] = (byte) (nonce >> 24);
@@ -33,6 +33,7 @@ public class Hasher {
         B[80] = 0;
         B[81] = 0;
         B[82] = 0;
+/*
         for (i = 0; i < 4; i++) {
             B[83] = (byte) (i + 1);
             mac.update(B, 0, 84);
@@ -176,16 +177,6 @@ public class Hasher {
     }
 }
 */
-    public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
-        arraycopy(header, 0, B, 0, 76);
-        B[76] = (byte) (nonce >> 0);
-        B[77] = (byte) (nonce >> 8);
-        B[78] = (byte) (nonce >> 16);
-        B[79] = (byte) (nonce >> 24);
-        mac.init(new SecretKeySpec(B, 0, 80, "HmacSHA256"));
-        B[80] = 0;
-        B[81] = 0;
-        B[82] = 0;
         for (i = 0; i < 4; i++) {
             B[83] = (byte) (i + 1);
             mac.update(B, 0, 84);
