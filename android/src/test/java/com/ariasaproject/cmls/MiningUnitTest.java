@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
-
+ 
 public class MiningUnitTest {
     @Test
     public void HasherTest() throws Exception {
