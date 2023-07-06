@@ -59,7 +59,6 @@ public class MiningUnitTest {
                 try {
                     Hasher h = new Hasher();
                     for (int nonce = b; (nonce > -1) && findNonce.get(); nonce+=5) {
-                        findNonce.set(meetsTarget(nonce, h, header, target));
                         byte[] hash = h.hash(header, nonce);
                       	for (int i = hash.length - 1; i >= 0; i--) {
                           	if ((hash[i] & 0xff) > (target[i] & 0xff)) break;
