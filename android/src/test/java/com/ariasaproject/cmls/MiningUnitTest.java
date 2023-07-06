@@ -62,8 +62,10 @@ public class MiningUnitTest {
                         byte[] hash = h.hash(header, nonce);
                       	for (int i = hash.length - 1; i >= 0; i--) {
                           	if ((hash[i] & 0xff) > (target[i] & 0xff)) break;
-                          	if ((hash[i] & 0xff) < (target[i] & 0xff))
+                          	if ((hash[i] & 0xff) < (target[i] & 0xff)) {
                           	    findNonce.set(false);
+                          	    break;
+                          	}
                       	}
                     }
                 } catch (GeneralSecurityException e) {}

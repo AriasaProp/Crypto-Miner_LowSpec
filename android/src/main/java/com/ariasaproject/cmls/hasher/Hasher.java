@@ -7,7 +7,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import static java.lang.Integer.rotateLeft;
 import static java.lang.System.arraycopy;
-/*
+
 public class Hasher {
     private Mac mac;
     private byte[] H = new byte[32];
@@ -172,7 +172,7 @@ public class Hasher {
         X[31] += xs[15];
     }
 }
-*/
+/*
 public class Hasher {
     private Mac mac;
     private byte[] H = new byte[32];
@@ -287,3 +287,4 @@ public class Hasher {
         X[di + 15] += x15;
     }
 }
+*/
