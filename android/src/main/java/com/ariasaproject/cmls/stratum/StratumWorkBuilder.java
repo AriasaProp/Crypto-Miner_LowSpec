@@ -73,8 +73,7 @@ public class StratumWorkBuilder {
         return new StratumMiningWork(work_data,diff2target(this._difficulty/65536.0),this._notify.job_id,xnonce2_str);
 
     }
-    private static HexArray diff2target(double diff)
-    {
+    private static HexArray diff2target(double diff) {
         long m;
         int k;
         byte[] target=new byte[8*4];

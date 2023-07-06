@@ -1,7 +1,6 @@
 package com.ariasaproject.cmls;
 
-public class StratumMiningWork extends MiningWork
-{
+public class StratumMiningWork extends MiningWork {
     public String job_id;
     public String xnonce2;
     public StratumMiningWork(HexArray i_data,HexArray i_target, String i_job_id, String i_xnonce2)
