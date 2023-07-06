@@ -196,7 +196,7 @@ public class SingleMiningChief implements Observer {
                 long hashes = _worker.getNumberOfHash() - lastWorkHashes;
                 status= STATUS_MINING;
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, String.format("Miner: %d Hashes, %.6f Hash/s", hashes, speed));
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0);
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
             }
             lastWorkTime = System.currentTimeMillis();
