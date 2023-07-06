@@ -109,38 +109,42 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     class Worker extends Thread implements Runnable {
         MiningWork _work;
         int _start;
-        int _step;
         public Worker() {}
-        public void setWork(MiningWork i_work,int i_start,int i_step) {
+        public void setWork(MiningWork i_work,int i_start) {
             this._work=i_work;
             this._start=i_start;
-            this._step=i_step;
         }
 
         @Override
         public void run() {
             long saved_time = System.currentTimeMillis();
+            final int step = CpuMiningWorker.this._number_of_thread;
             try{
                 MiningWork work = _work;
                 Hasher hasher = new Hasher();
                 byte[] target = work.target.refHex();
-                for(int nonce = _start; nonce >= _start;nonce += _step){
-                    byte[] hash = hasher.hash(work.header.refHex(), nonce);
-                    for (int i = hash.length - 1; i >= 0; i--) {
-                        if ((hash[i] & 0xff) > (target[i] & 0xff))
-                            break;
-                        if ((hash[i] & 0xff) < (target[i] & 0xff)) {
-                            CpuMiningWorker.this.invokeNonceFound(work,nonce);
-                            break;
+                boolean wasFound = false;
+                while(!wasFound) {
+                    for(int nonce = _start; nonce >= _start;nonce += step){
+                        byte[] hash = hasher.hash(work.header.refHex(), nonce);
+                        for (int i = hash.length - 1; i >= 0; i--) {
+                            if ((hash[i] & 0xff) > (target[i] & 0xff))
+                                break;
+                            if ((hash[i] & 0xff) < (target[i] & 0xff)) {
+                                CpuMiningWorker.this.invokeNonceFound(work,nonce);
+                                wasFound = true;
+                                break;
+                            }
+                        }
+                        hashes.incrementAndGet();
+                        Thread.sleep(10L);
+                        long cur_time = System.currentTimeMillis();
+                        if ( (cur_time - saved_time) >= 1000) {
+                            calcSpeedPerThread(cur_time);
+                            saved_time = cur_time;
                         }
                     }
-                    hashes.incrementAndGet();
-                    Thread.sleep(10L);
-                    long cur_time = System.currentTimeMillis();
-                    if ( (cur_time - saved_time) >= 1000) {
-                        calcSpeedPerThread(cur_time);
-                        saved_time = cur_time;
-                    }
+                    if (!wasFound) MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Nonce was not fulfill the Hash");
                 }
             } catch (GeneralSecurityException e){
                 e.printStackTrace();

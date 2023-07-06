@@ -1,9 +1,9 @@
-name: Auto-Build Android
+name: Auto Android
 
 on:
   push:
     paths:
-      - 'android/src/main/**'
+      - 'android/src/**'
 
 jobs:
   build:
@@ -21,6 +21,10 @@ jobs:
       with:
         gradle-version: 8.1.1
         arguments: :android:build
+    - name: Gradle test
+      run: gradle :android:test
+    - name: Gradle build
+      run: gradle :android:build
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3.1.2
       with:
