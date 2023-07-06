@@ -66,11 +66,12 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements ServiceConnection {
     
-    static final String PREF_URL="URL";
-    static final String PREF_PORT="PORT";
-    static final String PREF_USER= "USER";
-    static final String PREF_PASS= "PASS";
-    static final String PREF_THREAD= "THREAD";
+    static final String PREF_URL = "URL";
+    static final String PREF_PORT = "PORT";
+    static final String PREF_USER = "USER";
+    static final String PREF_PASS = "PASS";
+    static final String PREF_THREAD = "THREAD";
+    static final String PREF_CONSOLE = "CONSOLE";
     
     static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org";
     static final int DEFAULT_PORT=3333;
@@ -105,21 +106,20 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     
     static final int MSG_STATE = 3;
     
-    private static int updateDelay = 400; // 0.4 sec
     
     private final StringBuilder sb = new StringBuilder();
     private static final int MAX_LOG_COUNT = 50;
-    private ArrayList<ConsoleItem> logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
+    private ArrayList<ConsoleItem> logList;
     RecyclerView.Adapter adpt;
     int stateMiningUpdate;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        /*
+        
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-        */
+        
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         boolean serviceWasRunning = false;
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
@@ -183,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             int[] ints = savedInstanceState.getIntArray(KEYBUNDLE_INTS);
             sb_thread.setProgress(ints[0]); //old
         } else {
+            logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
             SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
             et_serv.setText(settings.getString(PREF_URL, DEFAULT_URL));
             et_port.setText(String.valueOf(settings.getInt(PREF_PORT, DEFAULT_PORT)));
@@ -201,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         });
         //log Adapter
         final RecyclerView consoleView = (RecyclerView)findViewById(R.id.console_view);
-        consoleView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        consoleView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, true));
         adpt = new RecyclerView.Adapter<ConsoleItemHolder>() {
             final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
             @Override
@@ -300,13 +301,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 synchronized (mService) {
                     if (stateMiningUpdate != mService.state)
                         statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
-                    //Thread.sleep(updateDelay);
                     if (!mBinder.console.isEmpty()) {
-                        for (ConsoleItem c : mBinder.console) {
-                            logList.add(0, c);
-                        }
-                        while (logList.size() > MAX_LOG_COUNT)
-                            logList.remove(logList.size() - 1);
+                        logList.addAll(mBinder.console);
+                        if (logList.size() > MAX_LOG_COUNT)
+                            logList.remove(0, logList.size() - MAX_LOG_COUNT);
                         mBinder.console.clear();
                         statusHandler.sendEmptyMessage(MSG_CONSOLE);
                     }

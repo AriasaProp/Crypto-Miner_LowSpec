@@ -75,16 +75,7 @@ public class MinerService extends Service implements Handler.Callback{
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
-    final CpuMiningWorker.InfoReceive ci = new CpuMiningWorker.InfoReceive(){
-        @Override
-        public void sendMessage(String s) {
-            MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, s));
-        }
-        @Override
-        public void updateSpeed(float f) {
-            MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, f));
-        }
-    };
+    final MessageSendListener workerMsg = (what, arg1, arg2, o) -> serviceHandler.sendMessage(serviceHandler.obtainMessage(what, arg1, arg2, o));
     
     @Override
     public synchronized boolean handleMessage(Message msg) {
@@ -124,8 +115,8 @@ public class MinerService extends Service implements Handler.Callback{
                             MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Start mining"));
                             try {
                                 mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
-                                imw = new CpuMiningWorker(nThread,DEFAULT_PRIORITY, ci);
-                                smc = new SingleMiningChief(mc,imw,serviceHandler);
+                                imw = new CpuMiningWorker(nThread,DEFAULT_PRIORITY, workerMsg);
+                                smc = new SingleMiningChief(mc,imw,workerMsg);
                                 smc.startMining();
                                 MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Started mining"));
                                 MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_RUNNING, 0));
