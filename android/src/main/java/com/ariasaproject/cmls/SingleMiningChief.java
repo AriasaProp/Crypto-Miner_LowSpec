@@ -36,16 +36,11 @@ public class SingleMiningChief implements Observer {
     private IMiningWorker imw;
     private long lastWorkTime;
     private long lastWorkHashes;
-    private float speed=0;			//khash/s
-    public long accepted=0;
-    public long rejected=0;
     public int priority=1;
     private final MessageSendListener MSL;
     public IMiningConnection _connection;
     public IMiningWorker _worker;
     private EventListener _eventlistener;
-
-    public String status = "None";
 
     public class EventListener extends Observable implements IConnectionEvent,IWorkerEvent {
         private int _number_of_accept;
@@ -55,7 +50,7 @@ public class SingleMiningChief implements Observer {
             this.resetCounter();
         }
         public void resetCounter() {
-            this._number_of_accept = this._number_of_all=0;
+            this._number_of_accept = this._number_of_all = 0;
         }
 
         @Override
@@ -94,8 +89,6 @@ public class SingleMiningChief implements Observer {
 
     }
     public SingleMiningChief(IMiningConnection i_connection,IMiningWorker i_worker, MessageSendListener msl) throws Exception {
-        status= STATUS_CONNECTING;
-        speed=0.0f;
         MSL = msl;
         this._connection=i_connection;
         this._worker=i_worker;
@@ -110,9 +103,7 @@ public class SingleMiningChief implements Observer {
         MiningWork first_work=this._connection.connect();
         this._eventlistener.resetCounter();
         if(first_work!=null){
-            synchronized(this){
-                this._worker.doWork(first_work);
-            }
+            this._worker.doWork(first_work);
         }
     }
     public void stopMining() throws Exception {
@@ -127,77 +118,62 @@ public class SingleMiningChief implements Observer {
         switch (n) {
         case SYSTEM_ERROR:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: System error");
-            status = STATUS_ERROR;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
             break;
         case PERMISSION_ERROR:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Permission error");
-            status = STATUS_ERROR;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
             break;
         case TERMINATED:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Worker terminated");
-            status = STATUS_TERMINATED;
-            MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_TERMINATED);
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0,new Float(0));
+            MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
             break;
         case CONNECTING:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Worker connecting");
-            status = STATUS_CONNECTING;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_CONNECTING);
             break;
         case AUTHENTICATION_ERROR:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Authentication error");
-            status = STATUS_ERROR;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
             break;
         case CONNECTION_ERROR:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Connection error");
-            status = STATUS_ERROR;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
             break;
         case COMMUNICATION_ERROR:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Communication error");
-            status = STATUS_ERROR;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
             break;
         case LONG_POLLING_FAILED:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Long polling failed");
-            status = STATUS_NOT_MINING;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_NOT_MINING);
             break;
         case LONG_POLLING_ENABLED:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Long polling enabled");
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Speed updates as work is completed");
-            status = STATUS_MINING;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
             break;
         case NEW_BLOCK_DETECTED:
-            status = STATUS_MINING;
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Detected new block");
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
             break;
         case POW_TRUE:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: PROOF OF WORK RESULT: true");
-            status = STATUS_MINING;
-            accepted+=1;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_ACC, 0, accepted);
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_ACC, 0, null);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
             break;
         case POW_FALSE:
-            status = STATUS_MINING;
-            rejected+=1;
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_REJECT, 0, rejected);
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_REJECT, 0, null);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
             break;
         case NEW_WORK:
             if (lastWorkTime > 0L) {
                 long hashes = _worker.getNumberOfHash() - lastWorkHashes;
-                status= STATUS_MINING;
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, String.format("Miner: %d Hashes, %.6f Hash/s", hashes, speed));
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, String.format("Miner: %d Hashes", hashes));
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, status);
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
             }
             lastWorkTime = System.currentTimeMillis();
             lastWorkHashes = _worker.getNumberOfHash();

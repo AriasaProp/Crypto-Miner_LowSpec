@@ -30,9 +30,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import static com.ariasaproject.cmls.Constants.CLIENT_NAME_STRING;
-import static com.ariasaproject.cmls.R.id.parent;
-
 public class StratumMiningConnection extends Observable implements IMiningConnection {
     private class SubmitOrder {
         public SubmitOrder(long i_id, StratumMiningWork i_work, int i_nonce) {
@@ -126,8 +123,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         /**
          * JSON Result
          */
-        public StratumJson waitForJsonResult(long i_id,Class<?> i_class,int i_wait_for_msec)
-        {
+        public StratumJson waitForJsonResult(long i_id,Class<?> i_class,int i_wait_for_msec) {
             long time_out=i_wait_for_msec;
             do{
                 long s=System.currentTimeMillis();
@@ -140,7 +136,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                 }
                 synchronized(this._json_q)
                 {
-                    //受信キューをスキャン
                     for(StratumJson json : this._json_q){
                         if(!(json.getClass() == i_class)){
                             continue;
@@ -196,7 +191,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     }
 
 
-    private final String CLIENT_NAME=CLIENT_NAME_STRING;
+    private final String CLIENT_NAME = "CMLS";
     private String _uid;
     private String _pass;
     private URI _server;
@@ -216,8 +211,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     private StratumJsonMethodSetDifficulty _last_difficulty=null;
     private StratumJsonMethodMiningNotify _last_notify=null;
 
-    public MiningWork connect() throws RuntimeException
-    {
+    public MiningWork connect() throws RuntimeException {
         setChanged();
         notifyObservers(IMiningWorker.Notification.CONNECTING);
         //Connect to host
@@ -240,11 +234,10 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             //this._sock = new StratumSocket(this._server);
             this._rx_thread = new AsyncRxSocketThread(this);
             this._rx_thread.start();
-            //3回トライ
             int i;
 
             //subscribe
-            StratumJsonResultSubscribe subscribe=null;
+            StratumJsonResultSubscribe subscribe = null;
             {
                 for(i=0;i<3;i++){
                     subscribe=(StratumJsonResultSubscribe)this._rx_thread.waitForJsonResult(this._sock.subscribe(CLIENT_NAME),StratumJsonResultSubscribe.class,3000);
@@ -258,7 +251,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                 }
             }
 
-            //Authorize and make  a 1st work.
+            //Authorize and make a 1st work.
             for(i=0;i<3;i++){
                 StratumJsonResultStandard auth=(StratumJsonResultStandard) this._rx_thread.waitForJsonResult(this._sock.authorize(this._uid,this._pass), StratumJsonResultStandard.class,3000);
                 if(auth==null || auth.error!=null){
@@ -370,7 +363,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         if(w==null){
             return;
         }
-        //登録されているlistenerをコール
         for(IConnectionEvent i: this._as_listener){
             i.onNewWork(w);
         }

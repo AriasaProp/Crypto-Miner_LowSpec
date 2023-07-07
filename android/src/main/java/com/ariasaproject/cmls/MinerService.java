@@ -90,11 +90,11 @@ public class MinerService extends Service implements Handler.Callback{
                     break;
                 case MSG_UPDATE_ACC:
                     status.new_accepted |= true;
-                    status.accepted = (Long) msg.obj;
+                    status.accepted++;
                     break;
                 case MSG_UPDATE_REJECT:
                     status.new_rejected |= true;
-                    status.rejected = (Long) msg.obj;
+                    status.rejected++;
                     break;
                 case MSG_UPDATE_STATUS:
                     status.console.add(new ConsoleItem("Mining State: " + (String)msg.obj));
@@ -108,6 +108,10 @@ public class MinerService extends Service implements Handler.Callback{
             switch (msg.arg1) {
                 default: break;
                 case MSG_STATE_NONE:
+                    status.new_accepted |= true;
+                    status.new_rejected |= true;
+                    status.accepted = 0;
+                    status.rejected = 0;
                     break;
                 case MSG_STATE_ONSTART:
                     if (state == MSG_STATE_NONE) {

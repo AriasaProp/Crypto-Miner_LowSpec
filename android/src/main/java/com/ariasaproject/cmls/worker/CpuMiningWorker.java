@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
@@ -34,50 +35,44 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         for(int i = 0;i < _number_of_thread; i++){
             _workr_thread[i] = new Worker();
         }
-
     }
     long last_check = 0;
     public void calcSpeedPerThread() {
         calcSpeedPerThread(System.currentTimeMillis());
     }
     public void calcSpeedPerThread(long curr_time) {
-        float delta_time = Math.max(1,curr_time-_last_time)/1000.0f;
+        float delta_time = Math.max(1,curr_time-worker_saved_time.get())/1000.0f;
         float _speed = (float)hashes.get()/delta_time;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
     }
-    private long _last_time=0;
+    private final AtomicBoolean findingNonce = new AtomicBoolean(true);
+    private final AtomicLong worker_saved_time = new AtomicLong(0);
     @Override
-    public boolean doWork(MiningWork i_work) throws Exception {
+    public synchronized boolean doWork(MiningWork i_work) throws Exception {
         if(getThreadsStatus()){
             stopWork();
         }
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads started");
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads starting");
         hashes.set(0);
-        _last_time = System.currentTimeMillis();
+        findingNonce.set(true);
+        worker_saved_time.set(System.currentTimeMillis());
         for(int i = 0; i < _number_of_thread; i++){
             Worker workr = _workr_thread[i];
             workr.setWork(i_work, i);
             workr.setPriority(_thread_priorirty);
-            if (!workr.isAlive()) {
-                try {
-                    workr.start();
-                    MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads started ID: " + workr.getId());
-                } catch (IllegalThreadStateException e){
-                    workr.interrupt();
-                }
-            }
+            //all worker should dead to start
+            workr.start();
         }
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads started");
         return true;
     }
     @Override
     public void stopWork() throws Exception {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Killing threads");
-        for (Worker t : _workr_thread) {
-            if (t.isAlive()) {
-                t.interrupt();
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Killed thread ID: " + t.getId());
-            }
-        }
+        findingNonce.set(false);
+        for (Worker t : _workr_thread)
+            t.join();
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Killed threads");
     }
 
     @Override
@@ -86,9 +81,8 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     }
     
     public boolean getThreadsStatus() {
-        for (Worker t : _workr_thread) {
+        for (Worker t : _workr_thread)
             if (t.isAlive()) return true;
-        }
         return false;
     }
 
@@ -114,37 +108,34 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
             this._work=i_work;
             this._start=i_start;
         }
-
         @Override
         public void run() {
-            long saved_time = System.currentTimeMillis();
             final int step = CpuMiningWorker.this._number_of_thread;
             try{
                 MiningWork work = _work;
                 Hasher hasher = new Hasher();
                 byte[] target = work.target.refHex();
-                boolean wasFound = false;
-                while(!wasFound) {
-                    for(int nonce = _start; nonce >= _start;nonce += step){
+                int nonce = 0;
+                while (findingNonce.get()) {
+                    for(nonce = _start; (nonce >= _start) && findingNonce.get(); nonce += step){
                         byte[] hash = hasher.hash(work.header.refHex(), nonce);
                         for (int i = hash.length - 1; i >= 0; i--) {
-                            if ((hash[i] & 0xff) > (target[i] & 0xff))
-                                break;
-                            if ((hash[i] & 0xff) < (target[i] & 0xff)) {
-                                CpuMiningWorker.this.invokeNonceFound(work,nonce);
-                                wasFound = true;
+                            byte a = (byte)(hash[i] & 0xff), b = (byte)(target[i] & 0xff);
+                            if (a != b) {
+                                if (a < b) {
+                                    findingNonce.set(false);
+                                    CpuMiningWorker.this.invokeNonceFound(work,nonce);
+                                }
                                 break;
                             }
                         }
                         hashes.incrementAndGet();
-                        Thread.sleep(10L);
                         long cur_time = System.currentTimeMillis();
-                        if ( (cur_time - saved_time) >= 1000) {
+                        if ( (cur_time - saved_time.get()) >= 1000) {
                             calcSpeedPerThread(cur_time);
-                            saved_time = cur_time;
+                            saved_time.set(cur_time);
                         }
                     }
-                    if (!wasFound) MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Nonce was not fulfill the Hash");
                 }
             } catch (GeneralSecurityException e){
                 e.printStackTrace();
@@ -156,8 +147,6 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                     e1.printStackTrace();
                 }
             } catch (InterruptedException e) {
-                calcSpeedPerThread();
-                _last_time = System.currentTimeMillis();
             }
         }
     }

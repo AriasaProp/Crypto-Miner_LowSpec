@@ -9,8 +9,6 @@ public class Constants {
 
     public static final int 		DEFAULT_PRIORITY=1;
 
-    public static final String CLIENT_NAME_STRING="CMLS";
-
     public static final String STATUS_NOT_MINING = "Not Mining";
     public static final String STATUS_MINING = "Mining";
     public static final String STATUS_ERROR = "Error";

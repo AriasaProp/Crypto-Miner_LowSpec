@@ -42,7 +42,6 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
-
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_NONE;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_RUNNING;
@@ -257,8 +256,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 btn_startmine.setVisibility(View.VISIBLE);
                 btn_startmine.setEnabled(true);
                 tv_speed.setText("0 hash/sec");
-                tv_accepted.setText("0");
-                tv_rejected.setText("0");
                 //enable all user Input
                 input_container.setVisibility(View.VISIBLE);
                 status_container.setVisibility(View.GONE);
