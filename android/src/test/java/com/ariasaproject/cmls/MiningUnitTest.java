@@ -64,7 +64,7 @@ public class MiningUnitTest {
                     for (int nonce = b; (nonce >= b) && findNonce.get(); nonce+=MaxThreadTest) {
                         byte[] hash = h.hash(header, nonce);
                       	for (int i = hash.length - 1; i >= 0; i--) {
-                          	byte x = hash[i], y = target[i];
+                          	int x = hash[i] & 0xff, y = target[i] & 0xff;
                             if (x != y) {
                                 if (x < y) {
                                     nnc.incrementAndGet();
