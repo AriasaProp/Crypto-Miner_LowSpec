@@ -27,7 +27,9 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     private final Worker[] _workr_thread;
     private final MessageSendListener MSL;
     private final AtomicLong hashes = new AtomicLong(0);
+    private final ExecutorService es;
     public CpuMiningWorker(int i_number_of_thread, int priority, MessageSendListener msl) {
+        ea = Executors.newFixedThreadPool(i_number_of_thread);
         MSL = msl;
         _thread_priorirty = priority;
         _number_of_thread=i_number_of_thread;
@@ -101,12 +103,13 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         this._as_listener.add(i_listener);
     }
     class Worker extends Thread implements Runnable {
-        MiningWork _work;
-        int _start;
-        public Worker() {}
-        public void setWork(MiningWork i_work,int i_start) {
-            this._work=i_work;
+        final int _start;
+        public Worker(int i_start) {
             this._start=i_start;
+        }
+        MiningWork _work;
+        public void setWork(MiningWork i_work) {
+            this._work=i_work;
         }
         @Override
         public void run() {
