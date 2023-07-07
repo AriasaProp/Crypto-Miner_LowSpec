@@ -110,7 +110,6 @@ public class SingleMiningChief implements Observer {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner Worker stopping... cooling down \nThis can take a few minutes");
         this._connection.disconnect();
         this._worker.stopWork();
-        speed=0;
     }
 
     public void update(Observable o, Object arg) {

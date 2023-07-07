@@ -131,9 +131,9 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                         }
                         hashes.incrementAndGet();
                         long cur_time = System.currentTimeMillis();
-                        if ( (cur_time - saved_time.get()) >= 1000) {
+                        if ( (cur_time - worker_saved_time.get()) >= 1000) {
                             calcSpeedPerThread(cur_time);
-                            saved_time.set(cur_time);
+                            worker_saved_time.set(cur_time);
                         }
                     }
                 }
