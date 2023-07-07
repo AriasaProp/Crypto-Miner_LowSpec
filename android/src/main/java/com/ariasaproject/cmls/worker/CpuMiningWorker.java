@@ -115,9 +115,8 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                 MiningWork work = _work;
                 Hasher hasher = new Hasher();
                 byte[] target = work.target.refHex();
-                int nonce = 0;
                 while (findingNonce.get()) {
-                    for(nonce = _start; (nonce >= _start) && findingNonce.get(); nonce += step){
+                    for(int nonce = _start; (nonce >= _start) && findingNonce.get(); nonce += step){
                         byte[] hash = hasher.hash(work.header.refHex(), nonce);
                         for (int i = hash.length - 1; i >= 0; i--) {
                             byte a = (byte)(hash[i] & 0xff), b = (byte)(target[i] & 0xff);
