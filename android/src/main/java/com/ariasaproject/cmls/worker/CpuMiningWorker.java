@@ -146,7 +146,6 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
-            } catch (InterruptedException e) {
             }
         }
     }
