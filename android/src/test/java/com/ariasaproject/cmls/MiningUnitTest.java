@@ -78,6 +78,6 @@ public class MiningUnitTest {
         }
         es.invokeAll(calls);
         assertFalse(findNonce.get());
-        assertEquals(1, nnc.get())
+        assertEquals(1, nnc.get());
     }
 }
