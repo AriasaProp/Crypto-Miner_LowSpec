@@ -51,6 +51,7 @@ public class MiningUnitTest {
         assertEquals(WORK_TARGET, w.target.getStr());
         final byte[] header = w.header.refHex(), target = w.target.refHex();
         AtomicBoolean findNonce = new AtomicBoolean(true);
+        AtomicInteger nnc = new AtomicInteger(0);
         
         ExecutorService es = Executors.newFixedThreadPool(MaxThreadTest);
         List<Callable<Object>> calls = new ArrayList<Callable<Object>>(MaxThreadTest);
@@ -62,9 +63,10 @@ public class MiningUnitTest {
                     for (int nonce = b; (nonce >= b) && findNonce.get(); nonce+=MaxThreadTest) {
                         byte[] hash = h.hash(header, nonce);
                       	for (int i = hash.length - 1; i >= 0; i--) {
-                          	byte x = (byte)(hash[i] & 0xff), y = (byte)(target[i] & 0xff);
+                          	byte x = hash[i], y = target[i];
                             if (x != y) {
                                 if (x < y) {
+                                    nnc.incrementAndGet();
                           	        findNonce.set(false);
                                 }
                           	    break;
@@ -76,5 +78,6 @@ public class MiningUnitTest {
         }
         es.invokeAll(calls);
         assertFalse(findNonce.get());
+        assertEquals(1, nnc.get())
     }
 }
