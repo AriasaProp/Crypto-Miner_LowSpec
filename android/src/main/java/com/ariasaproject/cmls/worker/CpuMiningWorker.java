@@ -35,7 +35,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         _number_of_thread=i_number_of_thread;
         _workr_thread = new Worker[_number_of_thread];
         for(int i = 0;i < _number_of_thread; i++){
-            _workr_thread[i] = new Worker();
+            _workr_thread[i] = new Worker(i);
         }
     }
     long last_check = 0;
@@ -60,7 +60,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         worker_saved_time.set(System.currentTimeMillis());
         for(int i = 0; i < _number_of_thread; i++){
             Worker workr = _workr_thread[i];
-            workr.setWork(i_work, i);
+            workr.setWork(i_work);
             workr.setPriority(_thread_priorirty);
             //all worker should dead to start
             workr.start();
@@ -102,7 +102,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     public synchronized void addListener(IWorkerEvent i_listener) {
         this._as_listener.add(i_listener);
     }
-    class Worker extends Thread implements Runnable {
+    class Worker extends Thread {
         final int _start;
         public Worker(int i_start) {
             this._start=i_start;
