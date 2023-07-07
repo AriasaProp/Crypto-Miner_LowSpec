@@ -29,7 +29,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     private final AtomicLong hashes = new AtomicLong(0);
     private final ExecutorService es;
     public CpuMiningWorker(int i_number_of_thread, int priority, MessageSendListener msl) {
-        ea = Executors.newFixedThreadPool(i_number_of_thread);
+        es = Executors.newFixedThreadPool(i_number_of_thread);
         MSL = msl;
         _thread_priorirty = priority;
         _number_of_thread=i_number_of_thread;

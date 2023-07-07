@@ -37,7 +37,7 @@ public class MiningUnitTest {
     final String ST="{\"params\": [128], \"id\": null, \"method\": \"mining.set_difficulty\"}";
     final String WORK_DATA="000000018e50f956acdabb3f8e981a4797466043021388791bfa70b1c1a1ba54a8fbdf5093b73998a3b9d1ad9ee12578b6ffb49088bb9321fcb159e15f10b397cb514e4952b54c291c00adb700000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000";
     final String WORK_TARGET="000000000000000000000000000000000000000000000000000000feff010000";
-    final int MaxThreadTest = 5;
+    final int MaxThreadTest = 6;
     @Test
     public void HashingTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
