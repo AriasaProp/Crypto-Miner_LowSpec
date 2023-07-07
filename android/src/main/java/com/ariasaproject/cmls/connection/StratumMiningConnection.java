@@ -329,30 +329,17 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         return work;
     }
     private ArrayList<IConnectionEvent> _as_listener=new ArrayList<IConnectionEvent>();
-
-    /**
-     * この関数は非同期コールスレッドと衝突するのでconnect前に実行する事。
-     */
-    public void addListener(IConnectionEvent i_listener)
-    {
+    public void addListener(IConnectionEvent i_listener) {
         this._as_listener.add(i_listener);
         return;
     }
-
-    /**
-     * Threadからのコールバック(Thread)
-     * @throws RuntimeException
-     */
-    private void cbNewMiningNotify(StratumJsonMethodMiningNotify i_notify)
-    {
-        synchronized(this._data_lock)
-        {
+    private void cbNewMiningNotify(StratumJsonMethodMiningNotify i_notify) {
+        synchronized(this._data_lock) {
             if(this._work_builder==null){
                 this._last_notify=i_notify;
                 return;
             }
         }
-        //notifyを更新
         try {
             setChanged();
             notifyObservers(IMiningWorker.Notification.NEW_WORK);
