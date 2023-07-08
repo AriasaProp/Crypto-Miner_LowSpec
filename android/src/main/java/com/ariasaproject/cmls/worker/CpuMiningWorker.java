@@ -37,12 +37,9 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
             _workr_thread[i].setPriority(priority);
         }
     }
-    long last_check = 0;
-    public void calcSpeedPerThread() {
-        calcSpeedPerThread(System.currentTimeMillis());
-    }
     public void calcSpeedPerThread(long curr_time) {
         float _speed = (hashes.get() * 1000.0f)/Math.max(1, curr_time-worker_saved_time.get());
+        worker_saved_time.set(System.currentTimeMillis());
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
     }
     private final AtomicBoolean findingNonce = new AtomicBoolean(true);
@@ -58,7 +55,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         hashes.set(0);
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         findingNonce.set(true);
-        worker_saved_time.set(System.currentTimeMillis());
+        calcSpeedPerThread(System.currentTimeMillis());
         for(Worker workr : _workr_thread){
             workr.setWork(i_work);
             workr.start();
@@ -81,9 +78,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     }
     
     public boolean getThreadsStatus() {
-        for (Worker t : _workr_thread)
-            if (t.isAlive()) return true;
-        return false;
+        return findingNonce.get();
     }
 
     public void ConsoleWrite(String c) {
@@ -135,7 +130,6 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                     long cur_time = System.currentTimeMillis();
                     if ( (cur_time - worker_saved_time.get()) >= 1000) {
                         calcSpeedPerThread(cur_time);
-                        worker_saved_time.set(cur_time);
                     }
                 }
             } catch (GeneralSecurityException e){
