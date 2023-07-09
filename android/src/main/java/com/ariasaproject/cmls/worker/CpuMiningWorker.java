@@ -37,25 +37,27 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
             _workr_thread[i].setPriority(priority);
         }
     }
-    public void calcSpeedPerThread(long curr_time) {
-        float _speed = (hashes.get() * 1000.0f)/Math.max(1, curr_time-worker_saved_time.get());
-        worker_saved_time.set(System.currentTimeMillis());
+    public synchronized void calcSpeedPerThread(long curr_time) {
+        long delta = curr_time-worker_saved_time.get();
+        if (delta < 1000) return;
+        float _speed = (hashes.get() * 1000.0f) / (float)delta;
+        worker_saved_time.set(curr_time);
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
     }
     private final AtomicBoolean findingNonce = new AtomicBoolean(true);
     private final AtomicLong worker_saved_time = new AtomicLong(0);
     @Override
     public synchronized boolean doWork(MiningWork i_work) throws Exception {
-        if(getThreadsStatus()){
+        while (findingNonce.get()){
             findingNonce.set(false);
             for (Worker t : _workr_thread)
                 t.join();
         }
+        findingNonce.set(true);
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads starting");
         hashes.set(0);
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
-        findingNonce.set(true);
-        calcSpeedPerThread(System.currentTimeMillis());
+        worker_saved_time.set(System.currentTimeMillis());
         for(Worker workr : _workr_thread){
             workr.setWork(i_work);
             workr.start();
