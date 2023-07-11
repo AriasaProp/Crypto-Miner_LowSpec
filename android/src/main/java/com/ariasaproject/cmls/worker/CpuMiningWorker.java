@@ -32,7 +32,8 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         es = Executors.newFixedThreadPool(_number_of_thread);
     }
     public synchronized void calcSpeedPerThread() {
-        long delta = System.currentTimeMillis() - worker_saved_time.get();
+        long curr_time = System.currentTimeMillis();
+        long delta = curr_time - worker_saved_time.get();
         if (delta < 1000) return;
         if (hashes.get() < 0) 
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: hashes acumulator error");
@@ -52,7 +53,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         worker_saved_time.set(System.currentTimeMillis());
         for (int i = 0; i < _number_of_thread; i++) {
-            es.execute(new Work(i_work, i));
+            es.execute(new Worker(i_work, i));
         }
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads started");
         return true;
@@ -120,7 +121,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                             break;
                         }
                     }
-                    calcSpeedPerThread(cur_time);
+                    calcSpeedPerThread();
                     Thread.sleep(10L);
                 }
             } catch (GeneralSecurityException e){
