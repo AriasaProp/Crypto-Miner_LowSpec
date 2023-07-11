@@ -35,7 +35,6 @@ public class SingleMiningChief implements Observer {
     private IMiningConnection mc;
     private IMiningWorker imw;
     private long lastWorkTime;
-    private long lastWorkHashes;
     public int priority=1;
     private final MessageSendListener MSL;
     public IMiningConnection _connection;
@@ -99,7 +98,6 @@ public class SingleMiningChief implements Observer {
     public void startMining() throws Exception {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Starting worker thread, priority: "+priority);
         ((StratumMiningConnection)_connection).addObserver(this);
-        ((CpuMiningWorker)_worker).addObserver(this);
         MiningWork first_work=this._connection.connect();
         this._eventlistener.resetCounter();
         if(first_work!=null){
@@ -115,10 +113,6 @@ public class SingleMiningChief implements Observer {
     public void update(Observable o, Object arg) {
         IMiningWorker.Notification n = (IMiningWorker.Notification) arg;
         switch (n) {
-        case SYSTEM_ERROR:
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: System error");
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
-            break;
         case PERMISSION_ERROR:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Permission error");
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
@@ -168,14 +162,10 @@ public class SingleMiningChief implements Observer {
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
             break;
         case NEW_WORK:
-            if (lastWorkTime > 0L) {
-                long hashes = _worker.getNumberOfHash() - lastWorkHashes;
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, String.format("Miner: %d Hashes", hashes));
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
-            }
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, String.format("Miner: %d Hashes", _worker.getNumberOfHash()));
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
             lastWorkTime = System.currentTimeMillis();
-            lastWorkHashes = _worker.getNumberOfHash();
             break;
         default:
             break;

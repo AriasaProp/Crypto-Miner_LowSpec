@@ -6,7 +6,6 @@ import com.ariasaproject.cmls.hasher.Hasher;
 
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Observable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,36 +20,37 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
 import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.activeCount;
 
-public class CpuMiningWorker extends Observable implements IMiningWorker {
+public class CpuMiningWorker implements IMiningWorker {
     private final int _number_of_thread;
     private final MessageSendListener MSL;
-    private final AtomicLong hashes = new AtomicLong(0);
     private final ThreadGroup workers = new ThreadGroup("CPU_Miner");
     public CpuMiningWorker(int i_number_of_thread, int priority, MessageSendListener msl) {
         MSL = msl;
         _number_of_thread=i_number_of_thread;
         workers.setMaxPriority(priority);
     }
+    private volatile long hashes = 0;
+    private volatile long worker_saved_time = 0;
     public synchronized void calcSpeedPerThread() {
+        hashes++;
         long curr_time = System.currentTimeMillis();
-        long delta = curr_time - worker_saved_time.get();
+        long delta = curr_time - worker_saved_time;
         if (delta < 1000) return;
-        if (hashes.get() < 0) 
+        if (hashes < 0) 
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: hashes acumulator error");
-        float _speed = (hashes.get() * 1000.0f) / (float)delta;
-        worker_saved_time.set(curr_time);
+        float _speed = (hashes * 1000.0f) / (float)delta;
+        worker_saved_time = curr_time;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
     }
-    private final AtomicLong worker_saved_time = new AtomicLong(0);
     @Override
     public synchronized boolean doWork(MiningWork i_work) throws Exception {
         if (workers.activeCount() > 0){
             workers.interrupt();
         }
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads starting");
-        hashes.set(0);
+        hashes = 0;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
-        worker_saved_time.set(System.currentTimeMillis());
+        worker_saved_time = System.currentTimeMillis();
         for (int i = 0; i < _number_of_thread; i++) {
             new Thread(workers, generate_worker(i_work, i)).start();
         }
@@ -67,8 +67,8 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     }
 
     @Override
-    public long getNumberOfHash() {
-        return hashes.get();
+    public synchronized long getNumberOfHash() {
+        return hashes;
     }
     
     public boolean getThreadsStatus() {
@@ -81,7 +81,9 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
 
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
     public synchronized void invokeNonceFound(MiningWork i_work, int i_nonce) {
-        stopWork();
+        if (workers.activeCount() > 0){
+            workers.interrupt();
+        }
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Mining: Nonce found! +"+((0xffffffffffffffffL)&i_nonce));
         if (i_nonce < _number_of_thread)
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Mining: Weired Nonce");
@@ -89,18 +91,17 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
             i.onNonceFound(i_work,i_nonce);
         }
     }
-    public synchronized void addListener(IWorkerEvent i_listener) {
+    public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
         this._as_listener.add(i_listener);
     }
     Runnable generate_worker (MiningWork work, int _start) {
         return () -> {
+            final Hasher hasher = new Hasher();
             final int step = CpuMiningWorker.this._number_of_thread;
             try{
-                Hasher hasher = new Hasher();
                 byte[] target = work.target.refHex();
                 for(int nonce = _start; nonce >= _start; nonce += step){
                     byte[] hash = hasher.hash(work.header.refHex(), nonce);
-                    hashes.incrementAndGet();
                     for (int i = hash.length - 1; i >= 0; i--) {
                         int a = hash[i] & 0xff, b = target[i] & 0xff;
                         if (a != b) {
@@ -114,15 +115,12 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
                     calcSpeedPerThread();
                     Thread.sleep(10L);
                 }
-            } catch (GeneralSecurityException e){
-                e.printStackTrace();
-                setChanged();
-                notifyObservers(Notification.SYSTEM_ERROR);
-                try {
-                    stopWork();
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+            } catch (GeneralSecurityException e) {
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Security " + e.getMessage());
+                if (workers.activeCount() > 0){
+                    workers.interrupt();
                 }
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Waiting new work!");
             } catch (InterruptedException e) {
                 //ignore
             }
