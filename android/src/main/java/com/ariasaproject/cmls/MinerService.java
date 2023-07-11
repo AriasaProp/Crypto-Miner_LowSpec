@@ -15,8 +15,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
 
 import com.ariasaproject.cmls.connection.IMiningConnection;
 import com.ariasaproject.cmls.connection.StratumMiningConnection;
@@ -65,9 +63,7 @@ public class MinerService extends Service implements Handler.Callback{
     Handler serviceHandler;
     // Binder given to clients
     private final LocalBinder status = new LocalBinder();
-    ExecutorService es;
     public void onCreate() {
-        es = Executors.newSingleThreadExecutor();
         serviceHandler = new Handler(Looper.getMainLooper(), this);
     }
     
@@ -115,39 +111,39 @@ public class MinerService extends Service implements Handler.Callback{
                     break;
                 case MSG_STATE_ONSTART:
                     if (state == MSG_STATE_NONE) {
-                        es.execute(() -> {
-                            MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Start mining"));
+                        new Thread(() -> {
+                            status.console.add(new ConsoleItem("Service: Start mining"));
                             try {
                                 mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
                                 imw = new CpuMiningWorker(nThread,DEFAULT_PRIORITY, workerMsg);
                                 smc = new SingleMiningChief(mc,imw,workerMsg);
                                 smc.startMining();
-                                MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Started mining"));
+                                status.console.add(new ConsoleItem("Service: Started mining"));
                                 MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_RUNNING, 0));
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 smc = null;
-                                MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Error " + e.getMessage() + "\n Started mining is failed"));
+                                status.console.add(new ConsoleItem("Service: Error " + e.getMessage() + "\n Started mining is failed"));
                                 MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
                             }
-                        });
+                        }).start();
                     }
                     break;
                 case MSG_STATE_RUNNING:
                     break;
                 case MSG_STATE_ONSTOP:
                     if (state == MSG_STATE_RUNNING) {
-                        es.execute(() -> {
-                            MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Stop mining"));
+                        new Thread(() -> {
+                            status.console.add(new ConsoleItem("Service: Stop mining"));
                             try {
                                 smc.stopMining();
                                 smc = null;
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Service: Stopped mining"));
+                            status.console.add(new ConsoleItem("Service: Stopped mining"));
                             serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
-                        });
+                        }).start();
                     }
                     break;
             }
@@ -180,7 +176,6 @@ public class MinerService extends Service implements Handler.Callback{
             }
         } catch (Exception e) {}
         super.onDestroy();
-        es.shutdown();
     }
 
     @Override
