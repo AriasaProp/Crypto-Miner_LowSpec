@@ -13,7 +13,7 @@ public class Hasher {
     private byte[] H = new byte[32];
     private int[] X = new int[32];
     private int[] V = new int[32768]; //32 * 1024
-    //int[] xs = new int[16];
+    int[] xs = new int[16];
 
     public Hasher() throws GeneralSecurityException {
         mac = Mac.getInstance("HmacSHA256");
