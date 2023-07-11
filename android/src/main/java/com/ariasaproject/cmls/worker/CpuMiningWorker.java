@@ -29,7 +29,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     public CpuMiningWorker(int i_number_of_thread, int priority, MessageSendListener msl) {
         MSL = msl;
         _number_of_thread=i_number_of_thread;
-        es = Executors.newFixedThreadPool(_number_of_thread);
+        es = Executors.newWorkStealingPool(_number_of_thread);
     }
     public synchronized void calcSpeedPerThread() {
         long curr_time = System.currentTimeMillis();
@@ -46,14 +46,14 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     @Override
     public synchronized boolean doWork(MiningWork i_work) throws Exception {
         if (!es.isTerminated()){
-            es.shutdown();
+            es.shutdownNow();
         }
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads starting");
         hashes.set(0);
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         worker_saved_time.set(System.currentTimeMillis());
         for (int i = 0; i < _number_of_thread; i++) {
-            es.execute(new Worker(i_work, i));
+            es.submit(new Worker(i_work, i));
         }
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads started");
         return true;
@@ -61,7 +61,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     @Override
     public synchronized void stopWork() {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Killing threads");
-        if(!es.isTerminated())
+        if (!es.isTerminated())
             es.shutdownNow();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Killed threads");
     }
@@ -88,7 +88,6 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         for(IWorkerEvent i : _as_listener){
             i.onNonceFound(i_work,i_nonce);
         }
-        
     }
     public synchronized void addListener(IWorkerEvent i_listener) {
         this._as_listener.add(i_listener);
