@@ -29,7 +29,11 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     public CpuMiningWorker(int i_number_of_thread, int priority, MessageSendListener msl) {
         MSL = msl;
         _number_of_thread=i_number_of_thread;
-        es = Executors.newWorkStealingPool(_number_of_thread);
+        es = Executors.newFixedThreadPool(_number_of_thread, new ThreadFactory () {
+            public Thread newThread(Runnable r) {
+                return new Thread(r).setPriority(priority);
+            }
+        });
     }
     public synchronized void calcSpeedPerThread() {
         long curr_time = System.currentTimeMillis();
@@ -41,7 +45,6 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
         worker_saved_time.set(curr_time);
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
     }
-    private final AtomicBoolean findingNonce = new AtomicBoolean(true);
     private final AtomicLong worker_saved_time = new AtomicLong(0);
     @Override
     public synchronized boolean doWork(MiningWork i_work) throws Exception {
@@ -72,9 +75,9 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     }
     
     public boolean getThreadsStatus() {
-        return es.isTerminated();
+        return !es.isTerminated();
     }
-
+    
     public void ConsoleWrite(String c) {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, c);
     }
