@@ -29,7 +29,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     public CpuMiningWorker(int i_number_of_thread, int priority, MessageSendListener msl) {
         MSL = msl;
         _number_of_thread=i_number_of_thread;
-        workers.setPriority(priority);
+        workers.setMaxPriority(priority);
     }
     public synchronized void calcSpeedPerThread() {
         long curr_time = System.currentTimeMillis();
