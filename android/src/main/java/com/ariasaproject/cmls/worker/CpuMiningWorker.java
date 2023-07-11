@@ -96,9 +96,9 @@ public class CpuMiningWorker implements IMiningWorker {
     }
     Runnable generate_worker (MiningWork work, int _start) {
         return () -> {
-            final Hasher hasher = new Hasher();
             final int step = CpuMiningWorker.this._number_of_thread;
             try{
+                final Hasher hasher = new Hasher();
                 byte[] target = work.target.refHex();
                 for(int nonce = _start; nonce >= _start; nonce += step){
                     byte[] hash = hasher.hash(work.header.refHex(), nonce);
