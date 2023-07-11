@@ -7,11 +7,11 @@ import com.ariasaproject.cmls.hasher.Hasher;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Observable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.lang.ThreadGroup;
+import java.lang.Thread;
 
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
@@ -25,15 +25,11 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     private final int _number_of_thread;
     private final MessageSendListener MSL;
     private final AtomicLong hashes = new AtomicLong(0);
-    private final ExecutorService es;
+    private final ThreadGroup workers = new ThreadGroup("CPU_Miner");
     public CpuMiningWorker(int i_number_of_thread, int priority, MessageSendListener msl) {
         MSL = msl;
         _number_of_thread=i_number_of_thread;
-        es = Executors.newFixedThreadPool(_number_of_thread, new ThreadFactory () {
-            public Thread newThread(Runnable r) {
-                return new Thread(r).setPriority(priority);
-            }
-        });
+        workers.setPriority(priority);
     }
     public synchronized void calcSpeedPerThread() {
         long curr_time = System.currentTimeMillis();
@@ -48,15 +44,15 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     private final AtomicLong worker_saved_time = new AtomicLong(0);
     @Override
     public synchronized boolean doWork(MiningWork i_work) throws Exception {
-        if (!es.isTerminated()){
-            es.shutdownNow();
+        if (workers.activeCount() > 0){
+            workers.interrupt();
         }
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads starting");
         hashes.set(0);
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         worker_saved_time.set(System.currentTimeMillis());
         for (int i = 0; i < _number_of_thread; i++) {
-            es.submit(new Worker(i_work, i));
+            new Thread(workers, generate_worker(i_work, i)).start();
         }
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Threads started");
         return true;
@@ -64,8 +60,9 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     @Override
     public synchronized void stopWork() {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Killing threads");
-        if (!es.isTerminated())
-            es.shutdownNow();
+        if (workers.activeCount() > 0){
+            workers.interrupt();
+        }
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Killed threads");
     }
 
@@ -75,7 +72,7 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     }
     
     public boolean getThreadsStatus() {
-        return !es.isTerminated();
+        return workers.activeCount() > 0;
     }
     
     public void ConsoleWrite(String c) {
@@ -95,19 +92,10 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
     public synchronized void addListener(IWorkerEvent i_listener) {
         this._as_listener.add(i_listener);
     }
-    class Worker implements Runnable {
-        final int _start;
-        final MiningWork _work;
-        public Worker(MiningWork i_work, int i_start) {
-            this._start=i_start;
-            this._work=i_work;
-        }
-        
-        @Override
-        public void run() {
+    Runnable generate_worker (MiningWork work, int _start) {
+        return () -> {
             final int step = CpuMiningWorker.this._number_of_thread;
             try{
-                final MiningWork work = _work;
                 Hasher hasher = new Hasher();
                 byte[] target = work.target.refHex();
                 for(int nonce = _start; nonce >= _start; nonce += step){
@@ -138,6 +126,6 @@ public class CpuMiningWorker extends Observable implements IMiningWorker {
             } catch (InterruptedException e) {
                 //ignore
             }
-        }
+        };
     }
 }
