@@ -273,8 +273,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         }
     }
 
-    public void disconnect() throws RuntimeException
-    {
+    public void disconnect() throws RuntimeException {
         try {
             //threadの停止
             this._rx_thread.interrupt();
