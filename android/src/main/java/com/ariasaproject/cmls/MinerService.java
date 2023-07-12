@@ -107,7 +107,7 @@ public class MinerService extends Service implements Handler.Callback{
                             status.console.add(new ConsoleItem("Service: Start mining"));
                             try {
                                 mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
-                                imw = new CpuMiningWorker(nThread, 1, workerMsg);
+                                imw = new CpuMiningWorker(nThread, workerMsg);
                                 smc = new SingleMiningChief(mc,imw,workerMsg);
                                 smc.startMining();
                                 status.console.add(new ConsoleItem("Service: Started mining"));

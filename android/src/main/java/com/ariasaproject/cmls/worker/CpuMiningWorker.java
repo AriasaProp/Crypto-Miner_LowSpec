@@ -16,7 +16,6 @@ import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_SPEED;
 
-import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
 import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.activeCount;
 
@@ -24,10 +23,9 @@ public class CpuMiningWorker implements IMiningWorker {
     private final int _number_of_thread;
     private final MessageSendListener MSL;
     private final ThreadGroup workers = new ThreadGroup("CPU_Miner");
-    public CpuMiningWorker(int i_number_of_thread, int priority, MessageSendListener msl) {
+    public CpuMiningWorker(int i_number_of_thread, MessageSendListener msl) {
         MSL = msl;
         _number_of_thread=i_number_of_thread;
-        workers.setMaxPriority(priority);
     }
     private volatile long hashes = 0;
     private volatile long worker_saved_time = 0;
