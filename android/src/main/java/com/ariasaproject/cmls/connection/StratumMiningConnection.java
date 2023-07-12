@@ -46,8 +46,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         private ArrayList<SubmitOrder> _submit_q=new ArrayList<SubmitOrder>();
         private ArrayList<StratumJson> _json_q=new ArrayList<StratumJson>();
         private StratumMiningConnection _parent;
-        public AsyncRxSocketThread(StratumMiningConnection i_parent) throws SocketException
-        {
+        public AsyncRxSocketThread(StratumMiningConnection i_parent) throws SocketException {
             this._parent=i_parent;
             this._parent._sock.setSoTimeout(100);
         }
