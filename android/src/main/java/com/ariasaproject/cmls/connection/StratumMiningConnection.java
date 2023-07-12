@@ -74,18 +74,14 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         private void onJsonRx(StratumJson i_json) {
             Class<?> iid=i_json.getClass();
 
-            if(iid==StratumJsonMethodGetVersion.class)
-            {
-            }else if(iid==StratumJsonMethodMiningNotify.class)
-            {
+            if(iid==StratumJsonMethodGetVersion.class) {
+            } else if(iid==StratumJsonMethodMiningNotify.class) {
                 this._parent.cbNewMiningNotify((StratumJsonMethodMiningNotify)i_json);
-            }else if(iid==StratumJsonMethodReconnect.class){
-            }else if(iid==StratumJsonMethodSetDifficulty.class)
-            {
+            } else if(iid==StratumJsonMethodReconnect.class) {
+            } else if(iid==StratumJsonMethodSetDifficulty.class) {
                 this._parent.cbNewMiningDifficulty((StratumJsonMethodSetDifficulty) i_json);
-            }else if(iid==StratumJsonMethodShowMessage.class){
-            }else if(iid==StratumJsonResultStandard.class)
-            {
+            } else if(iid==StratumJsonMethodShowMessage.class){
+            } else if(iid==StratumJsonResultStandard.class) {
                 {
                     StratumJsonResultStandard sjson=(StratumJsonResultStandard)i_json;
                     SubmitOrder so=null;
@@ -103,13 +99,11 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                         this._parent.cbSubmitRecv(so,sjson);
                     }
                 }
-                synchronized(this._json_q)
-                {
+                synchronized(this._json_q) {
                     this._json_q.add(i_json);
                 }
                 this.semaphore.release();
-            }else if(iid==StratumJsonResultSubscribe.class)
-            {
+            } else if(iid==StratumJsonResultSubscribe.class) {
                 synchronized(this._json_q)
                 {
                     this._json_q.add(i_json);
@@ -119,9 +113,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             return;
         }
         private Semaphore semaphore = new Semaphore(0);
-        /**
-         * JSON Result
-         */
         public StratumJson waitForJsonResult(long i_id,Class<?> i_class,int i_wait_for_msec) {
             long time_out=i_wait_for_msec;
             do{
