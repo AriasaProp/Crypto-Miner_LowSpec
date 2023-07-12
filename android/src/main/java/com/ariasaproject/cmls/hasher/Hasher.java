@@ -18,13 +18,12 @@ public class Hasher {
     public Hasher() throws GeneralSecurityException {
         mac = Mac.getInstance("HmacSHA256");
     }
-    public byte[] hash(byte[] header) throws GeneralSecurityException {
-        return hash(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
-    }
     private byte[] B = new byte[132]; //128 + 4
     private int i, j, k, l;
-    
-    public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
+    public byte[] hash2(byte[] header) throws GeneralSecurityException {
+        return hash2(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
+    }
+    public byte[] hash2(byte[] header, int nonce) throws GeneralSecurityException {
         arraycopy(header, 0, B, 0, 76);
         B[76] = (byte) (nonce >> 24);
         B[77] = (byte) (nonce >> 16);
@@ -123,10 +122,10 @@ public class Hasher {
         X[di + 15] += x15;
     }
     
-    public byte[] hash2(byte[] header) throws GeneralSecurityException {
-        return hash2(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
+    public byte[] hash(byte[] header) throws GeneralSecurityException {
+        return hash(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
     }
-    public byte[] hash2(byte[] header, int nonce) throws GeneralSecurityException {
+    public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
         arraycopy(header, 0, B, 0, 76);
         B[76] = (byte) (nonce >> 24);
         B[77] = (byte) (nonce >> 16);
