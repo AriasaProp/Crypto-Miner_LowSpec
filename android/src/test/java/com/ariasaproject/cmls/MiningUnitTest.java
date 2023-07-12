@@ -37,7 +37,7 @@ public class MiningUnitTest {
     final String ST="{\"params\": [128], \"id\": null, \"method\": \"mining.set_difficulty\"}";
     final String WORK_DATA="000000018e50f956acdabb3f8e981a4797466043021388791bfa70b1c1a1ba54a8fbdf5093b73998a3b9d1ad9ee12578b6ffb49088bb9321fcb159e15f10b397cb514e4952b54c291c00adb700000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000";
     final String WORK_TARGET="000000000000000000000000000000000000000000000000000000feff010000";
-    final int MaxThreadTest = 6;
+    final int MaxThreadTest = 3;
     @Test
     public void HashingTest() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
@@ -51,26 +51,46 @@ public class MiningUnitTest {
         assertEquals(WORK_DATA, w.data.getStr());
         assertEquals(WORK_TARGET, w.target.getStr());
         final byte[] header = w.header.refHex(), target = w.target.refHex();
-        AtomicBoolean findNonce = new AtomicBoolean(true);
-        AtomicInteger nnc = new AtomicInteger(0);
+        AtomicBoolean fn1 = new AtomicBoolean(true);
+        AtomicBoolean fn2 = new AtomicBoolean(true);
         AtomicInteger n1 = new AtomicInteger(-1);
         AtomicInteger n2 = new AtomicInteger(-1);
         
-        ExecutorService es = Executors.newFixedThreadPool(MaxThreadTest);
+        ExecutorService es = Executors.newFixedThreadPool(MaxThreadTest*2);
         List<Callable<Object>> calls = new ArrayList<Callable<Object>>(MaxThreadTest);
-        for (int a = 0; a < MaxThreadTest/2; a++) {
+        for (int a = 0; a < MaxThreadTest; a++) {
             final int b = a;
             calls.add(Executors.callable(() -> {
                 try {
                     Hasher h = new Hasher();
-                    for (int nonce = b; (nonce >= b) && findNonce.get(); nonce+=MaxThreadTest) {
+                    for (int nonce = b; (nonce >= b) && fn1.get(); nonce+=MaxThreadTest) {
                         byte[] hash = h.hash(header, nonce);
                       	for (int i = hash.length - 1; i >= 0; i--) {
                           	int x = hash[i] & 0xff, y = target[i] & 0xff;
                             if (x != y) {
                                 if (x < y) {
-                                    nnc.incrementAndGet();
-                          	        findNonce.set(false);
+                          	        fn1.set(false);
+                          	        n1.set(i);
+                          	        return;
+                                }
+                          	    break;
+                          	}
+                      	}
+                    }
+                } catch (GeneralSecurityException e) {}
+            }));
+            calls.add(Executors.callable(() -> {
+                try {
+                    Hasher h = new Hasher();
+                    for (int nonce = b; (nonce >= b) && fn2.get(); nonce+=MaxThreadTest) {
+                        byte[] hash = h.hash2(header, nonce);
+                      	for (int i = hash.length - 1; i >= 0; i--) {
+                          	int x = hash[i] & 0xff, y = target[i] & 0xff;
+                            if (x != y) {
+                                if (x < y) {
+                          	        fn2.set(false);
+                          	        n2.set(i);
+                          	        return;
                                 }
                           	    break;
                           	}
@@ -80,7 +100,8 @@ public class MiningUnitTest {
             }));
         }
         es.invokeAll(calls);
-        assertFalse(findNonce.get());
-        assertEquals(1, nnc.get());
+        assertFalse(fn1.get());
+        assertFalse(fn2.get());
+        assertEquals(n1.get(), n2.get());
     }
 }

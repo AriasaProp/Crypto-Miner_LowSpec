@@ -1,4 +1,14 @@
-apply plugin: 'com.android.application'
+plugins {
+    id 'java'
+    id 'com.android.application'
+    id 'test-report'
+}
+testReport {
+    reports {
+        html.enabled = true
+        html.destination = file("$buildDir/reports/tests/test")
+    }
+}
 
 android {
     signingConfigs {
