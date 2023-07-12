@@ -1,12 +1,10 @@
 package com.ariasaproject.cmls;
 
-public class MiningWork
-{
+public class MiningWork {
     public final HexArray data;		//big endian
     public final HexArray target;	//big endian
     public final HexArray header;	//little endian
-    private static byte[] headerByData(byte[] data)
-    {
+    private static byte[] headerByData(byte[] data) {
         byte[] h = new byte[80];
         for (int i = 0; i < 80; i += 4) {
             h[i]     = data[i + 3];
