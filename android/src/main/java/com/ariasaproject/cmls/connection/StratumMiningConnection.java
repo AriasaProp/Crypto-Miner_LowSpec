@@ -145,9 +145,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             }while(time_out>0);
             return null;
         }
-        /**
-         * Submit ID
-         */
         public void addSubmitOrder(SubmitOrder i_submit_id)
         {
             synchronized(this._submit_q){

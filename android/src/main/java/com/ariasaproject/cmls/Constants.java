@@ -7,8 +7,6 @@ public class Constants {
     public static final String PREF_SERVICE = "SERVICE";
     public static final String PREF_PRIORITY="PRIORITY";
 
-    public static final int 		DEFAULT_PRIORITY=1;
-
     public static final String STATUS_NOT_MINING = "Not Mining";
     public static final String STATUS_MINING = "Mining";
     public static final String STATUS_ERROR = "Error";
