@@ -57,9 +57,9 @@ dependencies {
     testImplementation 'org.jacoco:jacoco:0.8.7'
 }
 
-task.test {
+tasks.test {
     reports.html {
-        enabled = true
-        destination = file('$projectDir/test')
+        enabled true
+        destination file('$projectDir/test')
     }
 }

@@ -12,6 +12,4 @@ public class Constants {
     public static final String STATUS_ERROR = "Error";
     public static final String STATUS_TERMINATED = "Terminated";
     public static final String STATUS_CONNECTING = "Connecting";
-
-
 }
