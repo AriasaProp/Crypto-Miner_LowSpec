@@ -185,12 +185,11 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     private StratumSocket _sock=null;
     private AsyncRxSocketThread _rx_thread;
 
-    public StratumMiningConnection(String i_url, String i_userid, String i_password) throws RuntimeException
-    {
+    public StratumMiningConnection(String i_url, String i_userid, String i_password) throws RuntimeException {
         this._pass=i_password;
         this._uid=i_userid;
         try {
-            this._server=new URI(i_url);
+            this._server = new URI(i_url);
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
