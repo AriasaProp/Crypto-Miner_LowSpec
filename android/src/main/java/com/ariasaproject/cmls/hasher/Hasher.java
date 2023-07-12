@@ -45,21 +45,6 @@ public class Hasher {
                         | (H[j * 4 + 3] & 0xff) << 24;
             }
         }
-/*
-        for (i = 0; i < 32768; i+=32) { // 1024*32
-            arraycopy(X, 0, V, i, 32);
-            //xorSalsa8
-            xorSalsa82();
-        }
-        for (i = 0; i < 1024; i++) {
-            k = (X[16] & 1023) * 32;
-            for (j = 0; j < 32; j++)
-                X[j] ^= V[k + j];
-            //xorSalsa8
-            xorSalsa82();
-        }
-*/
-
         for (i = 0; i < 1024; i++) {
             arraycopy(X, 0, V, i * 32, 32);
             xorSalsa8(0, 16);
