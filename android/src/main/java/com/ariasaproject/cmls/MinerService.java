@@ -28,8 +28,6 @@ import static com.ariasaproject.cmls.MainActivity.PREF_USER;
 import static com.ariasaproject.cmls.MainActivity.PREF_PASS;
 import static com.ariasaproject.cmls.MainActivity.PREF_THREAD;
 
-import static com.ariasaproject.cmls.Constants.DEFAULT_PRIORITY;
-
 public class MinerService extends Service implements Handler.Callback{
     public static final int MSG_STATE = 1;
     public static final int MSG_UPDATE = 2;
