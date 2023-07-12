@@ -1,13 +1,4 @@
-plugins {
-    id 'com.android.application'
-}
-test {
-    reports {
-        html.enabled = true
-        html.destination = file("$projectDir/test")
-    }
-    
-}
+apply plugins 'com.android.application'
 
 android {
     signingConfigs {

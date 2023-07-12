@@ -22,11 +22,6 @@ jobs:
         gradle-version: 8.1.1
     - name: Gradle test
       run: gradle :android:test
-    - name: Publish Test
-      uses: actions/upload-artifact@v3.1.2
-      with:
-        name: report
-        path: ${{ github.workspace }}/android/test
     - name: Gradle build
       run: gradle :android:build
     - name: Publish Artifacts
