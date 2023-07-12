@@ -51,7 +51,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             this._parent._sock.setSoTimeout(100);
         }
         public void run() {
-            for(;;){
+            for(;;) {
                 try {
                     StratumJson json=this._parent._sock.recvStratumJson();
                     if(json==null){
