@@ -18,8 +18,7 @@ public class StratumWorkBuilder {
     private HexArray _coinbase;
     private HexArray _merkle_loot;
     private double _difficulty=Double.NEGATIVE_INFINITY;
-    private byte[] sha256d(byte[] i_s) throws NoSuchAlgorithmException
-    {
+    private byte[] sha256d(byte[] i_s) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         return md.digest(md.digest(i_s));
     }
