@@ -12,6 +12,8 @@ import android.os.Message;
 import android.os.Binder;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -22,37 +24,34 @@ import com.ariasaproject.cmls.worker.CpuMiningWorker;
 import com.ariasaproject.cmls.worker.IMiningWorker;
 import com.ariasaproject.cmls.MainActivity.ConsoleItem;
 
-import static com.ariasaproject.cmls.MainActivity.PREF_URL;
-import static com.ariasaproject.cmls.MainActivity.PREF_PORT;
-import static com.ariasaproject.cmls.MainActivity.PREF_USER;
-import static com.ariasaproject.cmls.MainActivity.PREF_PASS;
-import static com.ariasaproject.cmls.MainActivity.PREF_THREAD;
+import static com.ariasaproject.cmls.Constants.MSG_STATE;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
+
+import static com.ariasaproject.cmls.Constants.MSG_STATE_NONE;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTART;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_RUNNING;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
+
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACC;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECT;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_STATUS;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
+
+import static com.ariasaproject.cmls.Constants.MAX_STATUS;
+
+import static com.ariasaproject.cmls.Constants.STATUS_TYPE_SPEED;
+import static com.ariasaproject.cmls.Constants.STATUS_TYPE_ACCEPTED;
+import static com.ariasaproject.cmls.Constants.STATUS_TYPE_REJECTED;
+import static com.ariasaproject.cmls.Constants.STATUS_TYPE_CONSOLE;
 
 public class MinerService extends Service implements Handler.Callback{
-    public static final int MSG_STATE = 1;
-    public static final int MSG_UPDATE = 2;
-    
-    public static final int MSG_STATE_NONE = 0;
-    public static final int MSG_STATE_ONSTART = 1;
-    public static final int MSG_STATE_RUNNING = 2;
-    public static final int MSG_STATE_ONSTOP = 3;
-    
-    public static final int MSG_UPDATE_SPEED = 1;
-    public static final int MSG_UPDATE_ACC = 2;
-    public static final int MSG_UPDATE_REJECT = 3;
-    public static final int MSG_UPDATE_STATUS = 4;
-    public static final int MSG_UPDATE_CONSOLE = 5;
-    
-    public static final int MINING_NONE = 0;
-    public static final int MINING_ONSTART = 1;
-    public static final int MINING_RUNNING = 2;
-    public static final int MINING_ONSTOP = 3;
-    
     IMiningConnection mc;
     IMiningWorker imw;
     SingleMiningChief smc;
-    int state = MINING_NONE;
+    int state = MSG_STATE_NONE;
     Handler serviceHandler;
+    Object[] minerStatus = new Object[MAX_STATUS];
     // Binder given to clients
     private final LocalBinder status = new LocalBinder();
     public void onCreate() {
@@ -144,8 +143,8 @@ public class MinerService extends Service implements Handler.Callback{
         }
         notifyAll();
         return true;
-        
     }
+    
     String url, user, pass;
     int port, nThread;
     public void startMining(String u, int p, String user, String pass, int n) {
@@ -156,20 +155,22 @@ public class MinerService extends Service implements Handler.Callback{
         this.nThread = n;
         serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_ONSTART, 0));
     }
+    
     public void stopMining() {
         serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_ONSTOP, 0));
     }
+    
     @Override
     public synchronized void onDestroy() {
         try {
-            while (state != MINING_NONE) {
+            while (state != MSG_STATE_NONE) {
                 stopMining();
                 wait();
             }
         } catch (Exception e) {}
         super.onDestroy();
     }
-
+    
     @Override
     public IBinder onBind(Intent intent) {
         return status;

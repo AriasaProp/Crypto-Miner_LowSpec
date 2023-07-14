@@ -42,10 +42,22 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
-import static com.ariasaproject.cmls.MinerService.MSG_STATE_NONE;
-import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
-import static com.ariasaproject.cmls.MinerService.MSG_STATE_RUNNING;
-import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTOP;
+import static com.ariasaproject.cmls.Constants.PREF_URL;
+import static com.ariasaproject.cmls.Constants.PREF_PORT;
+import static com.ariasaproject.cmls.Constants.PREF_USER;
+import static com.ariasaproject.cmls.Constants.PREF_PASS;
+import static com.ariasaproject.cmls.Constants.PREF_THREAD;
+import static com.ariasaproject.cmls.Constants.PREF_CONSOLE;
+
+import static com.ariasaproject.cmls.Constants.DEFAULT_URL;
+import static com.ariasaproject.cmls.Constants.DEFAULT_USER;
+import static com.ariasaproject.cmls.Constants.DEFAULT_PASS;
+import static com.ariasaproject.cmls.Constants.DEFAULT_PORT;
+
+import static com.ariasaproject.cmls.Constants.MSG_STATE_NONE;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTART;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_RUNNING;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
 
 import com.ariasaproject.cmls.connection.IMiningConnection;
 import com.ariasaproject.cmls.connection.StratumMiningConnection;
@@ -64,18 +76,6 @@ import java.util.Observer;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements ServiceConnection {
-    
-    static final String PREF_URL = "URL";
-    static final String PREF_PORT = "PORT";
-    static final String PREF_USER = "USER";
-    static final String PREF_PASS = "PASS";
-    static final String PREF_THREAD = "THREAD";
-    static final String PREF_CONSOLE = "CONSOLE";
-    
-    static final String DEFAULT_URL="stratum+tcp://us2.litecoinpool.org";
-    static final int DEFAULT_PORT=3333;
-    static final String DEFAULT_USER="Ariasa.test";
-    static final String DEFAULT_PASS="1234";
     
     private static final String KEYBUNDLE_CONSOLE = "bundle_console";
     private static final String KEYBUNDLE_TEXTS = "bundle_texts";

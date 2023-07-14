@@ -12,9 +12,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.lang.ThreadGroup;
 import java.lang.Thread;
 
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_SPEED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
 
 import static java.lang.Thread.MIN_PRIORITY;
 import static java.lang.Thread.activeCount;
@@ -25,7 +25,7 @@ public class CpuMiningWorker implements IMiningWorker {
     private final ThreadGroup workers = new ThreadGroup("CPU_Miner");
     public CpuMiningWorker(int i_number_of_thread, MessageSendListener msl) {
         MSL = msl;
-        _number_of_thread=i_number_of_thread;
+        _number_of_thread = i_number_of_thread;
     }
     private volatile long hashes = 0;
     private volatile long worker_saved_time = 0;

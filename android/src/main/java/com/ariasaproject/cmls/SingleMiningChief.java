@@ -17,16 +17,16 @@ import static com.ariasaproject.cmls.Constants.STATUS_MINING;
 import static com.ariasaproject.cmls.Constants.STATUS_NOT_MINING;
 import static com.ariasaproject.cmls.Constants.STATUS_TERMINATED;
 
-import static com.ariasaproject.cmls.MinerService.MSG_STATE;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
+import static com.ariasaproject.cmls.Constants.MSG_STATE;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
 
-import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTOP;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_SPEED;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_ACC;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_REJECT;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_STATUS;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACC;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECT;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_STATUS;
 
 public class SingleMiningChief implements Observer {
     private static final long DEFAULT_SCAN_TIME = 5000;
