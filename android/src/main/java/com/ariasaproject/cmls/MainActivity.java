@@ -129,16 +129,19 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         et_pass = (AppCompatEditText) findViewById(R.id.password_et);
         sb_thread = (AppCompatSeekBar) findViewById(R.id.threadSeek);
         final AppCompatTextView thread_view = (AppCompatTextView) findViewById(R.id.thread_view);
-        sb_thread.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                thread_view.setText(String.format("%02d", progress));
-            }
-            @Override
-            void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override
-            void onStopTrackingTouch(SeekBar seekBar) {}
-        });
+        sb_thread.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                        thread_view.setText(String.format("%02d", progress));
+                    }
+
+                    @Override
+                    void onStartTrackingTouch(SeekBar seekBar) {}
+
+                    @Override
+                    void onStopTrackingTouch(SeekBar seekBar) {}
+                });
         int t = Runtime.getRuntime().availableProcessors();
         if (t < 1) t = 1;
         sb_thread.setMax(t);
