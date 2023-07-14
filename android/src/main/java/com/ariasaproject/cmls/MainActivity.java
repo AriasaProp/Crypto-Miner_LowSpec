@@ -133,15 +133,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         sb_thread.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
-                    void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                         thread_view.setText(String.format("%02d", progress));
                     }
-
                     @Override
-                    void onStartTrackingTouch(SeekBar seekBar) {}
-
+                    public void onStartTrackingTouch(SeekBar seekBar) {}
                     @Override
-                    void onStopTrackingTouch(SeekBar seekBar) {}
+                    public void onStopTrackingTouch(SeekBar seekBar) {}
                 });
         int t = Runtime.getRuntime().availableProcessors();
         if (t < 1) t = 1;
