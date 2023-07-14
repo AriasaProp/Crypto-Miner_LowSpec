@@ -13,8 +13,12 @@ public interface IMiningWorker {
         POW_FALSE,
         TERMINATED
     };
+
     public boolean doWork(MiningWork i_work) throws Exception;
+
     public void stopWork() throws Exception;
+
     public long getNumberOfHash();
+
     public void addListener(IWorkerEvent i_listener) throws Exception;
 }

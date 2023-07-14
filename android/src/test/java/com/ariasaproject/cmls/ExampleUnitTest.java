@@ -1,7 +1,8 @@
 package com.ariasaroject.cmls;
 
-import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 public class ExampleUnitTest {
     @Test
