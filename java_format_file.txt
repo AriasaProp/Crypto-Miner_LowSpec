@@ -1,2 +1,2 @@
-style = AOSP
-column_limit = -1
+style=AOSP
+column_limit=-1
