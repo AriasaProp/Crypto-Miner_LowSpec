@@ -212,10 +212,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
-    final Handler statusHandler =
-            new Handler(
-                    Looper.getMainLooper(),
-                    msg -> {
+    final Handler.Callback statusHandlerCallback = (msg) -> {
                         switch (msg.what) {
                             default:
                                 break;
@@ -282,10 +279,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 break;
                         }
                         return true;
-                    });
-    final Thread updateThread =
-            new Thread(
-                    () -> {
+                    };
+    final Handler statusHandler = new Handler(Looper.getMainLooper(), statusHandlerCallback);
+    final Runnable updateThreadRunnable = () -> {
                         try {
                             for (; ; ) {
                                 synchronized (mService) {
@@ -338,7 +334,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             }
                         } catch (InterruptedException e) {
                         }
-                    });
+                    };
+    final Thread updateThread = new Thread(updateThreadRunnable);
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {

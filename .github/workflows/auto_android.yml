@@ -34,7 +34,7 @@ jobs:
       if:  ${{ !inputs.noformat }}
       uses: axel-op/googlejavaformat-action@v3.6.0
       with:
-        args: "-r -a"
+        args: "-r @java_format_file.txt"
     - name: Setup Gradle
       if:  ${{ !inputs.notest || !inputs.notest}}
       uses: gradle/gradle-build-action@v2.4.2
