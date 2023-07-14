@@ -181,8 +181,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     }
                 });
         // log Adapter
-        final RecyclerView consoleView = (RecyclerView) findViewById(R.id.console_view);
-        consoleView.setLayoutManager(
+        final RecyclerView cv = (RecyclerView) findViewById(R.id.console_view);
+        cv.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adpt =
                 new RecyclerView.Adapter<ConsoleItemHolder>() {
@@ -205,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                         return logList.size();
                     }
                 };
-        consoleView.setAdapter(adpt);
+        cv.setAdapter(adpt);
         // check feature
         checkBatteryOptimizations();
     }
