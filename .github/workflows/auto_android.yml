@@ -1,12 +1,26 @@
 name: Auto Android
 
 on:
-  push:
-    paths:
-      - 'android/src/**'
+  workflow_dispatch:
+    inputs:
+      noformat:
+        description: 'Skip formatting'
+        default: false
+        required: false
+        type: boolean
+      notest:
+        description: 'Skip tests'
+        default: false
+        required: false
+        type: boolean
+      nobuild:
+        description: 'Skip build'
+        default: false
+        required: false
+        type: boolean
 
 jobs:
-  build:
+  auto:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3.5.2
@@ -16,15 +30,24 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: 'gradle'
+    - name: Java Format
+      if:  ${{ !inputs.noformat }}
+      uses: axel-op/googlejavaformat-action@v3.6.0
+      with:
+        args: "-r -a"
     - name: Setup Gradle
+      if:  ${{ !inputs.notest || !inputs.notest}}
       uses: gradle/gradle-build-action@v2.4.2
       with:
         gradle-version: 8.1.1
     - name: Gradle test
+      if:  ${{ !inputs.notest }}
       run: gradle :android:test
     - name: Gradle build
+      if:  ${{ !inputs.nobuild }}
       run: gradle :android:build
     - name: Publish Artifacts
+      if:  ${{ !inputs.nobuild }}
       uses: actions/upload-artifact@v3.1.2
       with:
         name: buildAPK
