@@ -114,11 +114,8 @@ public class CpuMiningWorker implements IMiningWorker {
                     Thread.sleep(5L);
                 }
             } catch (GeneralSecurityException e) {
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Security " + e.getMessage());
-                if (workers.activeCount() > 0){
-                    workers.interrupt();
-                }
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Waiting new work!");
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0,"Worker: Security Error = " + e.getMessage());
+                MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
             } catch (InterruptedException e) {
                 //ignore
             }

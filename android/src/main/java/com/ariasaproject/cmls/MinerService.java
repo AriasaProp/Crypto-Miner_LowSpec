@@ -45,13 +45,14 @@ import static com.ariasaproject.cmls.Constants.STATUS_TYPE_ACCEPTED;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_REJECTED;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_CONSOLE;
 
-public class MinerService extends Service implements Handler.Callback{
+public class MinerService extends Service implements Handler.Callback {
     IMiningConnection mc;
     IMiningWorker imw;
     SingleMiningChief smc;
     int state = MSG_STATE_NONE;
     Handler serviceHandler;
     Object[] minerStatus = new Object[MAX_STATUS];
+    public ArrayList<ConsoleItem> console = new ArrayList<ConsoleItem>();
     // Binder given to clients
     private final LocalBinder status = new LocalBinder();
     public void onCreate() {
@@ -62,8 +63,9 @@ public class MinerService extends Service implements Handler.Callback{
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_STICKY;
     }
-    final MessageSendListener workerMsg = (what, arg1, arg2, o) -> serviceHandler.sendMessage(serviceHandler.obtainMessage(what, arg1, arg2, o));
     
+    final MessageSendListener workerMsg = (what, arg1, arg2, o) -> serviceHandler.sendMessage(serviceHandler.obtainMessage(what, arg1, arg2, o));
+    private long status_accepted = 0, status_rejected = 0;
     @Override
     public synchronized boolean handleMessage(Message msg) {
         switch (msg.what) {
@@ -72,50 +74,45 @@ public class MinerService extends Service implements Handler.Callback{
             switch (msg.arg1) {
                 default: break;
                 case MSG_UPDATE_SPEED:
-                    status.new_speed |= true;
-                    status.speed = (Float) msg.obj;
+                    minerStatus[STATUS_TYPE_SPEED] = (Float) msg.obj;
                     break;
                 case MSG_UPDATE_ACC:
-                    status.new_accepted |= true;
-                    status.accepted++;
+                    minerStatus[STATUS_TYPE_ACCEPTED] = (Long) ++status_accepted;
                     break;
                 case MSG_UPDATE_REJECT:
-                    status.new_rejected |= true;
-                    status.rejected++;
+                    minerStatus[STATUS_TYPE_REJECTED] = (Long) ++status_rejected;
                     break;
                 case MSG_UPDATE_STATUS:
-                    status.console.add(new ConsoleItem("Mining State: " + (String)msg.obj));
+                    console.add(new ConsoleItem("Mining State: " + (String)msg.obj));
                     break;
                 case MSG_UPDATE_CONSOLE:
-                    status.console.add(new ConsoleItem((String)msg.obj));
+                    console.add(new ConsoleItem((String)msg.obj));
                     break;
             }
             break;
         case MSG_STATE:
             switch (msg.arg1) {
-                default: break;
+                default:
                 case MSG_STATE_NONE:
-                    status.new_accepted |= true;
-                    status.new_rejected |= true;
-                    status.accepted = 0;
-                    status.rejected = 0;
+                    minerStatus[STATUS_TYPE_ACCEPTED] = (Long) (status_accepted = 0);
+                    minerStatus[STATUS_TYPE_REJECTED] = (Long) (status_rejected = 0);
                     break;
                 case MSG_STATE_ONSTART:
                     if (state == MSG_STATE_NONE) {
                         new Thread(() -> {
-                            status.console.add(new ConsoleItem("Service: Start mining"));
+                            console.add(new ConsoleItem("Service: Start mining"));
                             try {
                                 mc = new StratumMiningConnection(String.format("%s:%d",url, port),user,pass);
                                 imw = new CpuMiningWorker(nThread, workerMsg);
                                 smc = new SingleMiningChief(mc,imw,workerMsg);
                                 smc.startMining();
-                                status.console.add(new ConsoleItem("Service: Started mining"));
-                                MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_RUNNING, 0));
+                                console.add(new ConsoleItem("Service: Started mining"));
+                                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_RUNNING, 0));
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 smc = null;
-                                status.console.add(new ConsoleItem("Service: Error " + e.getMessage() + "\n Started mining is failed"));
-                                MinerService.this.serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
+                                console.add(new ConsoleItem("Service: Error " + e.getMessage() + "\n Started mining is failed"));
+                                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
                             }
                         }).start();
                     }
@@ -125,14 +122,14 @@ public class MinerService extends Service implements Handler.Callback{
                 case MSG_STATE_ONSTOP:
                     if (state == MSG_STATE_RUNNING) {
                         new Thread(() -> {
-                            status.console.add(new ConsoleItem("Service: Stop mining"));
+                            console.add(new ConsoleItem("Service: Stop mining"));
                             try {
                                 smc.stopMining();
                                 smc = null;
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            status.console.add(new ConsoleItem("Service: Stopped mining"));
+                            console.add(new ConsoleItem("Service: Stopped mining"));
                             serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE,MSG_STATE_NONE, 0));
                         }).start();
                     }
@@ -180,13 +177,6 @@ public class MinerService extends Service implements Handler.Callback{
         MinerService getService() {
             return MinerService.this;
         }
-        public boolean new_speed = false;
-        public float speed = 0;
-        public boolean new_accepted = false;
-        public long accepted = 0;
-        public boolean new_rejected = false;
-        public long rejected = 0;
-        public ArrayList<ConsoleItem> console = new ArrayList<ConsoleItem>();
     }
 }
 

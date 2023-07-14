@@ -54,10 +54,21 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_USER;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PASS;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PORT;
 
-import static com.ariasaproject.cmls.Constants.MSG_STATE_NONE;
-import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTART;
-import static com.ariasaproject.cmls.Constants.MSG_STATE_RUNNING;
-import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
+import static com.ariasaproject.cmls.Constants.STATUS_TYPE_SPEED;
+import static com.ariasaproject.cmls.Constants.STATUS_TYPE_ACCEPTED;
+import static com.ariasaproject.cmls.Constants.STATUS_TYPE_REJECTED;
+import static com.ariasaproject.cmls.Constants.STATUS_TYPE_CONSOLE;
+
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_SPEED;
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_ACCEPTED;
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_REJECTED;
+import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
+
+import static com.ariasaproject.cmls.MinerService.MSG_STATE_NONE;
+import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
+import static com.ariasaproject.cmls.MinerService.MSG_STATE_RUNNING;
+import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTOP;
 
 import com.ariasaproject.cmls.connection.IMiningConnection;
 import com.ariasaproject.cmls.connection.StratumMiningConnection;
@@ -95,11 +106,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     AppCompatCheckBox cb_screen_awake;
 
     MinerService mService = null;
-    
-    static final int MSG_STATUS = 1;
-    static final int STATUS_SPEED = 1;
-    static final int STATUS_ACCEPTED = 2;
-    static final int STATUS_REJECTED = 3;
     
     static final int MSG_CONSOLE = 2;
     
@@ -226,26 +232,25 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
-    MinerService.LocalBinder mBinder;
     final Handler statusHandler = new Handler(Looper.getMainLooper(), msg -> {
         switch (msg.what) {
         default: break;
-        case MSG_STATUS: // status update
+        case MSG_UPDATE: // status update
             switch (msg.arg1) {
             default: break;
-            case STATUS_SPEED:
+            case MSG_UPDATE_SPEED:
                 tv_speed.setText(df.format((float)msg.obj)+unit);
                 break;
-            case STATUS_ACCEPTED:
+            case MSG_UPDATE_ACCEPTED:
                 tv_accepted.setText(String.valueOf((long)msg.obj));
                 break;
-            case STATUS_REJECTED:
+            case MSG_UPDATE_REJECTED:
                 tv_rejected.setText(String.valueOf((long)msg.obj));
                 break;
+            case MSG_UPDATE_CONSOLE: // console update
+                adpt.notifyDataSetChanged();
+                break;
             }
-            break;
-        case MSG_CONSOLE: // console update
-            adpt.notifyDataSetChanged();
             break;
         case MSG_STATE: // button mining update
             switch (msg.arg1) {
@@ -298,25 +303,25 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 synchronized (mService) {
                     if (stateMiningUpdate != mService.state)
                         statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATE, stateMiningUpdate = mService.state, 0));
-                    if (!mBinder.console.isEmpty()) {
-                        for (ConsoleItem ci : mBinder.console)
+                    if (!mService.console.isEmpty()) {
+                        for (ConsoleItem ci : mService.console)
                             logList.add(0, ci);
                         while (logList.size() > MAX_LOG_COUNT)
                             logList.remove(logList.size()-1);
-                        mBinder.console.clear();
-                        statusHandler.sendEmptyMessage(MSG_CONSOLE);
+                        mService.console.clear();
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0));
                     }
-                    if (mBinder.new_speed) {
-                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_SPEED, 0, mBinder.speed));
-                        mBinder.new_speed = false;
+                    if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, mService.minerStatus[STATUS_TYPE_SPEED]));
+                        mService.minerStatus[STATUS_TYPE_SPEED] = null;
                     }
-                    if (mBinder.new_accepted) {
-                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_ACCEPTED, 0, mBinder.accepted));
-                        mBinder.new_accepted = false;
+                    if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_ACCEPTED, 0, mService.minerStatus[STATUS_TYPE_ACCEPTED]));
+                        mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
                     }
-                    if (mBinder.new_rejected) {
-                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_STATUS, STATUS_REJECTED, 0, mBinder.rejected));
-                        mBinder.new_rejected = false;
+                    if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_REJECTED, 0, mService.minerStatus[STATUS_TYPE_REJECTED]));
+                        mService.minerStatus[STATUS_TYPE_REJECTED] = null;
                     }
                     mService.wait();
                 }
@@ -326,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        mBinder = (MinerService.LocalBinder) service;
+        MinerService.LocalBinder mBinder = (MinerService.LocalBinder) service;
         mService = mBinder.getService();
         if (!updateThread.isAlive()) updateThread.start();
     }

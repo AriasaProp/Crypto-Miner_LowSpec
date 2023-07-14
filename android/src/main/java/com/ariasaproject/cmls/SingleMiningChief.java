@@ -29,19 +29,16 @@ import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECT;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_STATUS;
 
 public class SingleMiningChief implements Observer {
-    private static final long DEFAULT_SCAN_TIME = 5000;
-    private static final long DEFAULT_RETRY_PAUSE = 30000;
 
     private IMiningConnection mc;
     private IMiningWorker imw;
     private long lastWorkTime;
-    public int priority=1;
     private final MessageSendListener MSL;
     public IMiningConnection _connection;
     public IMiningWorker _worker;
     private EventListener _eventlistener;
 
-    public class EventListener extends Observable implements IConnectionEvent,IWorkerEvent {
+    public class EventListener extends Observable implements IConnectionEvent, IWorkerEvent {
         private int _number_of_accept;
         private int _number_of_all;
 
@@ -55,12 +52,9 @@ public class SingleMiningChief implements Observer {
         @Override
         public void onNewWork(MiningWork i_work) {
             try {
-                SingleMiningChief.this.MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "New work detected!");
-                setChanged();
-                notifyObservers(IMiningWorker.Notification.NEW_BLOCK_DETECTED);
                 setChanged();
                 notifyObservers(IMiningWorker.Notification.NEW_WORK);
-                SingleMiningChief.this._worker.doWork(i_work);
+                _worker.doWork(i_work);
             } catch (Exception e){
                 e.printStackTrace();
             }
@@ -69,24 +63,27 @@ public class SingleMiningChief implements Observer {
         public void onSubmitResult(MiningWork i_listener, int i_nonce,boolean i_result) {
             this._number_of_accept+=(i_result?1:0);
             this._number_of_all++;
-            setChanged();
-            notifyObservers(i_result ? IMiningWorker.Notification.POW_TRUE : IMiningWorker.Notification.POW_FALSE);
+            if (i_result) {
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: PROOF OF WORK RESULT: true");
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_ACC, 0, null); 
+            } else {
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_REJECT, 0, null);
+            }
         }
         public boolean onDisconnect() {
             return false;
         }
         @Override
         public void onNonceFound(MiningWork i_work, int i_nonce) {
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Event: Nonce found "+i_nonce);
             try {
-                SingleMiningChief.this.MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Event: Nonce found "+i_nonce);
-                SingleMiningChief.this._connection.submitWork(i_work,i_nonce);
+                _connection.submitWork(i_work,i_nonce);
             } catch (Exception e) {
-                e.printStackTrace();
-                SingleMiningChief.this.MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Event: Nonce submit error  "+e.getMessage());
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Event: Nonce submit error  "+e.getMessage());
             }
         }
-
     }
+    
     public SingleMiningChief(IMiningConnection i_connection,IMiningWorker i_worker, MessageSendListener msl) throws Exception {
         MSL = msl;
         this._connection=i_connection;
@@ -96,11 +93,11 @@ public class SingleMiningChief implements Observer {
         this._worker.addListener(this._eventlistener);
     }
     public void startMining() throws Exception {
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Starting worker thread, priority: "+priority);
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Starting worker thread");
         ((StratumMiningConnection)_connection).addObserver(this);
-        MiningWork first_work=this._connection.connect();
+        MiningWork first_work = this._connection.connect();
         this._eventlistener.resetCounter();
-        if(first_work!=null){
+        if(first_work != null) {
             this._worker.doWork(first_work);
         }
     }
@@ -113,14 +110,9 @@ public class SingleMiningChief implements Observer {
     public void update(Observable o, Object arg) {
         IMiningWorker.Notification n = (IMiningWorker.Notification) arg;
         switch (n) {
-        case PERMISSION_ERROR:
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Permission error");
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
-            break;
         case TERMINATED:
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Worker terminated");
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_TERMINATED);
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0,new Float(0));
             MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
             break;
         case CONNECTING:
@@ -139,36 +131,13 @@ public class SingleMiningChief implements Observer {
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Communication error");
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
             break;
-        case LONG_POLLING_FAILED:
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Long polling failed");
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_NOT_MINING);
-            break;
-        case LONG_POLLING_ENABLED:
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Long polling enabled");
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Speed updates as work is completed");
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
-            break;
-        case NEW_BLOCK_DETECTED:
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Detected new block");
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
-            break;
-        case POW_TRUE:
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: PROOF OF WORK RESULT: true");
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_ACC, 0, null);
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
-            break;
-        case POW_FALSE:
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_REJECT, 0, null);
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
-            break;
         case NEW_WORK:
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, String.format("Miner: %d Hashes", _worker.getNumberOfHash()));
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, String.format("Miner: New work detected\n %d Hashes", _worker.getNumberOfHash()));
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
             lastWorkTime = System.currentTimeMillis();
             break;
-        default:
-            break;
+        default: break;
         }
     }
 }
