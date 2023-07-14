@@ -77,10 +77,10 @@ public class MinerService extends Service implements Handler.Callback {
                     minerStatus[STATUS_TYPE_SPEED] = (Float) msg.obj;
                     break;
                 case MSG_UPDATE_ACC:
-                    minerStatus[STATUS_TYPE_ACCEPTED] = (Long) ++status_accepted;
+                    minerStatus[STATUS_TYPE_ACCEPTED] = (Long) (++status_accepted);
                     break;
                 case MSG_UPDATE_REJECT:
-                    minerStatus[STATUS_TYPE_REJECTED] = (Long) ++status_rejected;
+                    minerStatus[STATUS_TYPE_REJECTED] = (Long) (++status_rejected);
                     break;
                 case MSG_UPDATE_STATUS:
                     console.add(new ConsoleItem("Mining State: " + (String)msg.obj));
