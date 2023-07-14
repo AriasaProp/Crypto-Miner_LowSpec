@@ -32,12 +32,12 @@ jobs:
       uses: axel-op/googlejavaformat-action@v3.6.0
       with:
         files: "android/src/*.java"
-        args: "-r @java_format_file.txt"
+        args: "-r -a"
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2.4.2
       with:
         gradle-version: 8.1.1
-    - name: Gradle Job
+    - name: Gradle ${{ inputs.job_type }}
       run: gradle :android:${{ inputs.job_type }}
     - name: Publish Artifacts
       if:  ${{ inputs.job_type == 'build' }}
