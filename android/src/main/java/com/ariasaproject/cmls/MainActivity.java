@@ -136,8 +136,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                         thread_view.setText(String.format("%02d", progress));
                     }
+
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {}
+
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {}
                 });
