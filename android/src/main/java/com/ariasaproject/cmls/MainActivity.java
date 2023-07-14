@@ -312,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                         mService.minerStatus[STATUS_TYPE_SPEED] = null;
                     }
                     if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
-                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_ACCEPTEDEPTED, 0, mService.minerStatus[STATUS_TYPE_ACCEPTED]));
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_ACCEPTED, 0, mService.minerStatus[STATUS_TYPE_ACCEPTED]));
                         mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
                     }
                     if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
