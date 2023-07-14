@@ -1,14 +1,13 @@
 package com.ariasaproject.cmls;
 
 public class StratumMiningWork extends MiningWork {
-    public String job_id;
-    public String xnonce2;
+  public String job_id;
+  public String xnonce2;
 
-    public StratumMiningWork(
-            HexArray i_data, HexArray i_target, String i_job_id, String i_xnonce2) {
-        super(i_data, i_target);
-        this.job_id = i_job_id;
-        this.xnonce2 = i_xnonce2;
-        return;
-    }
+  public StratumMiningWork(HexArray i_data, HexArray i_target, String i_job_id, String i_xnonce2) {
+    super(i_data, i_target);
+    this.job_id = i_job_id;
+    this.xnonce2 = i_xnonce2;
+    return;
+  }
 }
