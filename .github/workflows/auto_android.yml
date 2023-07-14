@@ -31,7 +31,7 @@ jobs:
       if:  ${{ inputs.format_java }}
       uses: axel-op/googlejavaformat-action@v3.6.0
       with:
-        files: "android/src/*.java"
+        files: "android/src/**/*.java"
         args: "-r -a"
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2.4.2
