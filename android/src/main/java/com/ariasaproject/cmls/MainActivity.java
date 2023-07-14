@@ -62,7 +62,7 @@ import static com.ariasaproject.cmls.Constants.STATUS_TYPE_CONSOLE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTEDEPTED;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTEDED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 
 import static com.ariasaproject.cmls.Constants.MSG_STATE;
@@ -240,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             case MSG_UPDATE_ACCEPTEDEPTED:
                 tv_accepted.setText(String.valueOf((long)msg.obj));
                 break;
-            case MSG_UPDATE_REJECTEDED:
+            case MSG_UPDATE_REJECTED:
                 tv_rejected.setText(String.valueOf((long)msg.obj));
                 break;
             case MSG_UPDATE_CONSOLE: // console update
@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                         mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
                     }
                     if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
-                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_REJECTEDED, 0, mService.minerStatus[STATUS_TYPE_REJECTED]));
+                        statusHandler.sendMessage(statusHandler.obtainMessage(MSG_UPDATE, MSG_UPDATE_REJECTED, 0, mService.minerStatus[STATUS_TYPE_REJECTED]));
                         mService.minerStatus[STATUS_TYPE_REJECTED] = null;
                     }
                     mService.wait();
