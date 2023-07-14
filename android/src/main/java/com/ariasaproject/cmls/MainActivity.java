@@ -45,7 +45,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.SeekBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
@@ -130,9 +129,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         et_pass = (AppCompatEditText) findViewById(R.id.password_et);
         sb_thread = (AppCompatSeekBar) findViewById(R.id.threadSeek);
         final AppCompatTextView thread_view = (AppCompatTextView) findViewById(R.id.thread_view);
-        sb_thread.setOnSeekBarChangeListener((seekBar, progress, fromUser) -> {
-                        thread_view.setText(String.format("%02d", progress));
-                    });
+        sb_thread.setOnSeekBarChangeListener(
+                (seekBar, progress, fromUser) -> {
+                    thread_view.setText(String.format("%02d", progress));
+                });
         int t = Runtime.getRuntime().availableProcessors();
         if (t < 1) t = 1;
         sb_thread.setMax(t);
@@ -202,129 +202,127 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
-    final Handler.Callback statusHandlerCallback = (msg) -> {
-                        switch (msg.what) {
+    final Handler.Callback statusHandlerCallback =
+            (msg) -> {
+                switch (msg.what) {
+                    default:
+                        break;
+                    case MSG_UPDATE: // status update
+                        switch (msg.arg1) {
                             default:
                                 break;
-                            case MSG_UPDATE: // status update
-                                switch (msg.arg1) {
-                                    default:
-                                        break;
-                                    case MSG_UPDATE_SPEED:
-                                        tv_speed.setText(df.format((float) msg.obj) + unit);
-                                        break;
-                                    case MSG_UPDATE_ACCEPTED:
-                                        tv_accepted.setText(String.valueOf((long) msg.obj));
-                                        break;
-                                    case MSG_UPDATE_REJECTED:
-                                        tv_rejected.setText(String.valueOf((long) msg.obj));
-                                        break;
-                                    case MSG_UPDATE_CONSOLE: // console update
-                                        adpt.notifyDataSetChanged();
-                                        break;
-                                }
+                            case MSG_UPDATE_SPEED:
+                                tv_speed.setText(df.format((float) msg.obj) + unit);
                                 break;
-                            case MSG_STATE: // button mining update
-                                switch (msg.arg1) {
-                                    default:
-                                        break;
-                                    case MSG_STATE_NONE:
-                                        btn_stopmine.setVisibility(View.GONE);
-                                        btn_stopmine.setEnabled(false);
-                                        btn_startmine.setVisibility(View.VISIBLE);
-                                        btn_startmine.setEnabled(true);
-                                        tv_speed.setText("0 hash/sec");
-                                        // enable all user Input
-                                        input_container.setVisibility(View.VISIBLE);
-                                        status_container.setVisibility(View.GONE);
-                                        break;
-                                    case MSG_STATE_ONSTART:
-                                        btn_stopmine.setVisibility(View.GONE);
-                                        btn_stopmine.setEnabled(false);
-                                        btn_startmine.setVisibility(View.VISIBLE);
-                                        btn_startmine.setEnabled(false);
-                                        // disable all user Input
-                                        input_container.setVisibility(View.GONE);
-                                        status_container.setVisibility(View.VISIBLE);
-                                        break;
-                                    case MSG_STATE_RUNNING:
-                                        btn_stopmine.setVisibility(View.VISIBLE);
-                                        btn_stopmine.setEnabled(true);
-                                        btn_startmine.setVisibility(View.GONE);
-                                        btn_startmine.setEnabled(false);
-                                        // disable all user Input
-                                        input_container.setVisibility(View.GONE);
-                                        status_container.setVisibility(View.VISIBLE);
-                                        break;
-                                    case MSG_STATE_ONSTOP:
-                                        btn_stopmine.setVisibility(View.VISIBLE);
-                                        btn_stopmine.setEnabled(false);
-                                        btn_startmine.setVisibility(View.GONE);
-                                        btn_startmine.setEnabled(false);
-                                        // disable all user Input
-                                        input_container.setVisibility(View.GONE);
-                                        status_container.setVisibility(View.VISIBLE);
-                                        break;
-                                }
+                            case MSG_UPDATE_ACCEPTED:
+                                tv_accepted.setText(String.valueOf((long) msg.obj));
+                                break;
+                            case MSG_UPDATE_REJECTED:
+                                tv_rejected.setText(String.valueOf((long) msg.obj));
+                                break;
+                            case MSG_UPDATE_CONSOLE: // console update
+                                adpt.notifyDataSetChanged();
                                 break;
                         }
-                        return true;
-                    };
+                        break;
+                    case MSG_STATE: // button mining update
+                        switch (msg.arg1) {
+                            default:
+                                break;
+                            case MSG_STATE_NONE:
+                                btn_stopmine.setVisibility(View.GONE);
+                                btn_stopmine.setEnabled(false);
+                                btn_startmine.setVisibility(View.VISIBLE);
+                                btn_startmine.setEnabled(true);
+                                tv_speed.setText("0 hash/sec");
+                                // enable all user Input
+                                input_container.setVisibility(View.VISIBLE);
+                                status_container.setVisibility(View.GONE);
+                                break;
+                            case MSG_STATE_ONSTART:
+                                btn_stopmine.setVisibility(View.GONE);
+                                btn_stopmine.setEnabled(false);
+                                btn_startmine.setVisibility(View.VISIBLE);
+                                btn_startmine.setEnabled(false);
+                                // disable all user Input
+                                input_container.setVisibility(View.GONE);
+                                status_container.setVisibility(View.VISIBLE);
+                                break;
+                            case MSG_STATE_RUNNING:
+                                btn_stopmine.setVisibility(View.VISIBLE);
+                                btn_stopmine.setEnabled(true);
+                                btn_startmine.setVisibility(View.GONE);
+                                btn_startmine.setEnabled(false);
+                                // disable all user Input
+                                input_container.setVisibility(View.GONE);
+                                status_container.setVisibility(View.VISIBLE);
+                                break;
+                            case MSG_STATE_ONSTOP:
+                                btn_stopmine.setVisibility(View.VISIBLE);
+                                btn_stopmine.setEnabled(false);
+                                btn_startmine.setVisibility(View.GONE);
+                                btn_startmine.setEnabled(false);
+                                // disable all user Input
+                                input_container.setVisibility(View.GONE);
+                                status_container.setVisibility(View.VISIBLE);
+                                break;
+                        }
+                        break;
+                }
+                return true;
+            };
     final Handler statusHandler = new Handler(Looper.getMainLooper(), statusHandlerCallback);
-    final Runnable updateThreadRunnable = () -> {
-                        try {
-                            for (; ; ) {
-                                synchronized (mService) {
-                                    if (stateMiningUpdate != mService.state)
-                                        statusHandler.sendMessage(
-                                                statusHandler.obtainMessage(
-                                                        MSG_STATE,
-                                                        stateMiningUpdate = mService.state,
-                                                        0));
-                                    if (!mService.console.isEmpty()) {
-                                        for (ConsoleItem ci : mService.console) logList.add(0, ci);
-                                        while (logList.size() > MAX_LOG_COUNT)
-                                            logList.remove(logList.size() - 1);
-                                        mService.console.clear();
-                                        statusHandler.sendMessage(
-                                                statusHandler.obtainMessage(
-                                                        MSG_UPDATE, MSG_UPDATE_CONSOLE, 0));
-                                    }
-                                    if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
-                                        statusHandler.sendMessage(
-                                                statusHandler.obtainMessage(
-                                                        MSG_UPDATE,
-                                                        MSG_UPDATE_SPEED,
-                                                        0,
-                                                        mService.minerStatus[STATUS_TYPE_SPEED]));
-                                        mService.minerStatus[STATUS_TYPE_SPEED] = null;
-                                    }
-                                    if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
-                                        statusHandler.sendMessage(
-                                                statusHandler.obtainMessage(
-                                                        MSG_UPDATE,
-                                                        MSG_UPDATE_ACCEPTED,
-                                                        0,
-                                                        mService.minerStatus[
-                                                                STATUS_TYPE_ACCEPTED]));
-                                        mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
-                                    }
-                                    if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
-                                        statusHandler.sendMessage(
-                                                statusHandler.obtainMessage(
-                                                        MSG_UPDATE,
-                                                        MSG_UPDATE_REJECTED,
-                                                        0,
-                                                        mService.minerStatus[
-                                                                STATUS_TYPE_REJECTED]));
-                                        mService.minerStatus[STATUS_TYPE_REJECTED] = null;
-                                    }
-                                    mService.wait();
-                                }
+    final Runnable updateThreadRunnable =
+            () -> {
+                try {
+                    for (; ; ) {
+                        synchronized (mService) {
+                            if (stateMiningUpdate != mService.state)
+                                statusHandler.sendMessage(
+                                        statusHandler.obtainMessage(
+                                                MSG_STATE, stateMiningUpdate = mService.state, 0));
+                            if (!mService.console.isEmpty()) {
+                                for (ConsoleItem ci : mService.console) logList.add(0, ci);
+                                while (logList.size() > MAX_LOG_COUNT)
+                                    logList.remove(logList.size() - 1);
+                                mService.console.clear();
+                                statusHandler.sendMessage(
+                                        statusHandler.obtainMessage(
+                                                MSG_UPDATE, MSG_UPDATE_CONSOLE, 0));
                             }
-                        } catch (InterruptedException e) {
+                            if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
+                                statusHandler.sendMessage(
+                                        statusHandler.obtainMessage(
+                                                MSG_UPDATE,
+                                                MSG_UPDATE_SPEED,
+                                                0,
+                                                mService.minerStatus[STATUS_TYPE_SPEED]));
+                                mService.minerStatus[STATUS_TYPE_SPEED] = null;
+                            }
+                            if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
+                                statusHandler.sendMessage(
+                                        statusHandler.obtainMessage(
+                                                MSG_UPDATE,
+                                                MSG_UPDATE_ACCEPTED,
+                                                0,
+                                                mService.minerStatus[STATUS_TYPE_ACCEPTED]));
+                                mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
+                            }
+                            if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
+                                statusHandler.sendMessage(
+                                        statusHandler.obtainMessage(
+                                                MSG_UPDATE,
+                                                MSG_UPDATE_REJECTED,
+                                                0,
+                                                mService.minerStatus[STATUS_TYPE_REJECTED]));
+                                mService.minerStatus[STATUS_TYPE_REJECTED] = null;
+                            }
+                            mService.wait();
                         }
-                    };
+                    }
+                } catch (InterruptedException e) {
+                }
+            };
     final Thread updateThread = new Thread(updateThreadRunnable);
 
     @Override
