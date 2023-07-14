@@ -12,7 +12,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.lang.ThreadGroup;
 import java.lang.Thread;
 
+import static com.ariasaproject.cmls.Constants.MSG_STATE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
+
+import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
+
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
 

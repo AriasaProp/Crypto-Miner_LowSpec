@@ -59,17 +59,17 @@ import static com.ariasaproject.cmls.Constants.STATUS_TYPE_ACCEPTED;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_REJECTED;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_CONSOLE;
 
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_SPEED;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_ACCEPTED;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_REJECTED;
-import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 
-import static com.ariasaproject.cmls.MinerService.MSG_STATE;
-import static com.ariasaproject.cmls.MinerService.MSG_STATE_NONE;
-import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
-import static com.ariasaproject.cmls.MinerService.MSG_STATE_RUNNING;
-import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTOP;
+import static com.ariasaproject.cmls.Constants.MSG_STATE;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_NONE;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTART;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_RUNNING;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
 
 import com.ariasaproject.cmls.connection.IMiningConnection;
 import com.ariasaproject.cmls.connection.StratumMiningConnection;
