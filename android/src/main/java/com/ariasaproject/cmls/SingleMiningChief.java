@@ -24,8 +24,8 @@ import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACC;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECT;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_STATUS;
 
 public class SingleMiningChief implements Observer {
@@ -65,9 +65,9 @@ public class SingleMiningChief implements Observer {
             this._number_of_all++;
             if (i_result) {
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: PROOF OF WORK RESULT: true");
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_ACC, 0, null); 
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_ACCEPTED, 0, null); 
             } else {
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_REJECT, 0, null);
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_REJECTED, 0, null);
             }
         }
         public boolean onDisconnect() {

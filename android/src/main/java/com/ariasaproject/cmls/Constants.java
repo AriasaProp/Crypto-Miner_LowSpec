@@ -33,8 +33,8 @@ public class Constants {
     public static final int MSG_STATE_ONSTOP = 3;
     
     public static final int MSG_UPDATE_SPEED = 1;
-    public static final int MSG_UPDATE_ACC = 2;
-    public static final int MSG_UPDATE_REJECT = 3;
+    public static final int MSG_UPDATE_ACCEPTED = 2;
+    public static final int MSG_UPDATE_REJECTED = 3;
     public static final int MSG_UPDATE_STATUS = 4;
     public static final int MSG_UPDATE_CONSOLE = 5;
     

@@ -33,8 +33,8 @@ import static com.ariasaproject.cmls.Constants.MSG_STATE_RUNNING;
 import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
 
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACC;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECT;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_STATUS;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 
@@ -76,10 +76,10 @@ public class MinerService extends Service implements Handler.Callback {
                 case MSG_UPDATE_SPEED:
                     minerStatus[STATUS_TYPE_SPEED] = (Float) msg.obj;
                     break;
-                case MSG_UPDATE_ACC:
+                case MSG_UPDATE_ACCEPTED:
                     minerStatus[STATUS_TYPE_ACCEPTED] = (Long) (++status_accepted);
                     break;
-                case MSG_UPDATE_REJECT:
+                case MSG_UPDATE_REJECTED:
                     minerStatus[STATUS_TYPE_REJECTED] = (Long) (++status_rejected);
                     break;
                 case MSG_UPDATE_STATUS:
