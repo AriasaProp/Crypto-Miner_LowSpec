@@ -65,6 +65,7 @@ import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_ACCEPTED;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_REJECTED;
 import static com.ariasaproject.cmls.MinerService.MSG_UPDATE_CONSOLE;
 
+import static com.ariasaproject.cmls.MinerService.MSG_STATE;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_NONE;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_ONSTART;
 import static com.ariasaproject.cmls.MinerService.MSG_STATE_RUNNING;
@@ -106,11 +107,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     AppCompatCheckBox cb_screen_awake;
 
     MinerService mService = null;
-    
-    static final int MSG_CONSOLE = 2;
-    
-    static final int MSG_STATE = 3;
-    
     
     private final StringBuilder sb = new StringBuilder();
     private static final int MAX_LOG_COUNT = 50;
