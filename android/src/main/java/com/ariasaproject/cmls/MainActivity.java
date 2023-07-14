@@ -61,7 +61,7 @@ import static com.ariasaproject.cmls.Constants.STATUS_TYPE_CONSOLE;
 
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTEDEPTED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTED;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 
@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             case MSG_UPDATE_SPEED:
                 tv_speed.setText(df.format((float)msg.obj)+unit);
                 break;
-            case MSG_UPDATE_ACCEPTEDEPTED:
+            case MSG_UPDATE_ACCEPTED:
                 tv_accepted.setText(String.valueOf((long)msg.obj));
                 break;
             case MSG_UPDATE_REJECTED:
