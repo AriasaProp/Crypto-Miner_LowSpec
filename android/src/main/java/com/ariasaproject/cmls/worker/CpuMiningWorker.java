@@ -47,9 +47,8 @@ public class CpuMiningWorker implements IMiningWorker {
         hashes = 0;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         worker_saved_time = System.currentTimeMillis();
-        for (int i = 0; i < _number_of_thread; i++) {
-            new Thread(workers, generate_worker(i_work, i)).start();
-        }
+        lastNonce = 0;
+        generate_worker(i_work);
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started");
         return true;
     }
@@ -97,38 +96,44 @@ public class CpuMiningWorker implements IMiningWorker {
     public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
         this._as_listener.add(i_listener);
     }
-
-    Runnable generate_worker(MiningWork work, int _start) {
-        return () -> {
-            final int step = CpuMiningWorker.this._number_of_thread;
-            try {
-                final Hasher hasher = new Hasher();
-                byte[] target = work.target.refHex();
-                for (int nonce = _start; nonce >= _start; nonce += step) {
-                    byte[] hash = hasher.hash(work.header.refHex(), nonce);
-                    for (int i = hash.length - 1; i >= 0; i--) {
-                        int a = hash[i] & 0xff, b = target[i] & 0xff;
-                        if (a != b) {
-                            if (a < b) {
-                                invokeNonceFound(work, nonce);
-                                return;
+    static final int nonceStep = 5000;
+    volatile int lastNonce = 0;
+    synchronized void generate_worker(MiningWork work) {
+        while ((Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
+            final int _start = lastNonce;
+            final int _end = (lastNonce+=nonceStep);
+            new Thread(workers, () -> {
+                try {
+                    final Hasher hasher = new Hasher();
+                    byte[] target = work.target.refHex();
+                    for (int nonce = _start; nonce < _end; nonce++) {
+                        byte[] hash = hasher.hash(work.header.refHex(), nonce);
+                        for (int i = hash.length - 1; i >= 0; i--) {
+                            int a = hash[i] & 0xff, b = target[i] & 0xff;
+                            if (a != b) {
+                                if (a < b) {
+                                    invokeNonceFound(work, nonce);
+                                    return;
+                                }
+                                break;
                             }
-                            break;
                         }
+                        calcSpeedPerThread();
+                        Thread.sleep(3L);
                     }
-                    calcSpeedPerThread();
-                    Thread.sleep(5L);
+                    Thread.sleep(1L);
+                    generate_worker(work);
+                } catch (GeneralSecurityException e) {
+                    MSL.sendMessage(
+                            MSG_UPDATE,
+                            MSG_UPDATE_CONSOLE,
+                            0,
+                            "Worker: " + e.getMessage());
+                    MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
+                } catch (InterruptedException e) {
+                    // ignore
                 }
-            } catch (GeneralSecurityException e) {
-                MSL.sendMessage(
-                        MSG_UPDATE,
-                        MSG_UPDATE_CONSOLE,
-                        0,
-                        "Worker: Security Error = " + e.getMessage());
-                MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
-            } catch (InterruptedException e) {
-                // ignore
-            }
-        };
+            }).start();
+        }
     }
 }
