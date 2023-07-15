@@ -122,7 +122,6 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.view.textservice.SpellCheckerSubtype;
 import android.view.textservice.TextServicesManager;
-import android.widget.RemoteViews.RemoteView;
 
 import com.android.internal.util.FastMath;
 import com.android.internal.widget.EditableInputConnection;
@@ -136,7 +135,6 @@ import java.util.Locale;
 
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 
-@RemoteView
 public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListener {
     static final String LOG_TAG = "ConsoleView";
     static final boolean DEBUG_EXTRACT = false;
