@@ -33,12 +33,11 @@ jobs:
       with:
         files: "android/src/**/*.java"
         args: "-r -a"
-    - name: Setup Gradle
+    - name: Gradle ${{ inputs.job_type }}
       uses: gradle/gradle-build-action@v2.4.2
       with:
         gradle-version: 8.1.1
-    - name: Gradle ${{ inputs.job_type }}
-      run: gradle :android:${{ inputs.job_type }}
+        arguments: ":android:${{ inputs.job_type }}""
     - name: Publish Artifacts
       if:  ${{ inputs.job_type == 'build' }}
       uses: actions/upload-artifact@v3.1.2
