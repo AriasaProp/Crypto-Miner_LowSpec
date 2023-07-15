@@ -1,14 +1,11 @@
 package com.ariasaproject.cmls;
 
-import androidx.appcompat.text.AllCapsTransformationMethod;
+import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 
 import android.R;
-import android.annotation.ColorInt;
 import android.annotation.DrawableRes;
 import android.annotation.NonNull;
-import android.annotation.Nullable;
 import android.annotation.StringRes;
-import android.annotation.StyleRes;
 import android.annotation.XmlRes;
 import android.app.Activity;
 import android.app.assist.AssistStructure;
@@ -100,14 +97,13 @@ import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewParent;
-import android.view.ViewStructure;
 import android.view.ViewConfiguration;
-import android.view.ViewDebug;
 import android.view.ViewGroup.LayoutParams;
-import android.view.ViewRootImpl;
-import android.view.ViewTreeObserver;
 import android.view.ViewHierarchyEncoder;
+import android.view.ViewParent;
+import android.view.ViewRootImpl;
+import android.view.ViewStructure;
+import android.view.ViewTreeObserver;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -123,6 +119,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.view.textservice.SpellCheckerSubtype;
 import android.view.textservice.TextServicesManager;
 
+import androidx.appcompat.text.AllCapsTransformationMethod;
+
 import com.android.internal.util.FastMath;
 import com.android.internal.widget.EditableInputConnection;
 
@@ -133,37 +131,27 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
-
 public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListener {
     static final String LOG_TAG = "ConsoleView";
     static final boolean DEBUG_EXTRACT = false;
 
-    
-    
     private static final int SANS = 1;
     private static final int SERIF = 2;
     private static final int MONOSPACE = 3;
 
-    
-    
     private static final int SIGNED = 2;
     private static final int DECIMAL = 4;
 
-    /**
-     * Draw marquee text with fading edges as usual
-     */
+    /** Draw marquee text with fading edges as usual */
     private static final int MARQUEE_FADE_NORMAL = 0;
 
     /**
-     * Draw marquee text as ellipsize end while inactive instead of with the fade.
-     * (Useful for devices where the fade can be expensive if overdone)
+     * Draw marquee text as ellipsize end while inactive instead of with the fade. (Useful for
+     * devices where the fade can be expensive if overdone)
      */
     private static final int MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS = 1;
 
-    /**
-     * Draw marquee text with fading edges because it is currently active/animating.
-     */
+    /** Draw marquee text with fading edges because it is currently active/animating. */
     private static final int MARQUEE_FADE_SWITCH_SHOW_FADE = 2;
 
     private static final int LINES = 1;
@@ -172,8 +160,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     private static final RectF TEMP_RECTF = new RectF();
 
-    
-    private static final int VERY_WIDE = 1024*1024;
+    private static final int VERY_WIDE = 1024 * 1024;
     private static final int ANIMATED_SCROLL_GAP = 250;
 
     private static final InputFilter[] NO_FILTERS = new InputFilter[0];
@@ -181,36 +168,27 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     private static final int CHANGE_WATCHER_PRIORITY = 100;
 
-    
-    private static final int[] MULTILINE_STATE_SET = { R.attr.state_multiline };
+    private static final int[] MULTILINE_STATE_SET = {R.attr.state_multiline};
 
-    
     private static final int ACCESSIBILITY_ACTION_SHARE = 0x10000000;
 
-    /**
-     * @hide
-     */
-    
+    /** @hide */
     static final int ACCESSIBILITY_ACTION_PROCESS_TEXT_START_ID = 0x10000100;
 
-    /**
-     * @hide
-     */
+    /** @hide */
     static final int PROCESS_TEXT_REQUEST_CODE = 100;
 
-    
     static long sLastCutCopyOrTextChangedTime;
 
     private ColorStateList mTextColor;
     private ColorStateList mHintTextColor;
     private ColorStateList mLinkTextColor;
-    
+
     private int mCurTextColor;
     private int mCurHintTextColor;
     private boolean mFreezesText;
     private boolean mDispatchTemporaryDetach;
 
-    
     boolean mTemporaryDetach;
 
     private Editable.Factory mEditableFactory = Editable.Factory.getInstance();
@@ -222,11 +200,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     private boolean mPreDrawRegistered;
     private boolean mPreDrawListenerDetached;
 
-    
-    
-    
-    
-    
     private boolean mPreventDefaultMovement;
 
     private TextUtils.TruncateAt mEllipsize;
@@ -256,11 +229,22 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         boolean mIsRtlCompatibilityMode;
         boolean mOverride;
 
-        int mDrawableSizeTop, mDrawableSizeBottom, mDrawableSizeLeft, mDrawableSizeRight,
-                mDrawableSizeStart, mDrawableSizeEnd, mDrawableSizeError, mDrawableSizeTemp;
-
-        int mDrawableWidthTop, mDrawableWidthBottom, mDrawableHeightLeft, mDrawableHeightRight,
-                mDrawableHeightStart, mDrawableHeightEnd, mDrawableHeightError, mDrawableHeightTemp;
+        int mDrawableSizeTop,
+                mDrawableSizeBottom,
+                mDrawableSizeLeft,
+                mDrawableSizeRight,
+                mDrawableSizeStart,
+                mDrawableSizeEnd,
+                mDrawableSizeError,
+                mDrawableSizeTemp;
+        int mDrawableWidthTop,
+                mDrawableWidthBottom,
+                mDrawableHeightLeft,
+                mDrawableHeightRight,
+                mDrawableHeightStart,
+                mDrawableHeightEnd,
+                mDrawableHeightError,
+                mDrawableHeightTemp;
 
         int mDrawablePadding;
 
@@ -268,33 +252,33 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         public Drawables(Context context) {
             final int targetSdkVersion = context.getApplicationInfo().targetSdkVersion;
-            mIsRtlCompatibilityMode = (targetSdkVersion < JELLY_BEAN_MR1 ||
-                !context.getApplicationInfo().hasRtlSupport());
+            mIsRtlCompatibilityMode =
+                    (targetSdkVersion < JELLY_BEAN_MR1
+                            || !context.getApplicationInfo().hasRtlSupport());
             mOverride = false;
         }
 
         public void resolveWithLayoutDirection(int layoutDirection) {
-            
+
             mShowing[Drawables.LEFT] = mDrawableLeftInitial;
             mShowing[Drawables.RIGHT] = mDrawableRightInitial;
 
             if (mIsRtlCompatibilityMode) {
-                
+
                 if (mDrawableStart != null && mShowing[Drawables.LEFT] == null) {
                     mShowing[Drawables.LEFT] = mDrawableStart;
                     mDrawableSizeLeft = mDrawableSizeStart;
                     mDrawableHeightLeft = mDrawableHeightStart;
                 }
-                
+
                 if (mDrawableEnd != null && mShowing[Drawables.RIGHT] == null) {
                     mShowing[Drawables.RIGHT] = mDrawableEnd;
                     mDrawableSizeRight = mDrawableSizeEnd;
                     mDrawableHeightRight = mDrawableHeightEnd;
                 }
             } else {
-                
-                
-                switch(layoutDirection) {
+
+                switch (layoutDirection) {
                     case LAYOUT_DIRECTION_RTL:
                         if (mOverride) {
                             mShowing[Drawables.RIGHT] = mDrawableStart;
@@ -354,7 +338,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         private void applyErrorDrawableIfNeeded(int layoutDirection) {
-            
+
             switch (mDrawableSaved) {
                 case DRAWABLE_LEFT:
                     mShowing[Drawables.LEFT] = mDrawableTemp;
@@ -369,9 +353,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 case DRAWABLE_NONE:
                 default:
             }
-            
+
             if (mDrawableError != null) {
-                switch(layoutDirection) {
+                switch (layoutDirection) {
                     case LAYOUT_DIRECTION_RTL:
                         mDrawableSaved = DRAWABLE_LEFT;
 
@@ -412,19 +396,18 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     private int mLastLayoutDirection = -1;
 
     /**
-     * On some devices the fading edges add a performance penalty if used
-     * extensively in the same layout. This mode indicates how the marquee
-     * is currently being shown, if applicable. (mEllipsize will == MARQUEE)
+     * On some devices the fading edges add a performance penalty if used extensively in the same
+     * layout. This mode indicates how the marquee is currently being shown, if applicable.
+     * (mEllipsize will == MARQUEE)
      */
     private int mMarqueeFadeMode = MARQUEE_FADE_NORMAL;
 
     /**
-     * When mMarqueeFadeMode is not MARQUEE_FADE_NORMAL, this stores
-     * the layout that should be used when the mode switches.
+     * When mMarqueeFadeMode is not MARQUEE_FADE_NORMAL, this stores the layout that should be used
+     * when the mode switches.
      */
     private Layout mSavedMarqueeModeLayout;
 
-    
     private CharSequence mText;
     private CharSequence mTransformed;
     private BufferType mBufferType = BufferType.NORMAL;
@@ -440,13 +423,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     private ArrayList<TextWatcher> mListeners;
 
-    
     private final TextPaint mTextPaint;
     private boolean mUserSetTextScaleX;
     private Layout mLayout;
     private boolean mLocaleChanged = false;
 
-    
     private int mGravity = Gravity.TOP | Gravity.START;
     private boolean mHorizontallyScrolling;
 
@@ -477,7 +458,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     private boolean mIncludePad = true;
     private int mDeferScroll = -1;
 
-    
     private Rect mTempRect;
     private long mLastScroll;
     private Scroller mScroller;
@@ -491,8 +471,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     private volatile Locale mCurrentSpellCheckerLocaleCache;
 
-    
-    
     int mHighlightColor = 0x6633B5E5;
     private Path mHighlightPath;
     private final Paint mHighlightPaint;
@@ -501,22 +479,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     private boolean mFirstTouch = false;
     private long mLastTouchUpTime = 0;
 
-    
-    
     int mCursorDrawableRes;
-    
-    
-    
-    
-    
+
     int mTextSelectHandleLeftRes;
     int mTextSelectHandleRightRes;
     int mTextSelectHandleRes;
     int mTextEditSuggestionItemLayout;
 
     /**
-     * EditText specific data, created on demand when one of the Editor fields is used.
-     * See {@link #createEditorIfNeeded()}.
+     * EditText specific data, created on demand when one of the Editor fields is used. See {@link
+     * #createEditorIfNeeded()}.
      */
     private Editor mEditor;
 
@@ -527,25 +499,22 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     static {
         Paint p = new Paint();
         p.setAntiAlias(true);
-        
+
         p.measureText("H");
     }
 
     /**
-     * Interface definition for a callback to be invoked when an action is
-     * performed on the editor.
+     * Interface definition for a callback to be invoked when an action is performed on the editor.
      */
     public interface OnEditorActionListener {
         /**
          * Called when an action is being performed.
          *
          * @param v The view that was clicked.
-         * @param actionId Identifier of the action.  This will be either the
-         * identifier you supplied, or {@link EditorInfo#IME_NULL
-         * EditorInfo.IME_NULL} if being called due to the enter key
-         * being pressed.
-         * @param event If triggered by an enter key, this is the event;
-         * otherwise, this is null.
+         * @param actionId Identifier of the action. This will be either the identifier you
+         *     supplied, or {@link EditorInfo#IME_NULL EditorInfo.IME_NULL} if being called due to
+         *     the enter key being pressed.
+         * @param event If triggered by an enter key, this is the event; otherwise, this is null.
          * @return Return true if you have consumed the action, else false.
          */
         boolean onEditorAction(ConsoleView v, int actionId, KeyEvent event);
@@ -602,79 +571,88 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         final Resources.Theme theme = context.getTheme();
 
-        TypedArray a = theme.obtainStyledAttributes(attrs, com.android.internal.R.styleable.TextViewAppearance, defStyleAttr, defStyleRes);
-        int ap = a.getResourceId(com.android.internal.R.styleable.TextViewAppearance_textAppearance, -1);
+        TypedArray a =
+                theme.obtainStyledAttributes(
+                        attrs,
+                        com.android.internal.R.styleable.TextViewAppearance,
+                        defStyleAttr,
+                        defStyleRes);
+        int ap =
+                a.getResourceId(
+                        com.android.internal.R.styleable.TextViewAppearance_textAppearance, -1);
         a.recycle();
         TypedArray appearance = null;
         if (ap != -1) {
-            appearance = theme.obtainStyledAttributes(ap, com.android.internal.R.styleable.TextAppearance);
+            appearance =
+                    theme.obtainStyledAttributes(
+                            ap, com.android.internal.R.styleable.TextAppearance);
             int n = appearance.getIndexCount();
             for (int i = 0; i < n; i++) {
                 int attr = appearance.getIndex(i);
                 switch (attr) {
-                case com.android.internal.R.styleable.TextAppearance_textColorHighlight:
-                    textColorHighlight = appearance.getColor(attr, textColorHighlight);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_textColorHighlight:
+                        textColorHighlight = appearance.getColor(attr, textColorHighlight);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_textColor:
-                    textColor = appearance.getColorStateList(attr);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_textColor:
+                        textColor = appearance.getColorStateList(attr);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_textColorHint:
-                    textColorHint = appearance.getColorStateList(attr);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_textColorHint:
+                        textColorHint = appearance.getColorStateList(attr);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_textColorLink:
-                    textColorLink = appearance.getColorStateList(attr);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_textColorLink:
+                        textColorLink = appearance.getColorStateList(attr);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_textSize:
-                    textSize = appearance.getDimensionPixelSize(attr, textSize);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_textSize:
+                        textSize = appearance.getDimensionPixelSize(attr, textSize);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_typeface:
-                    typefaceIndex = appearance.getInt(attr, -1);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_typeface:
+                        typefaceIndex = appearance.getInt(attr, -1);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_fontFamily:
-                    fontFamily = appearance.getString(attr);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_fontFamily:
+                        fontFamily = appearance.getString(attr);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_textStyle:
-                    styleIndex = appearance.getInt(attr, -1);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_textStyle:
+                        styleIndex = appearance.getInt(attr, -1);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_textAllCaps:
-                    allCaps = appearance.getBoolean(attr, false);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_textAllCaps:
+                        allCaps = appearance.getBoolean(attr, false);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_shadowColor:
-                    shadowcolor = appearance.getInt(attr, 0);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_shadowColor:
+                        shadowcolor = appearance.getInt(attr, 0);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_shadowDx:
-                    dx = appearance.getFloat(attr, 0);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_shadowDx:
+                        dx = appearance.getFloat(attr, 0);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_shadowDy:
-                    dy = appearance.getFloat(attr, 0);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_shadowDy:
+                        dy = appearance.getFloat(attr, 0);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_shadowRadius:
-                    r = appearance.getFloat(attr, 0);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_shadowRadius:
+                        r = appearance.getFloat(attr, 0);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_elegantTextHeight:
-                    elegant = appearance.getBoolean(attr, false);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_elegantTextHeight:
+                        elegant = appearance.getBoolean(attr, false);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_letterSpacing:
-                    letterSpacing = appearance.getFloat(attr, 0);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_letterSpacing:
+                        letterSpacing = appearance.getFloat(attr, 0);
+                        break;
 
-                case com.android.internal.R.styleable.TextAppearance_fontFeatureSettings:
-                    fontFeatureSettings = appearance.getString(attr);
-                    break;
+                    case com.android.internal.R.styleable.TextAppearance_fontFeatureSettings:
+                        fontFeatureSettings = appearance.getString(attr);
+                        break;
                 }
             }
 
@@ -688,8 +666,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         int autocap = -1;
         int buffertype = 0;
         boolean selectallonfocus = false;
-        Drawable drawableLeft = null, drawableTop = null, drawableRight = null,
-            drawableBottom = null, drawableStart = null, drawableEnd = null;
+        Drawable drawableLeft = null,
+                drawableTop = null,
+                drawableRight = null,
+                drawableBottom = null,
+                drawableStart = null,
+                drawableEnd = null;
         ColorStateList drawableTint = null;
         PorterDuff.Mode drawableTintMode = null;
         int drawablePadding = 0;
@@ -700,367 +682,383 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         CharSequence hint = null;
         boolean password = false;
 
-        a = theme.obtainStyledAttributes(attrs, com.android.internal.R.styleable.TextView, defStyleAttr, defStyleRes);
+        a =
+                theme.obtainStyledAttributes(
+                        attrs,
+                        com.android.internal.R.styleable.TextView,
+                        defStyleAttr,
+                        defStyleRes);
 
         int n = a.getIndexCount();
         for (int i = 0; i < n; i++) {
             int attr = a.getIndex(i);
 
             switch (attr) {
-            case com.android.internal.R.styleable.TextView_numeric:
-                numeric = a.getInt(attr, numeric);
-                break;
-
-            case com.android.internal.R.styleable.TextView_digits:
-                digits = a.getText(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_phoneNumber:
-                phone = a.getBoolean(attr, phone);
-                break;
-
-            case com.android.internal.R.styleable.TextView_autoText:
-                autotext = a.getBoolean(attr, autotext);
-                break;
-
-            case com.android.internal.R.styleable.TextView_capitalize:
-                autocap = a.getInt(attr, autocap);
-                break;
-
-            case com.android.internal.R.styleable.TextView_bufferType:
-                buffertype = a.getInt(attr, buffertype);
-                break;
-
-            case com.android.internal.R.styleable.TextView_selectAllOnFocus:
-                selectallonfocus = a.getBoolean(attr, selectallonfocus);
-                break;
-
-            case com.android.internal.R.styleable.TextView_autoLink:
-                mAutoLinkMask = a.getInt(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_linksClickable:
-                mLinksClickable = a.getBoolean(attr, true);
-                break;
-
-            case com.android.internal.R.styleable.TextView_drawableLeft:
-                drawableLeft = a.getDrawable(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_drawableTop:
-                drawableTop = a.getDrawable(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_drawableRight:
-                drawableRight = a.getDrawable(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_drawableBottom:
-                drawableBottom = a.getDrawable(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_drawableStart:
-                drawableStart = a.getDrawable(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_drawableEnd:
-                drawableEnd = a.getDrawable(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_drawableTint:
-                drawableTint = a.getColorStateList(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_drawableTintMode:
-                drawableTintMode = Drawable.parseTintMode(a.getInt(attr, -1), drawableTintMode);
-                break;
-
-            case com.android.internal.R.styleable.TextView_drawablePadding:
-                drawablePadding = a.getDimensionPixelSize(attr, drawablePadding);
-                break;
-
-            case com.android.internal.R.styleable.TextView_maxLines:
-                setMaxLines(a.getInt(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_maxHeight:
-                setMaxHeight(a.getDimensionPixelSize(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_lines:
-                setLines(a.getInt(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_height:
-                setHeight(a.getDimensionPixelSize(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_minLines:
-                setMinLines(a.getInt(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_minHeight:
-                setMinHeight(a.getDimensionPixelSize(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_maxEms:
-                setMaxEms(a.getInt(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_maxWidth:
-                setMaxWidth(a.getDimensionPixelSize(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_ems:
-                setEms(a.getInt(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_width:
-                setWidth(a.getDimensionPixelSize(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_minEms:
-                setMinEms(a.getInt(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_minWidth:
-                setMinWidth(a.getDimensionPixelSize(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_gravity:
-                setGravity(a.getInt(attr, -1));
-                break;
-
-            case com.android.internal.R.styleable.TextView_hint:
-                hint = a.getText(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_text:
-                text = a.getText(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_scrollHorizontally:
-                if (a.getBoolean(attr, false)) {
-                    setHorizontallyScrolling(true);
-                }
-                break;
-
-            case com.android.internal.R.styleable.TextView_singleLine:
-                singleLine = a.getBoolean(attr, singleLine);
-                break;
-
-            case com.android.internal.R.styleable.TextView_ellipsize:
-                ellipsize = a.getInt(attr, ellipsize);
-                break;
-
-            case com.android.internal.R.styleable.TextView_marqueeRepeatLimit:
-                setMarqueeRepeatLimit(a.getInt(attr, mMarqueeRepeatLimit));
-                break;
-
-            case com.android.internal.R.styleable.TextView_includeFontPadding:
-                if (!a.getBoolean(attr, true)) {
-                    setIncludeFontPadding(false);
-                }
-                break;
-
-            case com.android.internal.R.styleable.TextView_cursorVisible:
-                if (!a.getBoolean(attr, true)) {
-                    setCursorVisible(false);
-                }
-                break;
-
-            case com.android.internal.R.styleable.TextView_maxLength:
-                maxlength = a.getInt(attr, -1);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textScaleX:
-                setTextScaleX(a.getFloat(attr, 1.0f));
-                break;
-
-            case com.android.internal.R.styleable.TextView_freezesText:
-                mFreezesText = a.getBoolean(attr, false);
-                break;
-
-            case com.android.internal.R.styleable.TextView_shadowColor:
-                shadowcolor = a.getInt(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_shadowDx:
-                dx = a.getFloat(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_shadowDy:
-                dy = a.getFloat(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_shadowRadius:
-                r = a.getFloat(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_enabled:
-                setEnabled(a.getBoolean(attr, isEnabled()));
-                break;
-
-            case com.android.internal.R.styleable.TextView_textColorHighlight:
-                textColorHighlight = a.getColor(attr, textColorHighlight);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textColor:
-                textColor = a.getColorStateList(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textColorHint:
-                textColorHint = a.getColorStateList(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textColorLink:
-                textColorLink = a.getColorStateList(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textSize:
-                textSize = a.getDimensionPixelSize(attr, textSize);
-                break;
-
-            case com.android.internal.R.styleable.TextView_typeface:
-                typefaceIndex = a.getInt(attr, typefaceIndex);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textStyle:
-                styleIndex = a.getInt(attr, styleIndex);
-                break;
-
-            case com.android.internal.R.styleable.TextView_fontFamily:
-                fontFamily = a.getString(attr);
-                fontFamilyExplicit = true;
-                break;
-
-            case com.android.internal.R.styleable.TextView_password:
-                password = a.getBoolean(attr, password);
-                break;
-
-            case com.android.internal.R.styleable.TextView_lineSpacingExtra:
-                mSpacingAdd = a.getDimensionPixelSize(attr, (int) mSpacingAdd);
-                break;
-
-            case com.android.internal.R.styleable.TextView_lineSpacingMultiplier:
-                mSpacingMult = a.getFloat(attr, mSpacingMult);
-                break;
-
-            case com.android.internal.R.styleable.TextView_allowUndo:
-                createEditorIfNeeded();
-                mEditor.mAllowUndo = a.getBoolean(attr, true);
-                break;
-
-            case com.android.internal.R.styleable.TextView_imeOptions:
-                createEditorIfNeeded();
-                mEditor.createInputContentTypeIfNeeded();
-                mEditor.mInputContentType.imeOptions = a.getInt(attr,
-                        mEditor.mInputContentType.imeOptions);
-                break;
-
-            case com.android.internal.R.styleable.TextView_imeActionLabel:
-                createEditorIfNeeded();
-                mEditor.createInputContentTypeIfNeeded();
-                mEditor.mInputContentType.imeActionLabel = a.getText(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_imeActionId:
-                createEditorIfNeeded();
-                mEditor.createInputContentTypeIfNeeded();
-                mEditor.mInputContentType.imeActionId = a.getInt(attr,
-                        mEditor.mInputContentType.imeActionId);
-                break;
-
-            case com.android.internal.R.styleable.TextView_privateImeOptions:
-                setPrivateImeOptions(a.getString(attr));
-                break;
-
-            case com.android.internal.R.styleable.TextView_editorExtras:
-                try {
-                    setInputExtras(a.getResourceId(attr, 0));
-                } catch (XmlPullParserException e) {
-                    Log.w(LOG_TAG, "Failure reading input extras", e);
-                } catch (IOException e) {
-                    Log.w(LOG_TAG, "Failure reading input extras", e);
-                }
-                break;
-
-            case com.android.internal.R.styleable.TextView_textCursorDrawable:
-                mCursorDrawableRes = a.getResourceId(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textSelectHandleLeft:
-                mTextSelectHandleLeftRes = a.getResourceId(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textSelectHandleRight:
-                mTextSelectHandleRightRes = a.getResourceId(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textSelectHandle:
-                mTextSelectHandleRes = a.getResourceId(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textEditSuggestionItemLayout:
-                mTextEditSuggestionItemLayout = a.getResourceId(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_textIsSelectable:
-                setTextIsSelectable(a.getBoolean(attr, false));
-                break;
-
-            case com.android.internal.R.styleable.TextView_textAllCaps:
-                allCaps = a.getBoolean(attr, false);
-                break;
-
-            case com.android.internal.R.styleable.TextView_elegantTextHeight:
-                elegant = a.getBoolean(attr, false);
-                break;
-
-            case com.android.internal.R.styleable.TextView_letterSpacing:
-                letterSpacing = a.getFloat(attr, 0);
-                break;
-
-            case com.android.internal.R.styleable.TextView_fontFeatureSettings:
-                fontFeatureSettings = a.getString(attr);
-                break;
-
-            case com.android.internal.R.styleable.TextView_breakStrategy:
-                mBreakStrategy = a.getInt(attr, Layout.BREAK_STRATEGY_SIMPLE);
-                break;
-
-            case com.android.internal.R.styleable.TextView_hyphenationFrequency:
-                mHyphenationFrequency = a.getInt(attr, Layout.HYPHENATION_FREQUENCY_NONE);
-                break;
+                case com.android.internal.R.styleable.TextView_numeric:
+                    numeric = a.getInt(attr, numeric);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_digits:
+                    digits = a.getText(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_phoneNumber:
+                    phone = a.getBoolean(attr, phone);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_autoText:
+                    autotext = a.getBoolean(attr, autotext);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_capitalize:
+                    autocap = a.getInt(attr, autocap);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_bufferType:
+                    buffertype = a.getInt(attr, buffertype);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_selectAllOnFocus:
+                    selectallonfocus = a.getBoolean(attr, selectallonfocus);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_autoLink:
+                    mAutoLinkMask = a.getInt(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_linksClickable:
+                    mLinksClickable = a.getBoolean(attr, true);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_drawableLeft:
+                    drawableLeft = a.getDrawable(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_drawableTop:
+                    drawableTop = a.getDrawable(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_drawableRight:
+                    drawableRight = a.getDrawable(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_drawableBottom:
+                    drawableBottom = a.getDrawable(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_drawableStart:
+                    drawableStart = a.getDrawable(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_drawableEnd:
+                    drawableEnd = a.getDrawable(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_drawableTint:
+                    drawableTint = a.getColorStateList(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_drawableTintMode:
+                    drawableTintMode = Drawable.parseTintMode(a.getInt(attr, -1), drawableTintMode);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_drawablePadding:
+                    drawablePadding = a.getDimensionPixelSize(attr, drawablePadding);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_maxLines:
+                    setMaxLines(a.getInt(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_maxHeight:
+                    setMaxHeight(a.getDimensionPixelSize(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_lines:
+                    setLines(a.getInt(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_height:
+                    setHeight(a.getDimensionPixelSize(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_minLines:
+                    setMinLines(a.getInt(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_minHeight:
+                    setMinHeight(a.getDimensionPixelSize(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_maxEms:
+                    setMaxEms(a.getInt(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_maxWidth:
+                    setMaxWidth(a.getDimensionPixelSize(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_ems:
+                    setEms(a.getInt(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_width:
+                    setWidth(a.getDimensionPixelSize(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_minEms:
+                    setMinEms(a.getInt(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_minWidth:
+                    setMinWidth(a.getDimensionPixelSize(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_gravity:
+                    setGravity(a.getInt(attr, -1));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_hint:
+                    hint = a.getText(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_text:
+                    text = a.getText(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_scrollHorizontally:
+                    if (a.getBoolean(attr, false)) {
+                        setHorizontallyScrolling(true);
+                    }
+                    break;
+
+                case com.android.internal.R.styleable.TextView_singleLine:
+                    singleLine = a.getBoolean(attr, singleLine);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_ellipsize:
+                    ellipsize = a.getInt(attr, ellipsize);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_marqueeRepeatLimit:
+                    setMarqueeRepeatLimit(a.getInt(attr, mMarqueeRepeatLimit));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_includeFontPadding:
+                    if (!a.getBoolean(attr, true)) {
+                        setIncludeFontPadding(false);
+                    }
+                    break;
+
+                case com.android.internal.R.styleable.TextView_cursorVisible:
+                    if (!a.getBoolean(attr, true)) {
+                        setCursorVisible(false);
+                    }
+                    break;
+
+                case com.android.internal.R.styleable.TextView_maxLength:
+                    maxlength = a.getInt(attr, -1);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textScaleX:
+                    setTextScaleX(a.getFloat(attr, 1.0f));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_freezesText:
+                    mFreezesText = a.getBoolean(attr, false);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_shadowColor:
+                    shadowcolor = a.getInt(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_shadowDx:
+                    dx = a.getFloat(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_shadowDy:
+                    dy = a.getFloat(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_shadowRadius:
+                    r = a.getFloat(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_enabled:
+                    setEnabled(a.getBoolean(attr, isEnabled()));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textColorHighlight:
+                    textColorHighlight = a.getColor(attr, textColorHighlight);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textColor:
+                    textColor = a.getColorStateList(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textColorHint:
+                    textColorHint = a.getColorStateList(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textColorLink:
+                    textColorLink = a.getColorStateList(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textSize:
+                    textSize = a.getDimensionPixelSize(attr, textSize);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_typeface:
+                    typefaceIndex = a.getInt(attr, typefaceIndex);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textStyle:
+                    styleIndex = a.getInt(attr, styleIndex);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_fontFamily:
+                    fontFamily = a.getString(attr);
+                    fontFamilyExplicit = true;
+                    break;
+
+                case com.android.internal.R.styleable.TextView_password:
+                    password = a.getBoolean(attr, password);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_lineSpacingExtra:
+                    mSpacingAdd = a.getDimensionPixelSize(attr, (int) mSpacingAdd);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_lineSpacingMultiplier:
+                    mSpacingMult = a.getFloat(attr, mSpacingMult);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_allowUndo:
+                    createEditorIfNeeded();
+                    mEditor.mAllowUndo = a.getBoolean(attr, true);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_imeOptions:
+                    createEditorIfNeeded();
+                    mEditor.createInputContentTypeIfNeeded();
+                    mEditor.mInputContentType.imeOptions =
+                            a.getInt(attr, mEditor.mInputContentType.imeOptions);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_imeActionLabel:
+                    createEditorIfNeeded();
+                    mEditor.createInputContentTypeIfNeeded();
+                    mEditor.mInputContentType.imeActionLabel = a.getText(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_imeActionId:
+                    createEditorIfNeeded();
+                    mEditor.createInputContentTypeIfNeeded();
+                    mEditor.mInputContentType.imeActionId =
+                            a.getInt(attr, mEditor.mInputContentType.imeActionId);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_privateImeOptions:
+                    setPrivateImeOptions(a.getString(attr));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_editorExtras:
+                    try {
+                        setInputExtras(a.getResourceId(attr, 0));
+                    } catch (XmlPullParserException e) {
+                        Log.w(LOG_TAG, "Failure reading input extras", e);
+                    } catch (IOException e) {
+                        Log.w(LOG_TAG, "Failure reading input extras", e);
+                    }
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textCursorDrawable:
+                    mCursorDrawableRes = a.getResourceId(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textSelectHandleLeft:
+                    mTextSelectHandleLeftRes = a.getResourceId(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textSelectHandleRight:
+                    mTextSelectHandleRightRes = a.getResourceId(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textSelectHandle:
+                    mTextSelectHandleRes = a.getResourceId(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textEditSuggestionItemLayout:
+                    mTextEditSuggestionItemLayout = a.getResourceId(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textIsSelectable:
+                    setTextIsSelectable(a.getBoolean(attr, false));
+                    break;
+
+                case com.android.internal.R.styleable.TextView_textAllCaps:
+                    allCaps = a.getBoolean(attr, false);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_elegantTextHeight:
+                    elegant = a.getBoolean(attr, false);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_letterSpacing:
+                    letterSpacing = a.getFloat(attr, 0);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_fontFeatureSettings:
+                    fontFeatureSettings = a.getString(attr);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_breakStrategy:
+                    mBreakStrategy = a.getInt(attr, Layout.BREAK_STRATEGY_SIMPLE);
+                    break;
+
+                case com.android.internal.R.styleable.TextView_hyphenationFrequency:
+                    mHyphenationFrequency = a.getInt(attr, Layout.HYPHENATION_FREQUENCY_NONE);
+                    break;
             }
         }
         a.recycle();
-        //AppCompatTextView style
-        a = context.obtainStyledAttributes(attrs, androidx.appcompat.R.styleable.AppCompatTextView, defStyleAttr, defStyleRes);
+        // AppCompatTextView style
+        a =
+                context.obtainStyledAttributes(
+                        attrs,
+                        androidx.appcompat.R.styleable.AppCompatTextView,
+                        defStyleAttr,
+                        defStyleRes);
         if (a.hasValue(R.styleable.AppCompatTextView_textAllCaps)) {
             allCaps = a.getBoolean(R.styleable.AppCompatTextView_textAllCaps, false);
         }
         a.recycle();
 
         BufferType bufferType = BufferType.EDITABLE;
-        
+
         final int inputType = EditorInfo.TYPE_NULL;
-        final int variation = inputType & (EditorInfo.TYPE_MASK_CLASS | EditorInfo.TYPE_MASK_VARIATION);
-        final boolean passwordInputType = variation == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD);
-        final boolean webPasswordInputType = variation == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_WEB_PASSWORD);
-        final boolean numberPasswordInputType = variation == (EditorInfo.TYPE_CLASS_NUMBER | EditorInfo.TYPE_NUMBER_VARIATION_PASSWORD);
+        final int variation =
+                inputType & (EditorInfo.TYPE_MASK_CLASS | EditorInfo.TYPE_MASK_VARIATION);
+        final boolean passwordInputType =
+                variation == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD);
+        final boolean webPasswordInputType =
+                variation
+                        == (EditorInfo.TYPE_CLASS_TEXT
+                                | EditorInfo.TYPE_TEXT_VARIATION_WEB_PASSWORD);
+        final boolean numberPasswordInputType =
+                variation
+                        == (EditorInfo.TYPE_CLASS_NUMBER
+                                | EditorInfo.TYPE_NUMBER_VARIATION_PASSWORD);
 
         if (digits != null) {
             createEditorIfNeeded();
             mEditor.mKeyListener = DigitsKeyListener.getInstance(digits.toString());
-            
-            
-            
-            mEditor.mInputType = inputType != EditorInfo.TYPE_NULL
-                    ? inputType : EditorInfo.TYPE_CLASS_TEXT;
+
+            mEditor.mInputType =
+                    inputType != EditorInfo.TYPE_NULL ? inputType : EditorInfo.TYPE_CLASS_TEXT;
         } else if (inputType != EditorInfo.TYPE_NULL) {
             setInputType(inputType, true);
-            
+
             singleLine = !isMultilineInputType(inputType);
         } else if (phone) {
             createEditorIfNeeded();
@@ -1068,8 +1066,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             mEditor.mInputType = inputType = EditorInfo.TYPE_CLASS_PHONE;
         } else if (numeric != 0) {
             createEditorIfNeeded();
-            mEditor.mKeyListener = DigitsKeyListener.getInstance((numeric & SIGNED) != 0,
-                                                   (numeric & DECIMAL) != 0);
+            mEditor.mKeyListener =
+                    DigitsKeyListener.getInstance(
+                            (numeric & SIGNED) != 0, (numeric & DECIMAL) != 0);
             inputType = EditorInfo.TYPE_CLASS_NUMBER;
             if ((numeric & SIGNED) != 0) {
                 inputType |= EditorInfo.TYPE_NUMBER_FLAG_SIGNED;
@@ -1084,37 +1083,37 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             inputType = EditorInfo.TYPE_CLASS_TEXT;
 
             switch (autocap) {
-            case 1:
-                cap = TextKeyListener.Capitalize.SENTENCES;
-                inputType |= EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES;
-                break;
+                case 1:
+                    cap = TextKeyListener.Capitalize.SENTENCES;
+                    inputType |= EditorInfo.TYPE_TEXT_FLAG_CAP_SENTENCES;
+                    break;
 
-            case 2:
-                cap = TextKeyListener.Capitalize.WORDS;
-                inputType |= EditorInfo.TYPE_TEXT_FLAG_CAP_WORDS;
-                break;
+                case 2:
+                    cap = TextKeyListener.Capitalize.WORDS;
+                    inputType |= EditorInfo.TYPE_TEXT_FLAG_CAP_WORDS;
+                    break;
 
-            case 3:
-                cap = TextKeyListener.Capitalize.CHARACTERS;
-                inputType |= EditorInfo.TYPE_TEXT_FLAG_CAP_CHARACTERS;
-                break;
+                case 3:
+                    cap = TextKeyListener.Capitalize.CHARACTERS;
+                    inputType |= EditorInfo.TYPE_TEXT_FLAG_CAP_CHARACTERS;
+                    break;
 
-            default:
-                cap = TextKeyListener.Capitalize.NONE;
-                break;
+                default:
+                    cap = TextKeyListener.Capitalize.NONE;
+                    break;
             }
 
             createEditorIfNeeded();
             mEditor.mKeyListener = TextKeyListener.getInstance(autotext, cap);
             mEditor.mInputType = inputType;
         } else if (isTextSelectable()) {
-            
+
             if (mEditor != null) {
                 mEditor.mKeyListener = null;
                 mEditor.mInputType = EditorInfo.TYPE_NULL;
             }
             bufferType = BufferType.SPANNABLE;
-            
+
             setMovementMethod(ArrowKeyMovementMethod.getInstance());
         } else {
             if (mEditor != null) mEditor.mKeyListener = null;
@@ -1132,19 +1131,17 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
         }
 
-        if (mEditor != null) mEditor.adjustInputType(password, passwordInputType,
-                webPasswordInputType, numberPasswordInputType);
+        if (mEditor != null)
+            mEditor.adjustInputType(
+                    password, passwordInputType, webPasswordInputType, numberPasswordInputType);
 
         if (selectallonfocus) {
             createEditorIfNeeded();
             mEditor.mSelectAllOnFocus = true;
 
-            if (bufferType == BufferType.NORMAL)
-                bufferType = BufferType.SPANNABLE;
+            if (bufferType == BufferType.NORMAL) bufferType = BufferType.SPANNABLE;
         }
 
-        
-        
         if (drawableTint != null || drawableTintMode != null) {
             if (mDrawables == null) {
                 mDrawables = new Drawables(context);
@@ -1159,18 +1156,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
         }
 
-        
-        setCompoundDrawablesWithIntrinsicBounds(drawableLeft, drawableTop, drawableRight, drawableBottom);
+        setCompoundDrawablesWithIntrinsicBounds(
+                drawableLeft, drawableTop, drawableRight, drawableBottom);
         setRelativeDrawablesIfNeeded(drawableStart, drawableEnd);
         setCompoundDrawablePadding(drawablePadding);
 
-        
-        
         setInputTypeSingleLine(singleLine);
         applySingleLine(singleLine, singleLine, singleLine);
 
         if (singleLine && getKeyListener() == null && ellipsize < 0) {
-                ellipsize = 3; 
+            ellipsize = 3;
         }
 
         switch (ellipsize) {
@@ -1205,15 +1200,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         setElegantTextHeight(elegant);
         setLetterSpacing(letterSpacing);
         setFontFeatureSettings(fontFeatureSettings);
-        
+
         setTransformationMethod(allCaps ? new AllCapsTransformationMethod(getContext()) : null);
 
         if (password || passwordInputType || webPasswordInputType || numberPasswordInputType) {
             setTransformationMethod(PasswordTransformationMethod.getInstance());
             typefaceIndex = MONOSPACE;
-        } else if (mEditor != null &&
-                (mEditor.mInputType & (EditorInfo.TYPE_MASK_CLASS | EditorInfo.TYPE_MASK_VARIATION))
-                == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD)) {
+        } else if (mEditor != null
+                && (mEditor.mInputType
+                                & (EditorInfo.TYPE_MASK_CLASS | EditorInfo.TYPE_MASK_VARIATION))
+                        == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD)) {
             typefaceIndex = MONOSPACE;
         }
 
@@ -1227,7 +1223,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         if (maxlength >= 0) {
-            setFilters(new InputFilter[] { new InputFilter.LengthFilter(maxlength) });
+            setFilters(new InputFilter[] {new InputFilter.LengthFilter(maxlength)});
         } else {
             setFilters(NO_FILTERS);
         }
@@ -1235,7 +1231,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         setText(text, bufferType);
         if (hint != null) setHint(hint);
 
-        a = context.obtainStyledAttributes(attrs, com.android.internal.R.styleable.View, defStyleAttr, defStyleRes);
+        a =
+                context.obtainStyledAttributes(
+                        attrs, com.android.internal.R.styleable.View, defStyleAttr, defStyleRes);
 
         boolean focusable = mMovement != null || getKeyListener() != null;
         boolean clickable = focusable || isClickable();
@@ -1246,17 +1244,17 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             int attr = a.getIndex(i);
 
             switch (attr) {
-            case com.android.internal.R.styleable.View_focusable:
-                focusable = a.getBoolean(attr, focusable);
-                break;
+                case com.android.internal.R.styleable.View_focusable:
+                    focusable = a.getBoolean(attr, focusable);
+                    break;
 
-            case com.android.internal.R.styleable.View_clickable:
-                clickable = a.getBoolean(attr, clickable);
-                break;
+                case com.android.internal.R.styleable.View_clickable:
+                    clickable = a.getBoolean(attr, clickable);
+                    break;
 
-            case com.android.internal.R.styleable.View_longClickable:
-                longClickable = a.getBoolean(attr, longClickable);
-                break;
+                case com.android.internal.R.styleable.View_longClickable:
+                    longClickable = a.getBoolean(attr, longClickable);
+                    break;
             }
         }
         a.recycle();
@@ -1267,7 +1265,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         if (mEditor != null) mEditor.prepareCursorControllers();
 
-        
         if (getImportantForAccessibility() == IMPORTANT_FOR_ACCESSIBILITY_AUTO) {
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
         }
@@ -1284,9 +1281,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         return result;
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PROCESS_TEXT_REQUEST_CODE) {
@@ -1298,7 +1293,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                     } else {
                         if (result.length() > 0) {
                             Toast.makeText(getContext(), String.valueOf(result), Toast.LENGTH_LONG)
-                                .show();
+                                    .show();
                         }
                     }
                 }
@@ -1382,7 +1377,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         if (!enabled) {
-            
+
             InputMethodManager imm = InputMethodManager.peekInstance();
             if (imm != null && imm.isActive(this)) {
                 imm.hideSoftInputFromWindow(getWindowToken(), 0);
@@ -1392,26 +1387,23 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         super.setEnabled(enabled);
 
         if (enabled) {
-            
+
             InputMethodManager imm = InputMethodManager.peekInstance();
             if (imm != null) imm.restartInput(this);
         }
 
-        
         if (mEditor != null) {
             mEditor.invalidateTextDisplayList();
             mEditor.prepareCursorControllers();
 
-            
             mEditor.makeBlink();
         }
     }
 
     /**
-     * Sets the typeface and style in which the text should be displayed,
-     * and turns on the fake bold and italic bits in the Paint if the
-     * Typeface that you provided does not have all the bits in the
-     * style that you specified.
+     * Sets the typeface and style in which the text should be displayed, and turns on the fake bold
+     * and italic bits in the Paint if the Typeface that you provided does not have all the bits in
+     * the style that you specified.
      *
      * @attr ref android.R.styleable#TextView_typeface
      * @attr ref android.R.styleable#TextView_textStyle
@@ -1425,7 +1417,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
 
             setTypeface(tf);
-            
+
             int typefaceStyle = tf != null ? tf.getStyle() : 0;
             int need = style & ~typefaceStyle;
             mTextPaint.setFakeBoldText((need & Typeface.BOLD) != 0);
@@ -1437,111 +1429,97 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * Subclasses override this to specify a default movement method.
-     */
+    /** Subclasses override this to specify a default movement method. */
     protected MovementMethod getDefaultMovementMethod() {
         return null;
     }
 
     /**
-     * Return the text the TextView is displaying. If setText() was called with
-     * an argument of BufferType.SPANNABLE or BufferType.EDITABLE, you can cast
-     * the return value from this method to Spannable or Editable, respectively.
+     * Return the text the TextView is displaying. If setText() was called with an argument of
+     * BufferType.SPANNABLE or BufferType.EDITABLE, you can cast the return value from this method
+     * to Spannable or Editable, respectively.
      *
-     * Note: The content of the return value should not be modified. If you want
-     * a modifiable one, you should make your own copy first.
+     * <p>Note: The content of the return value should not be modified. If you want a modifiable
+     * one, you should make your own copy first.
      *
      * @attr ref android.R.styleable#TextView_text
      */
-    
     public CharSequence getText() {
         return mText;
     }
 
-    /**
-     * Returns the length, in characters, of the text managed by this TextView
-     */
+    /** Returns the length, in characters, of the text managed by this TextView */
     public int length() {
         return mText.length();
     }
 
     /**
-     * Return the text the TextView is displaying as an Editable object.  If
-     * the text is not editable, null is returned.
+     * Return the text the TextView is displaying as an Editable object. If the text is not
+     * editable, null is returned.
      *
      * @see #getText
      */
     public Editable getEditableText() {
-        return (mText instanceof Editable) ? (Editable)mText : null;
+        return (mText instanceof Editable) ? (Editable) mText : null;
     }
 
     /**
-     * @return the height of one standard line in pixels.  Note that markup
-     * within the text can cause individual lines to be taller or shorter
-     * than this height, and the layout may contain additional first-
-     * or last-line padding.
+     * @return the height of one standard line in pixels. Note that markup within the text can cause
+     *     individual lines to be taller or shorter than this height, and the layout may contain
+     *     additional first- or last-line padding.
      */
     public int getLineHeight() {
         return FastMath.round(mTextPaint.getFontMetricsInt(null) * mSpacingMult + mSpacingAdd);
     }
 
     /**
-     * @return the Layout that is currently being used to display the text.
-     * This can be null if the text or width has recently changes.
+     * @return the Layout that is currently being used to display the text. This can be null if the
+     *     text or width has recently changes.
      */
     public final Layout getLayout() {
         return mLayout;
     }
 
     /**
-     * @return the Layout that is currently being used to display the hint text.
-     * This can be null.
+     * @return the Layout that is currently being used to display the hint text. This can be null.
      */
     final Layout getHintLayout() {
         return mHintLayout;
     }
 
     /**
-     * Retrieve the {@link android.content.UndoManager} that is currently associated
-     * with this TextView.  By default there is no associated UndoManager, so null
-     * is returned.  One can be associated with the TextView through
-     * {@link #setUndoManager(android.content.UndoManager, String)}
+     * Retrieve the {@link android.content.UndoManager} that is currently associated with this
+     * TextView. By default there is no associated UndoManager, so null is returned. One can be
+     * associated with the TextView through {@link #setUndoManager(android.content.UndoManager,
+     * String)}
      *
      * @hide
      */
     public final UndoManager getUndoManager() {
-        
+
         throw new UnsupportedOperationException("not implemented");
     }
 
     /**
-     * Associate an {@link android.content.UndoManager} with this TextView.  Once
-     * done, all edit operations on the TextView will result in appropriate
-     * {@link android.content.UndoOperation} objects pushed on the given UndoManager's
-     * stack.
+     * Associate an {@link android.content.UndoManager} with this TextView. Once done, all edit
+     * operations on the TextView will result in appropriate {@link android.content.UndoOperation}
+     * objects pushed on the given UndoManager's stack.
      *
-     * @param undoManager The {@link android.content.UndoManager} to associate with
-     * this TextView, or null to clear any existing association.
-     * @param tag String tag identifying this particular TextView owner in the
-     * UndoManager.  This is used to keep the correct association with the
-     * {@link android.content.UndoOwner} of any operations inside of the UndoManager.
-     *
+     * @param undoManager The {@link android.content.UndoManager} to associate with this TextView,
+     *     or null to clear any existing association.
+     * @param tag String tag identifying this particular TextView owner in the UndoManager. This is
+     *     used to keep the correct association with the {@link android.content.UndoOwner} of any
+     *     operations inside of the UndoManager.
      * @hide
      */
     public final void setUndoManager(UndoManager undoManager, String tag) {
-        
-        
-        
-        
-        
+
         throw new UnsupportedOperationException("not implemented");
     }
 
     /**
-     * @return the current key listener for this TextView.
-     * This will frequently be null for non-EditText TextViews.
-     *
+     * @return the current key listener for this TextView. This will frequently be null for
+     *     non-EditText TextViews.
      * @attr ref android.R.styleable#TextView_numeric
      * @attr ref android.R.styleable#TextView_digits
      * @attr ref android.R.styleable#TextView_phoneNumber
@@ -1554,19 +1532,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the key listener to be used with this TextView.  This can be null
-     * to disallow user input.  Note that this method has significant and
-     * subtle interactions with soft keyboards and other input method:
-     * see {@link KeyListener#getInputType() KeyListener.getContentType()}
-     * for important details.  Calling this method will replace the current
-     * content type of the text view with the content type returned by the
-     * key listener.
-     * <p>
-     * Be warned that if you want a TextView with a key listener or movement
-     * method not to be focusable, or if you want a TextView without a
-     * key listener or movement method to be focusable, you must call
-     * {@link #setFocusable} again after calling this to get the focusability
-     * back the way you want it.
+     * Sets the key listener to be used with this TextView. This can be null to disallow user input.
+     * Note that this method has significant and subtle interactions with soft keyboards and other
+     * input method: see {@link KeyListener#getInputType() KeyListener.getContentType()} for
+     * important details. Calling this method will replace the current content type of the text view
+     * with the content type returned by the key listener.
+     *
+     * <p>Be warned that if you want a TextView with a key listener or movement method not to be
+     * focusable, or if you want a TextView without a key listener or movement method to be
+     * focusable, you must call {@link #setFocusable} again after calling this to get the
+     * focusability back the way you want it.
      *
      * @attr ref android.R.styleable#TextView_numeric
      * @attr ref android.R.styleable#TextView_digits
@@ -1586,8 +1561,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             } catch (IncompatibleClassChangeError e) {
                 mEditor.mInputType = EditorInfo.TYPE_CLASS_TEXT;
             }
-            
-            
+
             setInputTypeSingleLine(mSingleLine);
         } else {
             if (mEditor != null) mEditor.mInputType = EditorInfo.TYPE_NULL;
@@ -1598,7 +1572,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     private void setKeyListenerOnly(KeyListener input) {
-        if (mEditor == null && input == null) return; 
+        if (mEditor == null && input == null) return;
 
         createEditorIfNeeded();
         if (mEditor.mKeyListener != input) {
@@ -1612,23 +1586,21 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the movement method being used for this TextView.
-     * This will frequently be null for non-EditText TextViews.
+     * @return the movement method being used for this TextView. This will frequently be null for
+     *     non-EditText TextViews.
      */
     public final MovementMethod getMovementMethod() {
         return mMovement;
     }
 
     /**
-     * Sets the movement method (arrow key handler) to be used for
-     * this TextView.  This can be null to disallow using the arrow keys
-     * to move the cursor or scroll the view.
-     * <p>
-     * Be warned that if you want a TextView with a key listener or movement
-     * method not to be focusable, or if you want a TextView without a
-     * key listener or movement method to be focusable, you must call
-     * {@link #setFocusable} again after calling this to get the focusability
-     * back the way you want it.
+     * Sets the movement method (arrow key handler) to be used for this TextView. This can be null
+     * to disallow using the arrow keys to move the cursor or scroll the view.
+     *
+     * <p>Be warned that if you want a TextView with a key listener or movement method not to be
+     * focusable, or if you want a TextView without a key listener or movement method to be
+     * focusable, you must call {@link #setFocusable} again after calling this to get the
+     * focusability back the way you want it.
      */
     public final void setMovementMethod(MovementMethod movement) {
         if (mMovement != movement) {
@@ -1640,8 +1612,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
             fixFocusableAndClickableSettings();
 
-            
-            
             if (mEditor != null) mEditor.prepareCursorControllers();
         }
     }
@@ -1659,10 +1629,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the current transformation method for this TextView.
-     * This will frequently be null except for single-line and password
-     * fields.
-     *
+     * @return the current transformation method for this TextView. This will frequently be null
+     *     except for single-line and password fields.
      * @attr ref android.R.styleable#TextView_password
      * @attr ref android.R.styleable#TextView_singleLine
      */
@@ -1671,16 +1639,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the transformation that is applied to the text that this
-     * TextView is displaying.
+     * Sets the transformation that is applied to the text that this TextView is displaying.
      *
      * @attr ref android.R.styleable#TextView_password
      * @attr ref android.R.styleable#TextView_singleLine
      */
     public final void setTransformationMethod(TransformationMethod method) {
         if (method == mTransformation) {
-            
-            
+
             return;
         }
         if (mTransformation != null) {
@@ -1707,10 +1673,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * Returns the top padding of the view, plus space for the top
-     * Drawable if any.
-     */
+    /** Returns the top padding of the view, plus space for the top Drawable if any. */
     public int getCompoundPaddingTop() {
         final Drawables dr = mDrawables;
         if (dr == null || dr.mShowing[Drawables.TOP] == null) {
@@ -1720,10 +1683,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * Returns the bottom padding of the view, plus space for the bottom
-     * Drawable if any.
-     */
+    /** Returns the bottom padding of the view, plus space for the bottom Drawable if any. */
     public int getCompoundPaddingBottom() {
         final Drawables dr = mDrawables;
         if (dr == null || dr.mShowing[Drawables.BOTTOM] == null) {
@@ -1733,10 +1693,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * Returns the left padding of the view, plus space for the left
-     * Drawable if any.
-     */
+    /** Returns the left padding of the view, plus space for the left Drawable if any. */
     public int getCompoundPaddingLeft() {
         final Drawables dr = mDrawables;
         if (dr == null || dr.mShowing[Drawables.LEFT] == null) {
@@ -1746,10 +1703,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * Returns the right padding of the view, plus space for the right
-     * Drawable if any.
-     */
+    /** Returns the right padding of the view, plus space for the right Drawable if any. */
     public int getCompoundPaddingRight() {
         final Drawables dr = mDrawables;
         if (dr == null || dr.mShowing[Drawables.RIGHT] == null) {
@@ -1759,13 +1713,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * Returns the start padding of the view, plus space for the start
-     * Drawable if any.
-     */
+    /** Returns the start padding of the view, plus space for the start Drawable if any. */
     public int getCompoundPaddingStart() {
         resolveDrawables();
-        switch(getLayoutDirection()) {
+        switch (getLayoutDirection()) {
             default:
             case LAYOUT_DIRECTION_LTR:
                 return getCompoundPaddingLeft();
@@ -1774,13 +1725,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * Returns the end padding of the view, plus space for the end
-     * Drawable if any.
-     */
+    /** Returns the end padding of the view, plus space for the end Drawable if any. */
     public int getCompoundPaddingEnd() {
         resolveDrawables();
-        switch(getLayoutDirection()) {
+        switch (getLayoutDirection()) {
             default:
             case LAYOUT_DIRECTION_LTR:
                 return getCompoundPaddingRight();
@@ -1790,9 +1738,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns the extended top padding of the view, including both the
-     * top Drawable if any and any extra space to keep more than maxLines
-     * of text from showing.  It is only valid to call this after measuring.
+     * Returns the extended top padding of the view, including both the top Drawable if any and any
+     * extra space to keep more than maxLines of text from showing. It is only valid to call this
+     * after measuring.
      */
     public int getExtendedPaddingTop() {
         if (mMaxMode != LINES) {
@@ -1821,15 +1769,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return top;
         } else if (gravity == Gravity.BOTTOM) {
             return top + viewht - layoutht;
-        } else { 
+        } else {
             return top + (viewht - layoutht) / 2;
         }
     }
 
     /**
-     * Returns the extended bottom padding of the view, including both the
-     * bottom Drawable if any and any extra space to keep more than maxLines
-     * of text from showing.  It is only valid to call this after measuring.
+     * Returns the extended bottom padding of the view, including both the bottom Drawable if any
+     * and any extra space to keep more than maxLines of text from showing. It is only valid to call
+     * this after measuring.
      */
     public int getExtendedPaddingBottom() {
         if (mMaxMode != LINES) {
@@ -1858,80 +1806,63 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return bottom + viewht - layoutht;
         } else if (gravity == Gravity.BOTTOM) {
             return bottom;
-        } else { 
+        } else {
             return bottom + (viewht - layoutht) / 2;
         }
     }
 
-    /**
-     * Returns the total left padding of the view, including the left
-     * Drawable if any.
-     */
+    /** Returns the total left padding of the view, including the left Drawable if any. */
     public int getTotalPaddingLeft() {
         return getCompoundPaddingLeft();
     }
 
-    /**
-     * Returns the total right padding of the view, including the right
-     * Drawable if any.
-     */
+    /** Returns the total right padding of the view, including the right Drawable if any. */
     public int getTotalPaddingRight() {
         return getCompoundPaddingRight();
     }
 
-    /**
-     * Returns the total start padding of the view, including the start
-     * Drawable if any.
-     */
+    /** Returns the total start padding of the view, including the start Drawable if any. */
     public int getTotalPaddingStart() {
         return getCompoundPaddingStart();
     }
 
-    /**
-     * Returns the total end padding of the view, including the end
-     * Drawable if any.
-     */
+    /** Returns the total end padding of the view, including the end Drawable if any. */
     public int getTotalPaddingEnd() {
         return getCompoundPaddingEnd();
     }
 
     /**
-     * Returns the total top padding of the view, including the top
-     * Drawable if any, the extra space to keep more than maxLines
-     * from showing, and the vertical offset for gravity, if any.
+     * Returns the total top padding of the view, including the top Drawable if any, the extra space
+     * to keep more than maxLines from showing, and the vertical offset for gravity, if any.
      */
     public int getTotalPaddingTop() {
         return getExtendedPaddingTop() + getVerticalOffset(true);
     }
 
     /**
-     * Returns the total bottom padding of the view, including the bottom
-     * Drawable if any, the extra space to keep more than maxLines
-     * from showing, and the vertical offset for gravity, if any.
+     * Returns the total bottom padding of the view, including the bottom Drawable if any, the extra
+     * space to keep more than maxLines from showing, and the vertical offset for gravity, if any.
      */
     public int getTotalPaddingBottom() {
         return getExtendedPaddingBottom() + getBottomVerticalOffset(true);
     }
 
     /**
-     * Sets the Drawables (if any) to appear to the left of, above, to the
-     * right of, and below the text. Use {@code null} if you do not want a
-     * Drawable there. The Drawables must already have had
-     * {@link Drawable#setBounds} called.
-     * <p>
-     * Calling this method will overwrite any Drawables previously set using
-     * {@link #setCompoundDrawablesRelative} or related methods.
+     * Sets the Drawables (if any) to appear to the left of, above, to the right of, and below the
+     * text. Use {@code null} if you do not want a Drawable there. The Drawables must already have
+     * had {@link Drawable#setBounds} called.
+     *
+     * <p>Calling this method will overwrite any Drawables previously set using {@link
+     * #setCompoundDrawablesRelative} or related methods.
      *
      * @attr ref android.R.styleable#TextView_drawableLeft
      * @attr ref android.R.styleable#TextView_drawableTop
      * @attr ref android.R.styleable#TextView_drawableRight
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    public void setCompoundDrawables(Drawable left, Drawable top,
-            Drawable right, Drawable bottom) {
+    public void setCompoundDrawables(Drawable left, Drawable top, Drawable right, Drawable bottom) {
         Drawables dr = mDrawables;
 
-        
         if (dr != null) {
             if (dr.mDrawableStart != null) dr.mDrawableStart.setCallback(null);
             dr.mDrawableStart = null;
@@ -1943,13 +1874,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         final boolean drawables = left != null || top != null || right != null || bottom != null;
         if (!drawables) {
-            
+
             if (dr != null) {
                 if (dr.mDrawablePadding == 0) {
                     mDrawables = null;
                 } else {
-                    
-                    
+
                     for (int i = dr.mShowing.length - 1; i >= 0; i--) {
                         if (dr.mShowing[i] != null) {
                             dr.mShowing[i].setCallback(null);
@@ -2035,7 +1965,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
         }
 
-        
         if (dr != null) {
             dr.mDrawableLeftInitial = left;
             dr.mDrawableRightInitial = right;
@@ -2049,50 +1978,50 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the Drawables (if any) to appear to the left of, above, to the
-     * right of, and below the text. Use 0 if you do not want a Drawable there.
-     * The Drawables' bounds will be set to their intrinsic bounds.
-     * <p>
-     * Calling this method will overwrite any Drawables previously set using
-     * {@link #setCompoundDrawablesRelative} or related methods.
+     * Sets the Drawables (if any) to appear to the left of, above, to the right of, and below the
+     * text. Use 0 if you do not want a Drawable there. The Drawables' bounds will be set to their
+     * intrinsic bounds.
+     *
+     * <p>Calling this method will overwrite any Drawables previously set using {@link
+     * #setCompoundDrawablesRelative} or related methods.
      *
      * @param left Resource identifier of the left Drawable.
      * @param top Resource identifier of the top Drawable.
      * @param right Resource identifier of the right Drawable.
      * @param bottom Resource identifier of the bottom Drawable.
-     *
      * @attr ref android.R.styleable#TextView_drawableLeft
      * @attr ref android.R.styleable#TextView_drawableTop
      * @attr ref android.R.styleable#TextView_drawableRight
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    
-    public void setCompoundDrawablesWithIntrinsicBounds(@DrawableRes int left,
-            @DrawableRes int top, @DrawableRes int right, @DrawableRes int bottom) {
+    public void setCompoundDrawablesWithIntrinsicBounds(
+            @DrawableRes int left,
+            @DrawableRes int top,
+            @DrawableRes int right,
+            @DrawableRes int bottom) {
         final Context context = getContext();
-        setCompoundDrawablesWithIntrinsicBounds(left != 0 ? context.getDrawable(left) : null,
+        setCompoundDrawablesWithIntrinsicBounds(
+                left != 0 ? context.getDrawable(left) : null,
                 top != 0 ? context.getDrawable(top) : null,
                 right != 0 ? context.getDrawable(right) : null,
                 bottom != 0 ? context.getDrawable(bottom) : null);
     }
 
     /**
-     * Sets the Drawables (if any) to appear to the left of, above, to the
-     * right of, and below the text. Use {@code null} if you do not want a
-     * Drawable there. The Drawables' bounds will be set to their intrinsic
-     * bounds.
-     * <p>
-     * Calling this method will overwrite any Drawables previously set using
-     * {@link #setCompoundDrawablesRelative} or related methods.
+     * Sets the Drawables (if any) to appear to the left of, above, to the right of, and below the
+     * text. Use {@code null} if you do not want a Drawable there. The Drawables' bounds will be set
+     * to their intrinsic bounds.
+     *
+     * <p>Calling this method will overwrite any Drawables previously set using {@link
+     * #setCompoundDrawablesRelative} or related methods.
      *
      * @attr ref android.R.styleable#TextView_drawableLeft
      * @attr ref android.R.styleable#TextView_drawableTop
      * @attr ref android.R.styleable#TextView_drawableRight
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    
-    public void setCompoundDrawablesWithIntrinsicBounds(Drawable left,
-            Drawable top, Drawable right, Drawable bottom) {
+    public void setCompoundDrawablesWithIntrinsicBounds(
+            Drawable left, Drawable top, Drawable right, Drawable bottom) {
 
         if (left != null) {
             left.setBounds(0, 0, left.getIntrinsicWidth(), left.getIntrinsicHeight());
@@ -2110,25 +2039,22 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the Drawables (if any) to appear to the start of, above, to the end
-     * of, and below the text. Use {@code null} if you do not want a Drawable
-     * there. The Drawables must already have had {@link Drawable#setBounds}
-     * called.
-     * <p>
-     * Calling this method will overwrite any Drawables previously set using
-     * {@link #setCompoundDrawables} or related methods.
+     * Sets the Drawables (if any) to appear to the start of, above, to the end of, and below the
+     * text. Use {@code null} if you do not want a Drawable there. The Drawables must already have
+     * had {@link Drawable#setBounds} called.
+     *
+     * <p>Calling this method will overwrite any Drawables previously set using {@link
+     * #setCompoundDrawables} or related methods.
      *
      * @attr ref android.R.styleable#TextView_drawableStart
      * @attr ref android.R.styleable#TextView_drawableTop
      * @attr ref android.R.styleable#TextView_drawableEnd
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    
-    public void setCompoundDrawablesRelative(Drawable start, Drawable top,
-            Drawable end, Drawable bottom) {
+    public void setCompoundDrawablesRelative(
+            Drawable start, Drawable top, Drawable end, Drawable bottom) {
         Drawables dr = mDrawables;
 
-        
         if (dr != null) {
             if (dr.mShowing[Drawables.LEFT] != null) {
                 dr.mShowing[Drawables.LEFT].setCallback(null);
@@ -2142,17 +2068,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             dr.mDrawableSizeRight = dr.mDrawableHeightRight = 0;
         }
 
-        final boolean drawables = start != null || top != null
-                || end != null || bottom != null;
+        final boolean drawables = start != null || top != null || end != null || bottom != null;
 
         if (!drawables) {
-            
+
             if (dr != null) {
                 if (dr.mDrawablePadding == 0) {
                     mDrawables = null;
                 } else {
-                    
-                    
+
                     if (dr.mDrawableStart != null) dr.mDrawableStart.setCallback(null);
                     dr.mDrawableStart = null;
                     if (dr.mShowing[Drawables.TOP] != null) {
@@ -2253,26 +2177,27 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the Drawables (if any) to appear to the start of, above, to the end
-     * of, and below the text. Use 0 if you do not want a Drawable there. The
-     * Drawables' bounds will be set to their intrinsic bounds.
-     * <p>
-     * Calling this method will overwrite any Drawables previously set using
-     * {@link #setCompoundDrawables} or related methods.
+     * Sets the Drawables (if any) to appear to the start of, above, to the end of, and below the
+     * text. Use 0 if you do not want a Drawable there. The Drawables' bounds will be set to their
+     * intrinsic bounds.
+     *
+     * <p>Calling this method will overwrite any Drawables previously set using {@link
+     * #setCompoundDrawables} or related methods.
      *
      * @param start Resource identifier of the start Drawable.
      * @param top Resource identifier of the top Drawable.
      * @param end Resource identifier of the end Drawable.
      * @param bottom Resource identifier of the bottom Drawable.
-     *
      * @attr ref android.R.styleable#TextView_drawableStart
      * @attr ref android.R.styleable#TextView_drawableTop
      * @attr ref android.R.styleable#TextView_drawableEnd
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    
-    public void setCompoundDrawablesRelativeWithIntrinsicBounds(@DrawableRes int start,
-            @DrawableRes int top, @DrawableRes int end, @DrawableRes int bottom) {
+    public void setCompoundDrawablesRelativeWithIntrinsicBounds(
+            @DrawableRes int start,
+            @DrawableRes int top,
+            @DrawableRes int end,
+            @DrawableRes int bottom) {
         final Context context = getContext();
         setCompoundDrawablesRelativeWithIntrinsicBounds(
                 start != 0 ? context.getDrawable(start) : null,
@@ -2282,21 +2207,20 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the Drawables (if any) to appear to the start of, above, to the end
-     * of, and below the text. Use {@code null} if you do not want a Drawable
-     * there. The Drawables' bounds will be set to their intrinsic bounds.
-     * <p>
-     * Calling this method will overwrite any Drawables previously set using
-     * {@link #setCompoundDrawables} or related methods.
+     * Sets the Drawables (if any) to appear to the start of, above, to the end of, and below the
+     * text. Use {@code null} if you do not want a Drawable there. The Drawables' bounds will be set
+     * to their intrinsic bounds.
+     *
+     * <p>Calling this method will overwrite any Drawables previously set using {@link
+     * #setCompoundDrawables} or related methods.
      *
      * @attr ref android.R.styleable#TextView_drawableStart
      * @attr ref android.R.styleable#TextView_drawableTop
      * @attr ref android.R.styleable#TextView_drawableEnd
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    
-    public void setCompoundDrawablesRelativeWithIntrinsicBounds(Drawable start,
-            Drawable top, Drawable end, Drawable bottom) {
+    public void setCompoundDrawablesRelativeWithIntrinsicBounds(
+            Drawable start, Drawable top, Drawable end, Drawable bottom) {
 
         if (start != null) {
             start.setBounds(0, 0, start.getIntrinsicWidth(), start.getIntrinsicHeight());
@@ -2327,7 +2251,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if (dr != null) {
             return dr.mShowing.clone();
         } else {
-            return new Drawable[] { null, null, null, null };
+            return new Drawable[] {null, null, null, null};
         }
     }
 
@@ -2348,17 +2272,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 dr.mDrawableEnd, dr.mShowing[Drawables.BOTTOM]
             };
         } else {
-            return new Drawable[] { null, null, null, null };
+            return new Drawable[] {null, null, null, null};
         }
     }
 
     /**
-     * Sets the size of the padding between the compound drawables and
-     * the text.
+     * Sets the size of the padding between the compound drawables and the text.
      *
      * @attr ref android.R.styleable#TextView_drawablePadding
      */
-    
     public void setCompoundDrawablePadding(int pad) {
         Drawables dr = mDrawables;
         if (pad == 0) {
@@ -2387,17 +2309,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Applies a tint to the compound drawables. Does not modify the
-     * current tint mode, which is {@link PorterDuff.Mode#SRC_IN} by default.
-     * <p>
-     * Subsequent calls to
-     * {@link #setCompoundDrawables(Drawable, Drawable, Drawable, Drawable)}
-     * and related methods will automatically mutate the drawables and apply
-     * the specified tint and tint mode using
-     * {@link Drawable#setTintList(ColorStateList)}.
+     * Applies a tint to the compound drawables. Does not modify the current tint mode, which is
+     * {@link PorterDuff.Mode#SRC_IN} by default.
+     *
+     * <p>Subsequent calls to {@link #setCompoundDrawables(Drawable, Drawable, Drawable, Drawable)}
+     * and related methods will automatically mutate the drawables and apply the specified tint and
+     * tint mode using {@link Drawable#setTintList(ColorStateList)}.
      *
      * @param tint the tint to apply, may be {@code null} to clear tint
-     *
      * @attr ref android.R.styleable#TextView_drawableTint
      * @see #getCompoundDrawableTintList()
      * @see Drawable#setTintList(ColorStateList)
@@ -2422,12 +2341,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Specifies the blending mode used to apply the tint specified by
-     * {@link #setCompoundDrawableTintList(ColorStateList)} to the compound
-     * drawables. The default mode is {@link PorterDuff.Mode#SRC_IN}.
+     * Specifies the blending mode used to apply the tint specified by {@link
+     * #setCompoundDrawableTintList(ColorStateList)} to the compound drawables. The default mode is
+     * {@link PorterDuff.Mode#SRC_IN}.
      *
-     * @param tintMode the blending mode used to apply the tint, may be
-     *                 {@code null} to clear tint
+     * @param tintMode the blending mode used to apply the tint, may be {@code null} to clear tint
      * @attr ref android.R.styleable#TextView_drawableTintMode
      * @see #setCompoundDrawableTintList(ColorStateList)
      * @see Drawable#setTintMode(PorterDuff.Mode)
@@ -2443,11 +2361,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns the blending mode used to apply the tint to the compound
-     * drawables, if specified.
+     * Returns the blending mode used to apply the tint to the compound drawables, if specified.
      *
-     * @return the blending mode used to apply the tint to the compound
-     *         drawables
+     * @return the blending mode used to apply the tint to the compound drawables
      * @attr ref android.R.styleable#TextView_drawableTintMode
      * @see #setCompoundDrawableTintMode(PorterDuff.Mode)
      */
@@ -2473,9 +2389,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 }
 
                 if (dr == mDrawables.mDrawableError) {
-                    
-                    
-                    
+
                     continue;
                 }
 
@@ -2489,8 +2403,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                     dr.setTintMode(tintMode);
                 }
 
-                
-                
                 if (dr.isStateful()) {
                     dr.setState(state);
                 }
@@ -2500,36 +2412,33 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     @Override
     public void setPadding(int left, int top, int right, int bottom) {
-        if (left != mPaddingLeft ||
-            right != mPaddingRight ||
-            top != mPaddingTop ||
-            bottom != mPaddingBottom) {
+        if (left != mPaddingLeft
+                || right != mPaddingRight
+                || top != mPaddingTop
+                || bottom != mPaddingBottom) {
             nullLayouts();
         }
 
-        
         super.setPadding(left, top, right, bottom);
         invalidate();
     }
 
     @Override
     public void setPaddingRelative(int start, int top, int end, int bottom) {
-        if (start != getPaddingStart() ||
-            end != getPaddingEnd() ||
-            top != mPaddingTop ||
-            bottom != mPaddingBottom) {
+        if (start != getPaddingStart()
+                || end != getPaddingEnd()
+                || top != mPaddingTop
+                || bottom != mPaddingBottom) {
             nullLayouts();
         }
 
-        
         super.setPaddingRelative(start, top, end, bottom);
         invalidate();
     }
 
     /**
-     * Gets the autolink mask of the text.  See {@link
-     * android.text.util.Linkify#ALL Linkify.ALL} and peers for
-     * possible values.
+     * Gets the autolink mask of the text. See {@link android.text.util.Linkify#ALL Linkify.ALL} and
+     * peers for possible values.
      *
      * @attr ref android.R.styleable#TextView_autoLink
      */
@@ -2542,12 +2451,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Set the default {@link Locale} of the text in this TextView to the given value. This value
-     * is used to choose appropriate typefaces for ambiguous characters. Typically used for CJK
-     * locales to disambiguate Hanzi/Kanji/Hanja characters.
+     * Set the default {@link Locale} of the text in this TextView to the given value. This value is
+     * used to choose appropriate typefaces for ambiguous characters. Typically used for CJK locales
+     * to disambiguate Hanzi/Kanji/Hanja characters.
      *
      * @param locale the {@link Locale} for drawing text, must not be null.
-     *
      * @see Paint#setTextLocale
      */
     public void setTextLocale(Locale locale) {
@@ -2566,7 +2474,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     /**
      * @return the size (in pixels) of the default text size in this TextView.
      */
-    
     public float getTextSize() {
         return mTextPaint.getTextSize();
     }
@@ -2575,7 +2482,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @return the size (in scaled pixels) of thee default text size in this TextView.
      * @hide
      */
-    
     public float getScaledTextSize() {
         return mTextPaint.getTextSize() / mTextPaint.density;
     }
@@ -2586,36 +2492,30 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Set the default text size to the given value, interpreted as "scaled
-     * pixel" units.  This size is adjusted based on the current density and
-     * user font size preference.
+     * Set the default text size to the given value, interpreted as "scaled pixel" units. This size
+     * is adjusted based on the current density and user font size preference.
      *
      * @param size The scaled pixel size.
-     *
      * @attr ref android.R.styleable#TextView_textSize
      */
-    
     public void setTextSize(float size) {
         setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
     }
 
     /**
-     * Set the default text size to a given unit and value.  See {@link
-     * TypedValue} for the possible dimension units.
+     * Set the default text size to a given unit and value. See {@link TypedValue} for the possible
+     * dimension units.
      *
      * @param unit The desired dimension unit.
      * @param size The desired size in the given units.
-     *
      * @attr ref android.R.styleable#TextView_textSize
      */
     public void setTextSize(int unit, float size) {
         Context c = getContext();
         Resources r;
 
-        if (c == null)
-            r = Resources.getSystem();
-        else
-            r = c.getResources();
+        if (c == null) r = Resources.getSystem();
+        else r = c.getResources();
 
         setRawTextSize(TypedValue.applyDimension(unit, size, r.getDisplayMetrics()));
     }
@@ -2633,8 +2533,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the extent by which text is currently being stretched
-     * horizontally.  This will usually be 1.
+     * @return the extent by which text is currently being stretched horizontally. This will usually
+     *     be 1.
      */
     public float getTextScaleX() {
         return mTextPaint.getTextScaleX();
@@ -2645,7 +2545,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_textScaleX
      */
-    
     public void setTextScaleX(float size) {
         if (size != mTextPaint.getTextScaleX()) {
             mUserSetTextScaleX = true;
@@ -2660,14 +2559,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the typeface and style in which the text should be displayed.
-     * Note that not all Typeface families actually have bold and italic
-     * variants, so you may need to use
-     * {@link #setTypeface(Typeface, int)} to get the appearance
-     * that you actually want.
+     * Sets the typeface and style in which the text should be displayed. Note that not all Typeface
+     * families actually have bold and italic variants, so you may need to use {@link
+     * #setTypeface(Typeface, int)} to get the appearance that you actually want.
      *
      * @see #getTypeface()
-     *
      * @attr ref android.R.styleable#TextView_fontFamily
      * @attr ref android.R.styleable#TextView_typeface
      * @attr ref android.R.styleable#TextView_textStyle
@@ -2685,11 +2581,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the current typeface and style in which the text is being
-     * displayed.
-     *
+     * @return the current typeface and style in which the text is being displayed.
      * @see #setTypeface(Typeface)
-     *
      * @attr ref android.R.styleable#TextView_fontFamily
      * @attr ref android.R.styleable#TextView_typeface
      * @attr ref android.R.styleable#TextView_textStyle
@@ -2699,12 +2592,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Set the TextView's elegant height metrics flag. This setting selects font
-     * variants that have not been compacted to fit Latin-based vertical
-     * metrics, and also increases top and bottom bounds to provide more space.
+     * Set the TextView's elegant height metrics flag. This setting selects font variants that have
+     * not been compacted to fit Latin-based vertical metrics, and also increases top and bottom
+     * bounds to provide more space.
      *
      * @param elegant set the paint's elegant metrics flag.
-     *
      * @attr ref android.R.styleable#TextView_elegantTextHeight
      */
     public void setElegantTextHeight(boolean elegant) {
@@ -2712,9 +2604,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the extent by which text is currently being letter-spaced.
-     * This will normally be 0.
-     *
+     * @return the extent by which text is currently being letter-spaced. This will normally be 0.
      * @see #setLetterSpacing(float)
      * @see Paint#setLetterSpacing
      */
@@ -2723,15 +2613,13 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets text letter-spacing.  The value is in 'EM' units.  Typical values
-     * for slight expansion will be around 0.05.  Negative values tighten text.
+     * Sets text letter-spacing. The value is in 'EM' units. Typical values for slight expansion
+     * will be around 0.05. Negative values tighten text.
      *
      * @see #getLetterSpacing()
      * @see Paint#getLetterSpacing
-     *
      * @attr ref android.R.styleable#TextView_letterSpacing
      */
-    
     public void setLetterSpacing(float letterSpacing) {
         if (letterSpacing != mTextPaint.getLetterSpacing()) {
             mTextPaint.setLetterSpacing(letterSpacing);
@@ -2745,21 +2633,18 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the currently set font feature settings.  Default is null.
-     *
+     * @return the currently set font feature settings. Default is null.
      * @see #setFontFeatureSettings(String)
      * @see Paint#setFontFeatureSettings
      */
-    
     public String getFontFeatureSettings() {
         return mTextPaint.getFontFeatureSettings();
     }
 
     /**
-     * Sets the break strategy for breaking paragraphs into lines. The default value for
-     * TextView is {@link Layout#BREAK_STRATEGY_HIGH_QUALITY}, and the default value for
-     * EditText is {@link Layout#BREAK_STRATEGY_SIMPLE}, the latter to avoid the
-     * text "dancing" when being edited.
+     * Sets the break strategy for breaking paragraphs into lines. The default value for TextView is
+     * {@link Layout#BREAK_STRATEGY_HIGH_QUALITY}, and the default value for EditText is {@link
+     * Layout#BREAK_STRATEGY_SIMPLE}, the latter to avoid the text "dancing" when being edited.
      *
      * @attr ref android.R.styleable#TextView_breakStrategy
      * @see #getBreakStrategy()
@@ -2775,18 +2660,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * @return the currently set break strategy.
-     *
      * @attr ref android.R.styleable#TextView_breakStrategy
      * @see #setBreakStrategy(int)
      */
-    
     public int getBreakStrategy() {
         return mBreakStrategy;
     }
 
     /**
-     * Sets the hyphenation frequency. The default value for both TextView and EditText, which is set
-     * from the theme, is {@link Layout#HYPHENATION_FREQUENCY_NORMAL}.
+     * Sets the hyphenation frequency. The default value for both TextView and EditText, which is
+     * set from the theme, is {@link Layout#HYPHENATION_FREQUENCY_NORMAL}.
      *
      * @attr ref android.R.styleable#TextView_hyphenationFrequency
      * @see #getHyphenationFrequency()
@@ -2802,7 +2685,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * @return the currently set hyphenation frequency.
-     *
      * @attr ref android.R.styleable#TextView_hyphenationFrequency
      * @see #setHyphenationFrequency(int)
      */
@@ -2812,17 +2694,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets font feature settings.  The format is the same as the CSS
-     * font-feature-settings attribute:
-     * http:
+     * Sets font feature settings. The format is the same as the CSS font-feature-settings
+     * attribute: http:
      *
      * @param fontFeatureSettings font feature settings represented as CSS compatible string
      * @see #getFontFeatureSettings()
      * @see Paint#getFontFeatureSettings
-     *
      * @attr ref android.R.styleable#TextView_fontFeatureSettings
      */
-    
     public void setFontFeatureSettings(String fontFeatureSettings) {
         if (fontFeatureSettings != mTextPaint.getFontFeatureSettings()) {
             mTextPaint.setFontFeatureSettings(fontFeatureSettings);
@@ -2835,18 +2714,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-
     /**
-     * Sets the text color for all the states (normal, selected,
-     * focused) to be this color.
+     * Sets the text color for all the states (normal, selected, focused) to be this color.
      *
      * @see #setTextColor(ColorStateList)
      * @see #getTextColors()
-     *
      * @attr ref android.R.styleable#TextView_textColor
      */
-    
-    public void setTextColor( int color) {
+    public void setTextColor(int color) {
         mTextColor = ColorStateList.valueOf(color);
         updateTextColors();
     }
@@ -2858,7 +2733,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @see #getTextColors()
      * @see #setHintTextColor(ColorStateList)
      * @see #setLinkTextColor(ColorStateList)
-     *
      * @attr ref android.R.styleable#TextView_textColor
      */
     public void setTextColor(ColorStateList colors) {
@@ -2875,7 +2749,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @see #setTextColor(ColorStateList)
      * @see #setTextColor(int)
-     *
      * @attr ref android.R.styleable#TextView_textColor
      */
     public final ColorStateList getTextColors() {
@@ -2883,11 +2756,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * <p>Return the current color selected for normal text.</p>
+     * Return the current color selected for normal text.
      *
      * @return Returns the current text color.
      */
-    
     public final int getCurrentTextColor() {
         return mCurTextColor;
     }
@@ -2897,8 +2769,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_textColorHighlight
      */
-    
-    public void setHighlightColor( int color) {
+    public void setHighlightColor(int color) {
         if (mHighlightColor != color) {
             mHighlightColor = color;
             invalidate();
@@ -2907,46 +2778,40 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * @return the color used to display the selection highlight
-     *
      * @see #setHighlightColor(int)
-     *
      * @attr ref android.R.styleable#TextView_textColorHighlight
      */
-    
     public int getHighlightColor() {
         return mHighlightColor;
     }
 
     /**
-     * Sets whether the soft input method will be made visible when this
-     * TextView gets focused. The default is true.
+     * Sets whether the soft input method will be made visible when this TextView gets focused. The
+     * default is true.
      */
-    
     public final void setShowSoftInputOnFocus(boolean show) {
         createEditorIfNeeded();
         mEditor.mShowSoftInputOnFocus = show;
     }
 
     /**
-     * Returns whether the soft input method will be made visible when this
-     * TextView gets focused. The default is true.
+     * Returns whether the soft input method will be made visible when this TextView gets focused.
+     * The default is true.
      */
     public final boolean getShowSoftInputOnFocus() {
-        
+
         return mEditor == null || mEditor.mShowSoftInputOnFocus;
     }
 
     /**
-     * Gives the text a shadow of the specified blur radius and color, the specified
-     * distance from its drawn position.
-     * <p>
-     * The text shadow produced does not interact with the properties on view
-     * that are responsible for real time shadows,
-     * {@link View#getElevation() elevation} and
-     * {@link View#getTranslationZ() translationZ}.
+     * Gives the text a shadow of the specified blur radius and color, the specified distance from
+     * its drawn position.
+     *
+     * <p>The text shadow produced does not interact with the properties on view that are
+     * responsible for real time shadows, {@link View#getElevation() elevation} and {@link
+     * View#getTranslationZ() translationZ}.
      *
      * @see Paint#setShadowLayer(float, float, float, int)
-     *
      * @attr ref android.R.styleable#TextView_shadowColor
      * @attr ref android.R.styleable#TextView_shadowDx
      * @attr ref android.R.styleable#TextView_shadowDy
@@ -2960,7 +2825,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         mShadowDy = dy;
         mShadowColor = color;
 
-        
         if (mEditor != null) mEditor.invalidateTextDisplayList();
         invalidate();
     }
@@ -2969,9 +2833,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * Gets the radius of the shadow layer.
      *
      * @return the radius of the shadow layer. If 0, the shadow layer is not visible
-     *
      * @see #setShadowLayer(float, float, float, int)
-     *
      * @attr ref android.R.styleable#TextView_shadowRadius
      */
     public float getShadowRadius() {
@@ -2980,9 +2842,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * @return the horizontal offset of the shadow layer
-     *
      * @see #setShadowLayer(float, float, float, int)
-     *
      * @attr ref android.R.styleable#TextView_shadowDx
      */
     public float getShadowDx() {
@@ -2991,9 +2851,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * @return the vertical offset of the shadow layer
-     *
      * @see #setShadowLayer(float, float, float, int)
-     *
      * @attr ref android.R.styleable#TextView_shadowDy
      */
     public float getShadowDy() {
@@ -3002,54 +2860,46 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * @return the color of the shadow layer
-     *
      * @see #setShadowLayer(float, float, float, int)
-     *
      * @attr ref android.R.styleable#TextView_shadowColor
      */
-    
     public int getShadowColor() {
         return mShadowColor;
     }
 
     /**
-     * @return the base paint used for the text.  Please use this only to
-     * consult the Paint's properties and not to change them.
+     * @return the base paint used for the text. Please use this only to consult the Paint's
+     *     properties and not to change them.
      */
     public TextPaint getPaint() {
         return mTextPaint;
     }
 
     /**
-     * Sets the autolink mask of the text.  See {@link
-     * android.text.util.Linkify#ALL Linkify.ALL} and peers for
-     * possible values.
+     * Sets the autolink mask of the text. See {@link android.text.util.Linkify#ALL Linkify.ALL} and
+     * peers for possible values.
      *
      * @attr ref android.R.styleable#TextView_autoLink
      */
-    
     public final void setAutoLinkMask(int mask) {
         mAutoLinkMask = mask;
     }
 
     /**
-     * Sets whether the movement method will automatically be set to
-     * {@link LinkMovementMethod} if {@link #setAutoLinkMask} has been
-     * set to nonzero and links are detected in {@link #setText}.
+     * Sets whether the movement method will automatically be set to {@link LinkMovementMethod} if
+     * {@link #setAutoLinkMask} has been set to nonzero and links are detected in {@link #setText}.
      * The default is true.
      *
      * @attr ref android.R.styleable#TextView_linksClickable
      */
-    
     public final void setLinksClickable(boolean whether) {
         mLinksClickable = whether;
     }
 
     /**
-     * Returns whether the movement method will automatically be set to
-     * {@link LinkMovementMethod} if {@link #setAutoLinkMask} has been
-     * set to nonzero and links are detected in {@link #setText}.
-     * The default is true.
+     * Returns whether the movement method will automatically be set to {@link LinkMovementMethod}
+     * if {@link #setAutoLinkMask} has been set to nonzero and links are detected in {@link
+     * #setText}. The default is true.
      *
      * @attr ref android.R.styleable#TextView_linksClickable
      */
@@ -3058,11 +2908,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns the list of URLSpans attached to the text
-     * (by {@link Linkify} or otherwise) if any.  You can call
-     * {@link URLSpan#getURL} on them to find where they link to
-     * or use {@link Spanned#getSpanStart} and {@link Spanned#getSpanEnd}
-     * to find the region of the text they are attached to.
+     * Returns the list of URLSpans attached to the text (by {@link Linkify} or otherwise) if any.
+     * You can call {@link URLSpan#getURL} on them to find where they link to or use {@link
+     * Spanned#getSpanStart} and {@link Spanned#getSpanEnd} to find the region of the text they are
+     * attached to.
      */
     public URLSpan[] getUrls() {
         if (mText instanceof Spanned) {
@@ -3079,11 +2928,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @see #setHintTextColor(ColorStateList)
      * @see #getHintTextColors()
      * @see #setTextColor(int)
-     *
      * @attr ref android.R.styleable#TextView_textColorHint
      */
-    
-    public final void setHintTextColor( int color) {
+    public final void setHintTextColor(int color) {
         mHintTextColor = ColorStateList.valueOf(color);
         updateTextColors();
     }
@@ -3095,7 +2942,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @see #setHintTextColor(int)
      * @see #setTextColor(ColorStateList)
      * @see #setLinkTextColor(ColorStateList)
-     *
      * @attr ref android.R.styleable#TextView_textColorHint
      */
     public final void setHintTextColor(ColorStateList colors) {
@@ -3105,12 +2951,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * @return the color of the hint text, for the different states of this TextView.
-     *
      * @see #setHintTextColor(ColorStateList)
      * @see #setHintTextColor(int)
      * @see #setTextColor(ColorStateList)
      * @see #setLinkTextColor(ColorStateList)
-     *
      * @attr ref android.R.styleable#TextView_textColorHint
      */
     public final ColorStateList getHintTextColors() {
@@ -3118,11 +2962,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * <p>Return the current color selected to paint the hint text.</p>
+     * Return the current color selected to paint the hint text.
      *
      * @return Returns the current hint text color.
      */
-    
     public final int getCurrentHintTextColor() {
         return mHintTextColor != null ? mCurHintTextColor : mCurTextColor;
     }
@@ -3132,11 +2975,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @see #setLinkTextColor(ColorStateList)
      * @see #getLinkTextColors()
-     *
      * @attr ref android.R.styleable#TextView_textColorLink
      */
-    
-    public final void setLinkTextColor( int color) {
+    public final void setLinkTextColor(int color) {
         mLinkTextColor = ColorStateList.valueOf(color);
         updateTextColors();
     }
@@ -3148,7 +2989,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @see #getLinkTextColors()
      * @see #setTextColor(ColorStateList)
      * @see #setHintTextColor(ColorStateList)
-     *
      * @attr ref android.R.styleable#TextView_textColorLink
      */
     public final void setLinkTextColor(ColorStateList colors) {
@@ -3158,11 +2998,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * @return the list of colors used to paint the links in the text, for the different states of
-     * this TextView
-     *
+     *     this TextView
      * @see #setLinkTextColor(ColorStateList)
      * @see #setLinkTextColor(int)
-     *
      * @attr ref android.R.styleable#TextView_textColorLink
      */
     public final ColorStateList getLinkTextColors() {
@@ -3170,9 +3008,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the horizontal alignment of the text and the
-     * vertical gravity that will be used when there is extra space
-     * in the TextView beyond what is required for the text itself.
+     * Sets the horizontal alignment of the text and the vertical gravity that will be used when
+     * there is extra space in the TextView beyond what is required for the text itself.
      *
      * @see android.view.Gravity
      * @attr ref android.R.styleable#TextView_gravity
@@ -3187,8 +3024,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         boolean newLayout = false;
 
-        if ((gravity & Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK) !=
-            (mGravity & Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)) {
+        if ((gravity & Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)
+                != (mGravity & Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK)) {
             newLayout = true;
         }
 
@@ -3199,13 +3036,17 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         mGravity = gravity;
 
         if (mLayout != null && newLayout) {
-            
+
             int want = mLayout.getWidth();
             int hintWant = mHintLayout == null ? 0 : mHintLayout.getWidth();
 
-            makeNewLayout(want, hintWant, UNKNOWN_BORING, UNKNOWN_BORING,
-                          mRight - mLeft - getCompoundPaddingLeft() -
-                          getCompoundPaddingRight(), true);
+            makeNewLayout(
+                    want,
+                    hintWant,
+                    UNKNOWN_BORING,
+                    UNKNOWN_BORING,
+                    mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight(),
+                    true);
         }
     }
 
@@ -3228,11 +3069,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets flags on the Paint being used to display the text and
-     * reflows the text if they are different from the old flags.
+     * Sets flags on the Paint being used to display the text and reflows the text if they are
+     * different from the old flags.
+     *
      * @see Paint#setFlags
      */
-    
     public void setPaintFlags(int flags) {
         if (mTextPaint.getFlags() != flags) {
             mTextPaint.setFlags(flags);
@@ -3246,8 +3087,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets whether the text should be allowed to be wider than the
-     * View is.  If false, it will be wrapped to the width of the View.
+     * Sets whether the text should be allowed to be wider than the View is. If false, it will be
+     * wrapped to the width of the View.
      *
      * @attr ref android.R.styleable#TextView_scrollHorizontally
      */
@@ -3264,8 +3105,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns whether the text is allowed to be wider than the View is.
-     * If false, the text will be wrapped to the width of the View.
+     * Returns whether the text is allowed to be wider than the View is. If false, the text will be
+     * wrapped to the width of the View.
      *
      * @attr ref android.R.styleable#TextView_scrollHorizontally
      * @hide
@@ -3277,14 +3118,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     /**
      * Makes the TextView at least this many lines tall.
      *
-     * Setting this value overrides any other (minimum) height setting. A single line TextView will
-     * set this value to 1.
+     * <p>Setting this value overrides any other (minimum) height setting. A single line TextView
+     * will set this value to 1.
      *
      * @see #getMinLines()
-     *
      * @attr ref android.R.styleable#TextView_minLines
      */
-    
     public void setMinLines(int minlines) {
         mMinimum = minlines;
         mMinMode = LINES;
@@ -3294,11 +3133,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the minimum number of lines displayed in this TextView, or -1 if the minimum
-     * height was set in pixels instead using {@link #setMinHeight(int) or #setHeight(int)}.
-     *
+     * @return the minimum number of lines displayed in this TextView, or -1 if the minimum height
+     *     was set in pixels instead using {@link #setMinHeight(int) or #setHeight(int)}.
      * @see #setMinLines(int)
-     *
      * @attr ref android.R.styleable#TextView_minLines
      */
     public int getMinLines() {
@@ -3308,11 +3145,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     /**
      * Makes the TextView at least this many pixels tall.
      *
-     * Setting this value overrides any other (minimum) number of lines setting.
+     * <p>Setting this value overrides any other (minimum) number of lines setting.
      *
      * @attr ref android.R.styleable#TextView_minHeight
      */
-    
     public void setMinHeight(int minHeight) {
         mMinimum = minHeight;
         mMinMode = PIXELS;
@@ -3322,11 +3158,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the minimum height of this TextView expressed in pixels, or -1 if the minimum
-     * height was set in number of lines instead using {@link #setMinLines(int) or #setLines(int)}.
-     *
+     * @return the minimum height of this TextView expressed in pixels, or -1 if the minimum height
+     *     was set in number of lines instead using {@link #setMinLines(int) or #setLines(int)}.
      * @see #setMinHeight(int)
-     *
      * @attr ref android.R.styleable#TextView_minHeight
      */
     public int getMinHeight() {
@@ -3336,11 +3170,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     /**
      * Makes the TextView at most this many lines tall.
      *
-     * Setting this value overrides any other (maximum) height setting.
+     * <p>Setting this value overrides any other (maximum) height setting.
      *
      * @attr ref android.R.styleable#TextView_maxLines
      */
-    
     public void setMaxLines(int maxlines) {
         mMaximum = maxlines;
         mMaxMode = LINES;
@@ -3350,11 +3183,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the maximum number of lines displayed in this TextView, or -1 if the maximum
-     * height was set in pixels instead using {@link #setMaxHeight(int) or #setHeight(int)}.
-     *
+     * @return the maximum number of lines displayed in this TextView, or -1 if the maximum height
+     *     was set in pixels instead using {@link #setMaxHeight(int) or #setHeight(int)}.
      * @see #setMaxLines(int)
-     *
      * @attr ref android.R.styleable#TextView_maxLines
      */
     public int getMaxLines() {
@@ -3362,14 +3193,13 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Makes the TextView at most this many pixels tall.  This option is mutually exclusive with the
+     * Makes the TextView at most this many pixels tall. This option is mutually exclusive with the
      * {@link #setMaxLines(int)} method.
      *
-     * Setting this value overrides any other (maximum) number of lines setting.
+     * <p>Setting this value overrides any other (maximum) number of lines setting.
      *
      * @attr ref android.R.styleable#TextView_maxHeight
      */
-    
     public void setMaxHeight(int maxHeight) {
         mMaximum = maxHeight;
         mMaxMode = PIXELS;
@@ -3379,11 +3209,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the maximum height of this TextView expressed in pixels, or -1 if the maximum
-     * height was set in number of lines instead using {@link #setMaxLines(int) or #setLines(int)}.
-     *
+     * @return the maximum height of this TextView expressed in pixels, or -1 if the maximum height
+     *     was set in number of lines instead using {@link #setMaxLines(int) or #setLines(int)}.
      * @see #setMaxHeight(int)
-     *
      * @attr ref android.R.styleable#TextView_maxHeight
      */
     public int getMaxHeight() {
@@ -3393,12 +3221,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     /**
      * Makes the TextView exactly this many lines tall.
      *
-     * Note that setting this value overrides any other (minimum / maximum) number of lines or
+     * <p>Note that setting this value overrides any other (minimum / maximum) number of lines or
      * height setting. A single line TextView will set this value to 1.
      *
      * @attr ref android.R.styleable#TextView_lines
      */
-    
     public void setLines(int lines) {
         mMaximum = mMinimum = lines;
         mMaxMode = mMinMode = LINES;
@@ -3408,16 +3235,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Makes the TextView exactly this many pixels tall.
-     * You could do the same thing by specifying this number in the
-     * LayoutParams.
+     * Makes the TextView exactly this many pixels tall. You could do the same thing by specifying
+     * this number in the LayoutParams.
      *
-     * Note that setting this value overrides any other (minimum / maximum) number of lines or
+     * <p>Note that setting this value overrides any other (minimum / maximum) number of lines or
      * height setting.
      *
      * @attr ref android.R.styleable#TextView_height
      */
-    
     public void setHeight(int pixels) {
         mMaximum = mMinimum = pixels;
         mMaxMode = mMinMode = PIXELS;
@@ -3431,7 +3256,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_minEms
      */
-    
     public void setMinEms(int minems) {
         mMinWidth = minems;
         mMinWidthMode = EMS;
@@ -3441,12 +3265,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the minimum width of the TextView, expressed in ems or -1 if the minimum width
-     * was set in pixels instead (using {@link #setMinWidth(int)} or {@link #setWidth(int)}).
-     *
+     * @return the minimum width of the TextView, expressed in ems or -1 if the minimum width was
+     *     set in pixels instead (using {@link #setMinWidth(int)} or {@link #setWidth(int)}).
      * @see #setMinEms(int)
      * @see #setEms(int)
-     *
      * @attr ref android.R.styleable#TextView_minEms
      */
     public int getMinEms() {
@@ -3458,7 +3280,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_minWidth
      */
-    
     public void setMinWidth(int minpixels) {
         mMinWidth = minpixels;
         mMinWidthMode = PIXELS;
@@ -3468,12 +3289,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the minimum width of the TextView, in pixels or -1 if the minimum width
-     * was set in ems instead (using {@link #setMinEms(int)} or {@link #setEms(int)}).
-     *
+     * @return the minimum width of the TextView, in pixels or -1 if the minimum width was set in
+     *     ems instead (using {@link #setMinEms(int)} or {@link #setEms(int)}).
      * @see #setMinWidth(int)
      * @see #setWidth(int)
-     *
      * @attr ref android.R.styleable#TextView_minWidth
      */
     public int getMinWidth() {
@@ -3485,7 +3304,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_maxEms
      */
-    
     public void setMaxEms(int maxems) {
         mMaxWidth = maxems;
         mMaxWidthMode = EMS;
@@ -3495,12 +3313,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the maximum width of the TextView, expressed in ems or -1 if the maximum width
-     * was set in pixels instead (using {@link #setMaxWidth(int)} or {@link #setWidth(int)}).
-     *
+     * @return the maximum width of the TextView, expressed in ems or -1 if the maximum width was
+     *     set in pixels instead (using {@link #setMaxWidth(int)} or {@link #setWidth(int)}).
      * @see #setMaxEms(int)
      * @see #setEms(int)
-     *
      * @attr ref android.R.styleable#TextView_maxEms
      */
     public int getMaxEms() {
@@ -3512,7 +3328,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_maxWidth
      */
-    
     public void setMaxWidth(int maxpixels) {
         mMaxWidth = maxpixels;
         mMaxWidthMode = PIXELS;
@@ -3522,12 +3337,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return the maximum width of the TextView, in pixels or -1 if the maximum width
-     * was set in ems instead (using {@link #setMaxEms(int)} or {@link #setEms(int)}).
-     *
+     * @return the maximum width of the TextView, in pixels or -1 if the maximum width was set in
+     *     ems instead (using {@link #setMaxEms(int)} or {@link #setEms(int)}).
      * @see #setMaxWidth(int)
      * @see #setWidth(int)
-     *
      * @attr ref android.R.styleable#TextView_maxWidth
      */
     public int getMaxWidth() {
@@ -3541,10 +3354,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @see #setMinEms(int)
      * @see #getMinEms()
      * @see #getMaxEms()
-     *
      * @attr ref android.R.styleable#TextView_ems
      */
-    
     public void setEms(int ems) {
         mMaxWidth = mMinWidth = ems;
         mMaxWidthMode = mMinWidthMode = EMS;
@@ -3554,18 +3365,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Makes the TextView exactly this many pixels wide.
-     * You could do the same thing by specifying this number in the
-     * LayoutParams.
+     * Makes the TextView exactly this many pixels wide. You could do the same thing by specifying
+     * this number in the LayoutParams.
      *
      * @see #setMaxWidth(int)
      * @see #setMinWidth(int)
      * @see #getMinWidth()
      * @see #getMaxWidth()
-     *
      * @attr ref android.R.styleable#TextView_width
      */
-    
     public void setWidth(int pixels) {
         mMaxWidth = mMinWidth = pixels;
         mMaxWidthMode = mMinWidthMode = PIXELS;
@@ -3575,8 +3383,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets line spacing for this TextView.  Each line will have its height
-     * multiplied by <code>mult</code> and have <code>add</code> added to it.
+     * Sets line spacing for this TextView. Each line will have its height multiplied by <code>mult
+     * </code> and have <code>add</code> added to it.
      *
      * @attr ref android.R.styleable#TextView_lineSpacingExtra
      * @attr ref android.R.styleable#TextView_lineSpacingMultiplier
@@ -3598,10 +3406,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * Gets the line spacing multiplier
      *
      * @return the value by which each line's height is multiplied to get its actual height.
-     *
      * @see #setLineSpacing(float, float)
      * @see #getLineSpacingExtra()
-     *
      * @attr ref android.R.styleable#TextView_lineSpacingMultiplier
      */
     public float getLineSpacingMultiplier() {
@@ -3612,10 +3418,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * Gets the line spacing extra space
      *
      * @return the extra space that is added to the height of each lines of this TextView.
-     *
      * @see #setLineSpacing(float, float)
      * @see #getLineSpacingMultiplier()
-     *
      * @attr ref android.R.styleable#TextView_lineSpacingExtra
      */
     public float getLineSpacingExtra() {
@@ -3623,18 +3427,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Convenience method: Append the specified text to the TextView's
-     * display buffer, upgrading it to BufferType.EDITABLE if it was
-     * not already editable.
+     * Convenience method: Append the specified text to the TextView's display buffer, upgrading it
+     * to BufferType.EDITABLE if it was not already editable.
      */
     public final void append(CharSequence text) {
         append(text, 0, text.length());
     }
 
     /**
-     * Convenience method: Append the specified text slice to the TextView's
-     * display buffer, upgrading it to BufferType.EDITABLE if it was
-     * not already editable.
+     * Convenience method: Append the specified text slice to the TextView's display buffer,
+     * upgrading it to BufferType.EDITABLE if it was not already editable.
      */
     public void append(CharSequence text, int start, int end) {
         if (!(mText instanceof Editable)) {
@@ -3668,7 +3470,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
         }
         if (inval) {
-            
+
             if (mEditor != null) mEditor.invalidateTextDisplayList();
             invalidate();
         }
@@ -3711,7 +3513,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     public Parcelable onSaveInstanceState() {
         Parcelable superState = super.onSaveInstanceState();
 
-        
         boolean save = mFreezesText;
         int start = 0;
         int end = 0;
@@ -3720,14 +3521,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             start = getSelectionStart();
             end = getSelectionEnd();
             if (start >= 0 || end >= 0) {
-                
+
                 save = true;
             }
         }
 
         if (save) {
             SavedState ss = new SavedState(superState);
-            
+
             ss.selStart = start;
             ss.selEnd = end;
 
@@ -3760,8 +3561,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     void removeMisspelledSpans(Spannable spannable) {
-        SuggestionSpan[] suggestionSpans = spannable.getSpans(0, spannable.length(),
-                SuggestionSpan.class);
+        SuggestionSpan[] suggestionSpans =
+                spannable.getSpans(0, spannable.length(), SuggestionSpan.class);
         for (int i = 0; i < suggestionSpans.length; i++) {
             int flags = suggestionSpans[i].getFlags();
             if ((flags & SuggestionSpan.FLAG_EASY_CORRECT) != 0
@@ -3778,10 +3579,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return;
         }
 
-        SavedState ss = (SavedState)state;
+        SavedState ss = (SavedState) state;
         super.onRestoreInstanceState(ss.getSuperState());
 
-        
         if (ss.text != null) {
             setText(ss.text);
         }
@@ -3797,9 +3597,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                         restored = "(restored) ";
                     }
 
-                    Log.e(LOG_TAG, "Saved cursor position " + ss.selStart +
-                          "/" + ss.selEnd + " out of range for " + restored +
-                          "text " + mText);
+                    Log.e(
+                            LOG_TAG,
+                            "Saved cursor position "
+                                    + ss.selStart
+                                    + "/"
+                                    + ss.selEnd
+                                    + " out of range for "
+                                    + restored
+                                    + "text "
+                                    + mText);
                 } else {
                     Selection.setSelection((Spannable) mText, ss.selStart, ss.selEnd);
 
@@ -3813,14 +3620,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         if (ss.error != null) {
             final CharSequence error = ss.error;
-            
-            post(new Runnable() {
-                public void run() {
-                    if (mEditor == null || !mEditor.mErrorWasChanged) {
-                        setError(error);
-                    }
-                }
-            });
+
+            post(
+                    new Runnable() {
+                        public void run() {
+                            if (mEditor == null || !mEditor.mErrorWasChanged) {
+                                setError(error);
+                            }
+                        }
+                    });
         }
 
         if (ss.editorState != null) {
@@ -3830,86 +3638,71 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Control whether this text view saves its entire text contents when
-     * freezing to an icicle, in addition to dynamic state such as cursor
-     * position.  By default this is false, not saving the text.  Set to true
-     * if the text in the text view is not being saved somewhere else in
-     * persistent storage (such as in a content provider) so that if the
-     * view is later thawed the user will not lose their data.
+     * Control whether this text view saves its entire text contents when freezing to an icicle, in
+     * addition to dynamic state such as cursor position. By default this is false, not saving the
+     * text. Set to true if the text in the text view is not being saved somewhere else in
+     * persistent storage (such as in a content provider) so that if the view is later thawed the
+     * user will not lose their data.
      *
-     * @param freezesText Controls whether a frozen icicle should include the
-     * entire text data: true to include it, false to not.
-     *
+     * @param freezesText Controls whether a frozen icicle should include the entire text data: true
+     *     to include it, false to not.
      * @attr ref android.R.styleable#TextView_freezesText
      */
-    
     public void setFreezesText(boolean freezesText) {
         mFreezesText = freezesText;
     }
 
     /**
-     * Return whether this text view is including its entire text contents
-     * in frozen icicles.
+     * Return whether this text view is including its entire text contents in frozen icicles.
      *
      * @return Returns true if text is included, false if it isn't.
-     *
      * @see #setFreezesText
      */
     public boolean getFreezesText() {
         return mFreezesText;
     }
 
-    
-
-    /**
-     * Sets the Factory used to create new Editables.
-     */
+    /** Sets the Factory used to create new Editables. */
     public final void setEditableFactory(Editable.Factory factory) {
         mEditableFactory = factory;
         setText(mText);
     }
 
-    /**
-     * Sets the Factory used to create new Spannables.
-     */
+    /** Sets the Factory used to create new Spannables. */
     public final void setSpannableFactory(Spannable.Factory factory) {
         mSpannableFactory = factory;
         setText(mText);
     }
 
     /**
-     * Sets the string value of the TextView. TextView <em>does not</em> accept
-     * HTML-like formatting, which you can do with text strings in XML resource files.
-     * To style your strings, attach android.text.style.* objects to a
-     * {@link android.text.SpannableString SpannableString}, or see the
-     * <a href="{@docRoot}guide/topics/resources/available-resources.html#stringresources">
-     * Available Resource Types</a> documentation for an example of setting
-     * formatted text in the XML resource file.
+     * Sets the string value of the TextView. TextView <em>does not</em> accept HTML-like
+     * formatting, which you can do with text strings in XML resource files. To style your strings,
+     * attach android.text.style.* objects to a {@link android.text.SpannableString
+     * SpannableString}, or see the <a
+     * href="{@docRoot}guide/topics/resources/available-resources.html#stringresources">Available
+     * Resource Types</a> documentation for an example of setting formatted text in the XML resource
+     * file.
      *
      * @attr ref android.R.styleable#TextView_text
      */
-    
     public final void setText(CharSequence text) {
         setText(text, mBufferType);
     }
 
     /**
-     * Like {@link #setText(CharSequence)},
-     * except that the cursor position (if any) is retained in the new text.
+     * Like {@link #setText(CharSequence)}, except that the cursor position (if any) is retained in
+     * the new text.
      *
      * @param text The new text to place in the text view.
-     *
      * @see #setText(CharSequence)
      */
-    
     public final void setTextKeepState(CharSequence text) {
         setTextKeepState(text, mBufferType);
     }
 
     /**
-     * Sets the text that this TextView is to display (see
-     * {@link #setText(CharSequence)}) and also sets whether it is stored
-     * in a styleable/spannable buffer and whether it is editable.
+     * Sets the text that this TextView is to display (see {@link #setText(CharSequence)}) and also
+     * sets whether it is stored in a styleable/spannable buffer and whether it is editable.
      *
      * @attr ref android.R.styleable#TextView_text
      * @attr ref android.R.styleable#TextView_bufferType
@@ -3922,21 +3715,19 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    private void setText(CharSequence text, BufferType type,
-                         boolean notifyBefore, int oldlen) {
+    private void setText(CharSequence text, BufferType type, boolean notifyBefore, int oldlen) {
         if (text == null) {
             text = "";
         }
 
-        
         if (!isSuggestionsEnabled()) {
             text = removeSuggestionSpans(text);
         }
 
         if (!mUserSetTextScaleX) mTextPaint.setTextScaleX(1.0f);
 
-        if (text instanceof Spanned &&
-            ((Spanned) text).getSpanStart(TextUtils.TruncateAt.MARQUEE) >= 0) {
+        if (text instanceof Spanned
+                && ((Spanned) text).getSpanStart(TextUtils.TruncateAt.MARQUEE) >= 0) {
             if (ViewConfiguration.get(mContext).isFadingMarqueeEnabled()) {
                 setHorizontalFadingEdgeEnabled(true);
                 mMarqueeFadeMode = MARQUEE_FADE_NORMAL;
@@ -3970,8 +3761,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             needEditableForNotification = true;
         }
 
-        if (type == BufferType.EDITABLE || getKeyListener() != null ||
-                needEditableForNotification) {
+        if (type == BufferType.EDITABLE
+                || getKeyListener() != null
+                || needEditableForNotification) {
             createEditorIfNeeded();
             mEditor.forgetUndoRedo();
             Editable t = mEditableFactory.newEditable(text);
@@ -4005,8 +3797,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                  */
                 mText = text;
 
-                
-                
                 if (mLinksClickable && !textCanBeSelected()) {
                     setMovementMethod(LinkMovementMethod.getInstance());
                 }
@@ -4027,7 +3817,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if (text instanceof Spannable && !mAllowTransformationLengthChange) {
             Spannable sp = (Spannable) text;
 
-            
             final ChangeWatcher[] watchers = sp.getSpans(0, sp.length(), ChangeWatcher.class);
             final int count = watchers.length;
             for (int i = 0; i < count; i++) {
@@ -4036,8 +3825,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
             if (mChangeWatcher == null) mChangeWatcher = new ChangeWatcher();
 
-            sp.setSpan(mChangeWatcher, 0, textLength, Spanned.SPAN_INCLUSIVE_INCLUSIVE |
-                       (CHANGE_WATCHER_PRIORITY << Spanned.SPAN_PRIORITY_SHIFT));
+            sp.setSpan(
+                    mChangeWatcher,
+                    0,
+                    textLength,
+                    Spanned.SPAN_INCLUSIVE_INCLUSIVE
+                            | (CHANGE_WATCHER_PRIORITY << Spanned.SPAN_PRIORITY_SHIFT));
 
             if (mEditor != null) mEditor.addSpanWatchers(sp);
 
@@ -4070,16 +3863,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             sendAfterTextChanged((Editable) text);
         }
 
-        
         if (mEditor != null) mEditor.prepareCursorControllers();
     }
 
     /**
-     * Sets the TextView to display the specified slice of the specified
-     * char array.  You must promise that you will not change the contents
-     * of the array except for right before another call to setText(),
-     * since the TextView has no way to know that the text
-     * has changed and that it needs to invalidate and re-layout.
+     * Sets the TextView to display the specified slice of the specified char array. You must
+     * promise that you will not change the contents of the array except for right before another
+     * call to setText(), since the TextView has no way to know that the text has changed and that
+     * it needs to invalidate and re-layout.
      */
     public final void setText(char[] text, int start, int len) {
         int oldlen = 0;
@@ -4110,8 +3901,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Like {@link #setText(CharSequence, android.widget.TextView.BufferType)},
-     * except that the cursor position (if any) is retained in the new text.
+     * Like {@link #setText(CharSequence, android.widget.TextView.BufferType)}, except that the
+     * cursor position (if any) is retained in the new text.
      *
      * @see #setText(CharSequence, android.widget.TextView.BufferType)
      */
@@ -4124,14 +3915,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         if (start >= 0 || end >= 0) {
             if (mText instanceof Spannable) {
-                Selection.setSelection((Spannable) mText,
-                                       Math.max(0, Math.min(start, len)),
-                                       Math.max(0, Math.min(end, len)));
+                Selection.setSelection(
+                        (Spannable) mText,
+                        Math.max(0, Math.min(start, len)),
+                        Math.max(0, Math.min(end, len)));
             }
         }
     }
 
-    
     public final void setText(@StringRes int resid) {
         setText(getContext().getResources().getText(resid));
     }
@@ -4141,13 +3932,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the text to be displayed when the text of the TextView is empty.
-     * Null means to use the normal empty text. The hint does not currently
-     * participate in determining the size of the view.
+     * Sets the text to be displayed when the text of the TextView is empty. Null means to use the
+     * normal empty text. The hint does not currently participate in determining the size of the
+     * view.
      *
      * @attr ref android.R.styleable#TextView_hint
      */
-    
     public final void setHint(CharSequence hint) {
         mHint = TextUtils.stringOrSpannedString(hint);
 
@@ -4159,30 +3949,25 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             invalidate();
         }
 
-        
         if (mEditor != null && mText.length() == 0 && mHint != null) {
             mEditor.invalidateTextDisplayList();
         }
     }
 
     /**
-     * Sets the text to be displayed when the text of the TextView is empty,
-     * from a resource.
+     * Sets the text to be displayed when the text of the TextView is empty, from a resource.
      *
      * @attr ref android.R.styleable#TextView_hint
      */
-    
     public final void setHint(@StringRes int resid) {
         setHint(getContext().getResources().getText(resid));
     }
 
     /**
-     * Returns the hint that is displayed when the text of the TextView
-     * is empty.
+     * Returns the hint that is displayed when the text of the TextView is empty.
      *
      * @attr ref android.R.styleable#TextView_hint
      */
-    
     public CharSequence getHint() {
         return mHint;
     }
@@ -4192,38 +3977,36 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     private static boolean isMultilineInputType(int type) {
-        return (type & (EditorInfo.TYPE_MASK_CLASS | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE)) ==
-            (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE);
+        return (type & (EditorInfo.TYPE_MASK_CLASS | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE))
+                == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE);
     }
 
-    /**
-     * Removes the suggestion spans.
-     */
+    /** Removes the suggestion spans. */
     CharSequence removeSuggestionSpans(CharSequence text) {
-       if (text instanceof Spanned) {
-           Spannable spannable;
-           if (text instanceof Spannable) {
-               spannable = (Spannable) text;
-           } else {
-               spannable = new SpannableString(text);
-               text = spannable;
-           }
+        if (text instanceof Spanned) {
+            Spannable spannable;
+            if (text instanceof Spannable) {
+                spannable = (Spannable) text;
+            } else {
+                spannable = new SpannableString(text);
+                text = spannable;
+            }
 
-           SuggestionSpan[] spans = spannable.getSpans(0, text.length(), SuggestionSpan.class);
-           for (int i = 0; i < spans.length; i++) {
-               spannable.removeSpan(spans[i]);
-           }
-       }
-       return text;
+            SuggestionSpan[] spans = spannable.getSpans(0, text.length(), SuggestionSpan.class);
+            for (int i = 0; i < spans.length; i++) {
+                spannable.removeSpan(spans[i]);
+            }
+        }
+        return text;
     }
 
     /**
      * Set the type of the content with a constant as defined for {@link EditorInfo#inputType}. This
      * will take care of changing the key listener, by calling {@link #setKeyListener(KeyListener)},
-     * to match the given content type.  If the given content type is {@link EditorInfo#TYPE_NULL}
+     * to match the given content type. If the given content type is {@link EditorInfo#TYPE_NULL}
      * then a soft keyboard will not be displayed for this text view.
      *
-     * Note that the maximum number of displayed lines (see {@link #setMaxLines(int)}) will be
+     * <p>Note that the maximum number of displayed lines (see {@link #setMaxLines(int)}) will be
      * modified if you change the {@link EditorInfo#TYPE_TEXT_FLAG_MULTI_LINE} flag of the input
      * type.
      *
@@ -4241,15 +4024,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         boolean forceUpdate = false;
         if (isPassword) {
             setTransformationMethod(PasswordTransformationMethod.getInstance());
-            setTypefaceFromAttrs(null , MONOSPACE, 0);
+            setTypefaceFromAttrs(null, MONOSPACE, 0);
         } else if (isVisiblePassword) {
             if (mTransformation == PasswordTransformationMethod.getInstance()) {
                 forceUpdate = true;
             }
-            setTypefaceFromAttrs(null , MONOSPACE, 0);
+            setTypefaceFromAttrs(null, MONOSPACE, 0);
         } else if (wasPassword || wasVisiblePassword) {
-            
-            setTypefaceFromAttrs(null , -1, -1);
+
+            setTypefaceFromAttrs(null, -1, -1);
             if (mTransformation == PasswordTransformationMethod.getInstance()) {
                 forceUpdate = true;
             }
@@ -4257,11 +4040,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         boolean singleLine = !isMultilineInputType(type);
 
-        
-        
         if (mSingleLine != singleLine || forceUpdate) {
-            
-            
+
             applySingleLine(singleLine, !isPassword, true);
         }
 
@@ -4277,14 +4057,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * It would be better to rely on the input type for everything. A password inputType should have
      * a password transformation. We should hence use isPasswordInputType instead of this method.
      *
-     * We should:
-     * - Call setInputType in setKeyListener instead of changing the input type directly (which
-     * would install the correct transformation).
-     * - Refuse the installation of a non-password transformation in setTransformation if the input
-     * type is password.
+     * <p>We should: - Call setInputType in setKeyListener instead of changing the input type
+     * directly (which would install the correct transformation). - Refuse the installation of a
+     * non-password transformation in setTransformation if the input type is password.
      *
-     * However, this is like this for legacy reasons and we cannot break existing apps. This method
-     * is useful since it matches what the user can see (obfuscated text or not).
+     * <p>However, this is like this for legacy reasons and we cannot break existing apps. This
+     * method is useful since it matches what the user can see (obfuscated text or not).
      *
      * @return true if the current transformation method is of the password type.
      */
@@ -4295,12 +4073,13 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     private static boolean isPasswordInputType(int inputType) {
         final int variation =
                 inputType & (EditorInfo.TYPE_MASK_CLASS | EditorInfo.TYPE_MASK_VARIATION);
-        return variation
-                == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD)
+        return variation == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD)
                 || variation
-                == (EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_WEB_PASSWORD)
+                        == (EditorInfo.TYPE_CLASS_TEXT
+                                | EditorInfo.TYPE_TEXT_VARIATION_WEB_PASSWORD)
                 || variation
-                == (EditorInfo.TYPE_CLASS_NUMBER | EditorInfo.TYPE_NUMBER_VARIATION_PASSWORD);
+                        == (EditorInfo.TYPE_CLASS_NUMBER
+                                | EditorInfo.TYPE_NUMBER_VARIATION_PASSWORD);
     }
 
     private static boolean isVisiblePasswordInputType(int inputType) {
@@ -4311,14 +4090,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Directly change the content type integer of the text view, without
-     * modifying any other state.
+     * Directly change the content type integer of the text view, without modifying any other state.
+     *
      * @see #setInputType(int)
      * @see android.text.InputType
      * @attr ref android.R.styleable#TextView_inputType
      */
     public void setRawInputType(int type) {
-        if (type == InputType.TYPE_NULL && mEditor == null) return; 
+        if (type == InputType.TYPE_NULL && mEditor == null) return;
         createEditorIfNeeded();
         mEditor.mInputType = type;
     }
@@ -4340,9 +4119,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
             input = TextKeyListener.getInstance(autotext, cap);
         } else if (cls == EditorInfo.TYPE_CLASS_NUMBER) {
-            input = DigitsKeyListener.getInstance(
-                    (type & EditorInfo.TYPE_NUMBER_FLAG_SIGNED) != 0,
-                    (type & EditorInfo.TYPE_NUMBER_FLAG_DECIMAL) != 0);
+            input =
+                    DigitsKeyListener.getInstance(
+                            (type & EditorInfo.TYPE_NUMBER_FLAG_SIGNED) != 0,
+                            (type & EditorInfo.TYPE_NUMBER_FLAG_DECIMAL) != 0);
         } else if (cls == EditorInfo.TYPE_CLASS_DATETIME) {
             switch (type & EditorInfo.TYPE_MASK_VARIATION) {
                 case EditorInfo.TYPE_DATETIME_VARIATION_DATE:
@@ -4380,9 +4160,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Change the editor type integer associated with the text view, which
-     * will be reported to an IME with {@link EditorInfo#imeOptions} when it
-     * has focus.
+     * Change the editor type integer associated with the text view, which will be reported to an
+     * IME with {@link EditorInfo#imeOptions} when it has focus.
+     *
      * @see #getImeOptions
      * @see android.view.inputmethod.EditorInfo
      * @attr ref android.R.styleable#TextView_imeOptions
@@ -4401,13 +4181,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      */
     public int getImeOptions() {
         return mEditor != null && mEditor.mInputContentType != null
-                ? mEditor.mInputContentType.imeOptions : EditorInfo.IME_NULL;
+                ? mEditor.mInputContentType.imeOptions
+                : EditorInfo.IME_NULL;
     }
 
     /**
-     * Change the custom IME action associated with the text view, which
-     * will be reported to an IME with {@link EditorInfo#actionLabel}
-     * and {@link EditorInfo#actionId} when it has focus.
+     * Change the custom IME action associated with the text view, which will be reported to an IME
+     * with {@link EditorInfo#actionLabel} and {@link EditorInfo#actionId} when it has focus.
+     *
      * @see #getImeActionLabel
      * @see #getImeActionId
      * @see android.view.inputmethod.EditorInfo
@@ -4429,7 +4210,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      */
     public CharSequence getImeActionLabel() {
         return mEditor != null && mEditor.mInputContentType != null
-                ? mEditor.mInputContentType.imeActionLabel : null;
+                ? mEditor.mInputContentType.imeActionLabel
+                : null;
     }
 
     /**
@@ -4440,16 +4222,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      */
     public int getImeActionId() {
         return mEditor != null && mEditor.mInputContentType != null
-                ? mEditor.mInputContentType.imeActionId : 0;
+                ? mEditor.mInputContentType.imeActionId
+                : 0;
     }
 
     /**
-     * Set a special listener to be called when an action is performed
-     * on the text view.  This will be called when the enter key is pressed,
-     * or when an action supplied to the IME is selected by the user.  Setting
-     * this means that the normal hard key event will not insert a newline
-     * into the text view, even if it is multi-line; holding down the ALT
-     * modifier will, however, allow the user to insert a newline character.
+     * Set a special listener to be called when an action is performed on the text view. This will
+     * be called when the enter key is pressed, or when an action supplied to the IME is selected by
+     * the user. Setting this means that the normal hard key event will not insert a newline into
+     * the text view, even if it is multi-line; holding down the ALT modifier will, however, allow
+     * the user to insert a newline character.
      */
     public void setOnEditorActionListener(OnEditorActionListener l) {
         createEditorIfNeeded();
@@ -4458,46 +4240,36 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Called when an attached input method calls
-     * {@link InputConnection#performEditorAction(int)
-     * InputConnection.performEditorAction()}
-     * for this text view.  The default implementation will call your action
-     * listener supplied to {@link #setOnEditorActionListener}, or perform
-     * a standard operation for {@link EditorInfo#IME_ACTION_NEXT
-     * EditorInfo.IME_ACTION_NEXT}, {@link EditorInfo#IME_ACTION_PREVIOUS
-     * EditorInfo.IME_ACTION_PREVIOUS}, or {@link EditorInfo#IME_ACTION_DONE
-     * EditorInfo.IME_ACTION_DONE}.
+     * Called when an attached input method calls {@link InputConnection#performEditorAction(int)
+     * InputConnection.performEditorAction()} for this text view. The default implementation will
+     * call your action listener supplied to {@link #setOnEditorActionListener}, or perform a
+     * standard operation for {@link EditorInfo#IME_ACTION_NEXT EditorInfo.IME_ACTION_NEXT}, {@link
+     * EditorInfo#IME_ACTION_PREVIOUS EditorInfo.IME_ACTION_PREVIOUS}, or {@link
+     * EditorInfo#IME_ACTION_DONE EditorInfo.IME_ACTION_DONE}.
      *
-     * <p>For backwards compatibility, if no IME options have been set and the
-     * text view would not normally advance focus on enter, then
-     * the NEXT and DONE actions received here will be turned into an enter
-     * key down/up pair to go through the normal key handling.
+     * <p>For backwards compatibility, if no IME options have been set and the text view would not
+     * normally advance focus on enter, then the NEXT and DONE actions received here will be turned
+     * into an enter key down/up pair to go through the normal key handling.
      *
      * @param actionCode The code of the action being performed.
-     *
      * @see #setOnEditorActionListener
      */
     public void onEditorAction(int actionCode) {
         final Editor.InputContentType ict = mEditor == null ? null : mEditor.mInputContentType;
         if (ict != null) {
             if (ict.onEditorActionListener != null) {
-                if (ict.onEditorActionListener.onEditorAction(this,
-                        actionCode, null)) {
+                if (ict.onEditorActionListener.onEditorAction(this, actionCode, null)) {
                     return;
                 }
             }
 
-            
-            
-            
-            
-            
             if (actionCode == EditorInfo.IME_ACTION_NEXT) {
                 View v = focusSearch(FOCUS_FORWARD);
                 if (v != null) {
                     if (!v.requestFocus(FOCUS_FORWARD)) {
-                        throw new IllegalStateException("focus search returned a view " +
-                                "that wasn't able to take focus!");
+                        throw new IllegalStateException(
+                                "focus search returned a view "
+                                        + "that wasn't able to take focus!");
                     }
                 }
                 return;
@@ -4506,8 +4278,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 View v = focusSearch(FOCUS_BACKWARD);
                 if (v != null) {
                     if (!v.requestFocus(FOCUS_BACKWARD)) {
-                        throw new IllegalStateException("focus search returned a view " +
-                                "that wasn't able to take focus!");
+                        throw new IllegalStateException(
+                                "focus search returned a view "
+                                        + "that wasn't able to take focus!");
                     }
                 }
                 return;
@@ -4525,24 +4298,37 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if (viewRootImpl != null) {
             long eventTime = SystemClock.uptimeMillis();
             viewRootImpl.dispatchKeyFromIme(
-                    new KeyEvent(eventTime, eventTime,
-                    KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ENTER, 0, 0,
-                    KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
-                    KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE
-                    | KeyEvent.FLAG_EDITOR_ACTION));
+                    new KeyEvent(
+                            eventTime,
+                            eventTime,
+                            KeyEvent.ACTION_DOWN,
+                            KeyEvent.KEYCODE_ENTER,
+                            0,
+                            0,
+                            KeyCharacterMap.VIRTUAL_KEYBOARD,
+                            0,
+                            KeyEvent.FLAG_SOFT_KEYBOARD
+                                    | KeyEvent.FLAG_KEEP_TOUCH_MODE
+                                    | KeyEvent.FLAG_EDITOR_ACTION));
             viewRootImpl.dispatchKeyFromIme(
-                    new KeyEvent(SystemClock.uptimeMillis(), eventTime,
-                    KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, 0, 0,
-                    KeyCharacterMap.VIRTUAL_KEYBOARD, 0,
-                    KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE
-                    | KeyEvent.FLAG_EDITOR_ACTION));
+                    new KeyEvent(
+                            SystemClock.uptimeMillis(),
+                            eventTime,
+                            KeyEvent.ACTION_UP,
+                            KeyEvent.KEYCODE_ENTER,
+                            0,
+                            0,
+                            KeyCharacterMap.VIRTUAL_KEYBOARD,
+                            0,
+                            KeyEvent.FLAG_SOFT_KEYBOARD
+                                    | KeyEvent.FLAG_KEEP_TOUCH_MODE
+                                    | KeyEvent.FLAG_EDITOR_ACTION));
         }
     }
 
     /**
-     * Set the private content type of the text, which is the
-     * {@link EditorInfo#privateImeOptions EditorInfo.privateImeOptions}
-     * field that will be filled in when creating an input connection.
+     * Set the private content type of the text, which is the {@link EditorInfo#privateImeOptions
+     * EditorInfo.privateImeOptions} field that will be filled in when creating an input connection.
      *
      * @see #getPrivateImeOptions()
      * @see EditorInfo#privateImeOptions
@@ -4562,15 +4348,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      */
     public String getPrivateImeOptions() {
         return mEditor != null && mEditor.mInputContentType != null
-                ? mEditor.mInputContentType.privateImeOptions : null;
+                ? mEditor.mInputContentType.privateImeOptions
+                : null;
     }
 
     /**
-     * Set the extra input data of the text, which is the
-     * {@link EditorInfo#extras TextBoxAttribute.extras}
-     * Bundle that will be filled in when creating an input connection.  The
-     * given integer is the resource ID of an XML resource holding an
-     * {@link android.R.styleable#InputExtras &lt;input-extras&gt;} XML tree.
+     * Set the extra input data of the text, which is the {@link EditorInfo#extras
+     * TextBoxAttribute.extras} Bundle that will be filled in when creating an input connection. The
+     * given integer is the resource ID of an XML resource holding an {@link
+     * android.R.styleable#InputExtras &lt;input-extras&gt;} XML tree.
      *
      * @see #getInputExtras(boolean)
      * @see EditorInfo#extras
@@ -4585,11 +4371,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Retrieve the input extras currently associated with the text view, which
-     * can be viewed as well as modified.
+     * Retrieve the input extras currently associated with the text view, which can be viewed as
+     * well as modified.
      *
-     * @param create If true, the extras will be created if they don't already
-     * exist.  Otherwise, null will be returned if none have been created.
+     * @param create If true, the extras will be created if they don't already exist. Otherwise,
+     *     null will be returned if none have been created.
      * @see #setInputExtras(int)
      * @see EditorInfo#extras
      * @attr ref android.R.styleable#TextView_editorExtras
@@ -4609,29 +4395,25 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns the error message that was set to be displayed with
-     * {@link #setError}, or <code>null</code> if no error was set
-     * or if it the error was cleared by the widget after user input.
+     * Returns the error message that was set to be displayed with {@link #setError}, or <code>null
+     * </code> if no error was set or if it the error was cleared by the widget after user input.
      */
     public CharSequence getError() {
         return mEditor == null ? null : mEditor.mError;
     }
 
     /**
-     * Sets the right-hand compound drawable of the TextView to the "error"
-     * icon and sets an error message that will be displayed in a popup when
-     * the TextView has focus.  The icon and error message will be reset to
-     * null when any key events cause changes to the TextView's text.  If the
-     * <code>error</code> is <code>null</code>, the error message and icon
-     * will be cleared.
+     * Sets the right-hand compound drawable of the TextView to the "error" icon and sets an error
+     * message that will be displayed in a popup when the TextView has focus. The icon and error
+     * message will be reset to null when any key events cause changes to the TextView's text. If
+     * the <code>error</code> is <code>null</code>, the error message and icon will be cleared.
      */
-    
     public void setError(CharSequence error) {
         if (error == null) {
             setError(null, null);
         } else {
-            Drawable dr = getContext().getDrawable(
-                    com.android.internal.R.drawable.indicator_input_error);
+            Drawable dr =
+                    getContext().getDrawable(com.android.internal.R.drawable.indicator_input_error);
 
             dr.setBounds(0, 0, dr.getIntrinsicWidth(), dr.getIntrinsicHeight());
             setError(error, dr);
@@ -4639,13 +4421,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the right-hand compound drawable of the TextView to the specified
-     * icon and sets an error message that will be displayed in a popup when
-     * the TextView has focus.  The icon and error message will be reset to
-     * null when any key events cause changes to the TextView's text.  The
-     * drawable must already have had {@link Drawable#setBounds} set on it.
-     * If the <code>error</code> is <code>null</code>, the error message will
-     * be cleared (and you should provide a <code>null</code> icon as well).
+     * Sets the right-hand compound drawable of the TextView to the specified icon and sets an error
+     * message that will be displayed in a popup when the TextView has focus. The icon and error
+     * message will be reset to null when any key events cause changes to the TextView's text. The
+     * drawable must already have had {@link Drawable#setBounds} set on it. If the <code>error
+     * </code> is <code>null</code>, the error message will be cleared (and you should provide a
+     * <code>null</code> icon as well).
      */
     public void setError(CharSequence error, Drawable icon) {
         createEditorIfNeeded();
@@ -4673,8 +4454,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the list of input filters that will be used if the buffer is
-     * Editable. Has no effect otherwise.
+     * Sets the list of input filters that will be used if the buffer is Editable. Has no effect
+     * otherwise.
      *
      * @attr ref android.R.styleable#TextView_maxLength
      */
@@ -4691,8 +4472,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the list of input filters on the specified Editable,
-     * and includes mInput in the list if it is an InputFilter.
+     * Sets the list of input filters on the specified Editable, and includes mInput in the list if
+     * it is an InputFilter.
      */
     private void setFilters(Editable e, InputFilter[] filters) {
         if (mEditor != null) {
@@ -4730,13 +4511,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         return mFilters;
     }
 
-    
-
     private int getBoxHeight(Layout l) {
         Insets opticalInsets = isLayoutModeOptical(mParent) ? getOpticalInsets() : Insets.NONE;
-        int padding = (l == mHintLayout) ?
-                getCompoundPaddingTop() + getCompoundPaddingBottom() :
-                getExtendedPaddingTop() + getExtendedPaddingBottom();
+        int padding =
+                (l == mHintLayout)
+                        ? getCompoundPaddingTop() + getCompoundPaddingBottom()
+                        : getExtendedPaddingTop() + getExtendedPaddingBottom();
         return getMeasuredHeight() - padding + opticalInsets.top + opticalInsets.bottom;
     }
 
@@ -4754,10 +4534,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             int textht = l.getHeight();
 
             if (textht < boxht) {
-                if (gravity == Gravity.BOTTOM)
-                    voffset = boxht - textht;
-                else 
-                    voffset = (boxht - textht) >> 1;
+                if (gravity == Gravity.BOTTOM) voffset = boxht - textht;
+                else voffset = (boxht - textht) >> 1;
             }
         }
         return voffset;
@@ -4777,10 +4555,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             int textht = l.getHeight();
 
             if (textht < boxht) {
-                if (gravity == Gravity.TOP)
-                    voffset = boxht - textht;
-                else 
-                    voffset = (boxht - textht) >> 1;
+                if (gravity == Gravity.TOP) voffset = boxht - textht;
+                else voffset = (boxht - textht) >> 1;
             }
         }
         return voffset;
@@ -4811,10 +4587,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
                     thick /= 2.0f;
 
-                    
                     mHighlightPath.computeBounds(TEMP_RECTF, false);
 
-                    invalidate((int) Math.floor(horizontalPadding + TEMP_RECTF.left - thick),
+                    invalidate(
+                            (int) Math.floor(horizontalPadding + TEMP_RECTF.left - thick),
                             (int) Math.floor(verticalPadding + TEMP_RECTF.top - thick),
                             (int) Math.ceil(horizontalPadding + TEMP_RECTF.right + thick),
                             (int) Math.ceil(verticalPadding + TEMP_RECTF.bottom + thick));
@@ -4822,8 +4598,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             } else {
                 for (int i = 0; i < mEditor.mCursorCount; i++) {
                     Rect bounds = mEditor.mCursorDrawable[i].getBounds();
-                    invalidate(bounds.left + horizontalPadding, bounds.top + verticalPadding,
-                            bounds.right + horizontalPadding, bounds.bottom + verticalPadding);
+                    invalidate(
+                            bounds.left + horizontalPadding,
+                            bounds.top + verticalPadding,
+                            bounds.right + horizontalPadding,
+                            bounds.bottom + verticalPadding);
                 }
             }
         }
@@ -4839,65 +4618,57 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if (a >= 0 || b >= 0 || c >= 0) {
             int start = Math.min(Math.min(a, b), c);
             int end = Math.max(Math.max(a, b), c);
-            invalidateRegion(start, end, true );
+            invalidateRegion(start, end, true);
         }
     }
 
-    /**
-     * Invalidates the region of text enclosed between the start and end text offsets.
-     */
+    /** Invalidates the region of text enclosed between the start and end text offsets. */
     void invalidateRegion(int start, int end, boolean invalidateCursor) {
         if (mLayout == null) {
             invalidate();
         } else {
-                int lineStart = mLayout.getLineForOffset(start);
-                int top = mLayout.getLineTop(lineStart);
+            int lineStart = mLayout.getLineForOffset(start);
+            int top = mLayout.getLineTop(lineStart);
 
-                
-                
-                
-                
-                
-                
-                if (lineStart > 0) {
-                    top -= mLayout.getLineDescent(lineStart - 1);
+            if (lineStart > 0) {
+                top -= mLayout.getLineDescent(lineStart - 1);
+            }
+
+            int lineEnd;
+
+            if (start == end) lineEnd = lineStart;
+            else lineEnd = mLayout.getLineForOffset(end);
+
+            int bottom = mLayout.getLineBottom(lineEnd);
+
+            if (invalidateCursor && mEditor != null) {
+                for (int i = 0; i < mEditor.mCursorCount; i++) {
+                    Rect bounds = mEditor.mCursorDrawable[i].getBounds();
+                    top = Math.min(top, bounds.top);
+                    bottom = Math.max(bottom, bounds.bottom);
                 }
+            }
 
-                int lineEnd;
+            final int compoundPaddingLeft = getCompoundPaddingLeft();
+            final int verticalPadding = getExtendedPaddingTop() + getVerticalOffset(true);
 
-                if (start == end)
-                    lineEnd = lineStart;
-                else
-                    lineEnd = mLayout.getLineForOffset(end);
+            int left, right;
+            if (lineStart == lineEnd && !invalidateCursor) {
+                left = (int) mLayout.getPrimaryHorizontal(start);
+                right = (int) (mLayout.getPrimaryHorizontal(end) + 1.0);
+                left += compoundPaddingLeft;
+                right += compoundPaddingLeft;
+            } else {
 
-                int bottom = mLayout.getLineBottom(lineEnd);
+                left = compoundPaddingLeft;
+                right = getWidth() - getCompoundPaddingRight();
+            }
 
-                
-                if (invalidateCursor && mEditor != null) {
-                    for (int i = 0; i < mEditor.mCursorCount; i++) {
-                        Rect bounds = mEditor.mCursorDrawable[i].getBounds();
-                        top = Math.min(top, bounds.top);
-                        bottom = Math.max(bottom, bounds.bottom);
-                    }
-                }
-
-                final int compoundPaddingLeft = getCompoundPaddingLeft();
-                final int verticalPadding = getExtendedPaddingTop() + getVerticalOffset(true);
-
-                int left, right;
-                if (lineStart == lineEnd && !invalidateCursor) {
-                    left = (int) mLayout.getPrimaryHorizontal(start);
-                    right = (int) (mLayout.getPrimaryHorizontal(end) + 1.0);
-                    left += compoundPaddingLeft;
-                    right += compoundPaddingLeft;
-                } else {
-                    
-                    left = compoundPaddingLeft;
-                    right = getWidth() - getCompoundPaddingRight();
-                }
-
-                invalidate(mScrollX + left, verticalPadding + top,
-                        mScrollX + right, verticalPadding + bottom);
+            invalidate(
+                    mScrollX + left,
+                    verticalPadding + top,
+                    mScrollX + right,
+                    verticalPadding + bottom);
         }
     }
 
@@ -4914,9 +4685,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         mPreDrawListenerDetached = false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public boolean onPreDraw() {
         if (mLayout == null) {
             assumeLayout();
@@ -4928,9 +4697,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
              * For selection, ensure start or end is visible depending on controller's state.
              */
             int curs = getSelectionEnd();
-            
-            if (mEditor != null && mEditor.mSelectionModifierCursorController != null &&
-                    mEditor.mSelectionModifierCursorController.isSelectionStartDragged()) {
+
+            if (mEditor != null
+                    && mEditor.mSelectionModifierCursorController != null
+                    && mEditor.mSelectionModifierCursorController.isSelectionStartDragged()) {
                 curs = getSelectionStart();
             }
 
@@ -4950,9 +4720,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             bringTextIntoView();
         }
 
-        
-        
-        
         if (mEditor != null && mEditor.mCreatedWithASelection) {
             if (mEditor.extractedTextModeWillBeStarted()) {
                 mEditor.checkFieldAndSelectCurrentWord();
@@ -4962,11 +4729,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             mEditor.mCreatedWithASelection = false;
         }
 
-        
-        
-        
-        if (isInExtractedMode() && hasSelection() && mEditor != null
-                && mEditor.mTextActionMode == null && isShown() && hasWindowFocus()) {
+        if (isInExtractedMode()
+                && hasSelection()
+                && mEditor != null
+                && mEditor.mTextActionMode == null
+                && isShown()
+                && hasWindowFocus()) {
             mEditor.startSelectionActionMode();
         }
 
@@ -4989,7 +4757,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    
     @Override
     protected void onDetachedFromWindowInternal() {
         if (mPreDrawRegistered) {
@@ -5017,8 +4784,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     @Override
     protected int getLeftPaddingOffset() {
-        return getCompoundPaddingLeft() - mPaddingLeft +
-                (int) Math.min(0, mShadowDx - mShadowRadius);
+        return getCompoundPaddingLeft()
+                - mPaddingLeft
+                + (int) Math.min(0, mShadowDx - mShadowRadius);
     }
 
     @Override
@@ -5032,15 +4800,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     private int getFudgedPaddingRight() {
-        
-        int cursorWidth = 2 + (int)mTextPaint.density; 
+
+        int cursorWidth = 2 + (int) mTextPaint.density;
         return Math.max(0, getCompoundPaddingRight() - (cursorWidth - 1));
     }
 
     @Override
     protected int getRightPaddingOffset() {
-        return -(getFudgedPaddingRight() - mPaddingRight) +
-                (int) Math.max(0, mShadowDx + mShadowRadius);
+        return -(getFudgedPaddingRight() - mPaddingRight)
+                + (int) Math.max(0, mShadowDx + mShadowRadius);
     }
 
     @Override
@@ -5077,9 +4845,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             int scrollX = mScrollX;
             int scrollY = mScrollY;
 
-            
-            
-            
             final TextView.Drawables drawables = mDrawables;
             if (drawables != null) {
                 if (drawable == drawables.mShowing[Drawables.LEFT]) {
@@ -5118,8 +4883,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
 
             if (handled) {
-                invalidate(dirty.left + scrollX, dirty.top + scrollY,
-                        dirty.right + scrollX, dirty.bottom + scrollY);
+                invalidate(
+                        dirty.left + scrollX,
+                        dirty.top + scrollY,
+                        dirty.right + scrollX,
+                        dirty.bottom + scrollY);
             }
         }
 
@@ -5130,22 +4898,22 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     @Override
     public boolean hasOverlappingRendering() {
-        
+
         return ((getBackground() != null && getBackground().getCurrent() != null)
-                || mText instanceof Spannable || hasSelection()
+                || mText instanceof Spannable
+                || hasSelection()
                 || isHorizontalFadingEdgeEnabled());
     }
 
     /**
+     * Returns the state of the {@code textIsSelectable} flag (See {@link #setTextIsSelectable
+     * setTextIsSelectable()}). Although you have to set this flag to allow users to select and copy
+     * text in a non-editable TextView, the content of an {@link EditText} can always be selected,
+     * independently of the value of this flag.
      *
-     * Returns the state of the {@code textIsSelectable} flag (See
-     * {@link #setTextIsSelectable setTextIsSelectable()}). Although you have to set this flag
-     * to allow users to select and copy text in a non-editable TextView, the content of an
-     * {@link EditText} can always be selected, independently of the value of this flag.
      * <p>
      *
      * @return True if the text displayed in this TextView can be selected by the user.
-     *
      * @attr ref android.R.styleable#TextView_textIsSelectable
      */
     public boolean isTextSelectable() {
@@ -5153,31 +4921,30 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets whether the content of this view is selectable by the user. The default is
-     * {@code false}, meaning that the content is not selectable.
-     * <p>
-     * When you use a TextView to display a useful piece of information to the user (such as a
-     * contact's address), make it selectable, so that the user can select and copy its
-     * content. You can also use set the XML attribute
-     * {@link android.R.styleable#TextView_textIsSelectable} to "true".
-     * <p>
-     * When you call this method to set the value of {@code textIsSelectable}, it sets
-     * the flags {@code focusable}, {@code focusableInTouchMode}, {@code clickable},
-     * and {@code longClickable} to the same value. These flags correspond to the attributes
-     * {@link android.R.styleable#View_focusable android:focusable},
-     * {@link android.R.styleable#View_focusableInTouchMode android:focusableInTouchMode},
-     * {@link android.R.styleable#View_clickable android:clickable}, and
-     * {@link android.R.styleable#View_longClickable android:longClickable}. To restore any of these
-     * flags to a state you had set previously, call one or more of the following methods:
-     * {@link #setFocusable(boolean) setFocusable()},
-     * {@link #setFocusableInTouchMode(boolean) setFocusableInTouchMode()},
-     * {@link #setClickable(boolean) setClickable()} or
-     * {@link #setLongClickable(boolean) setLongClickable()}.
+     * Sets whether the content of this view is selectable by the user. The default is {@code
+     * false}, meaning that the content is not selectable.
+     *
+     * <p>When you use a TextView to display a useful piece of information to the user (such as a
+     * contact's address), make it selectable, so that the user can select and copy its content. You
+     * can also use set the XML attribute {@link android.R.styleable#TextView_textIsSelectable} to
+     * "true".
+     *
+     * <p>When you call this method to set the value of {@code textIsSelectable}, it sets the flags
+     * {@code focusable}, {@code focusableInTouchMode}, {@code clickable}, and {@code longClickable}
+     * to the same value. These flags correspond to the attributes {@link
+     * android.R.styleable#View_focusable android:focusable}, {@link
+     * android.R.styleable#View_focusableInTouchMode android:focusableInTouchMode}, {@link
+     * android.R.styleable#View_clickable android:clickable}, and {@link
+     * android.R.styleable#View_longClickable android:longClickable}. To restore any of these flags
+     * to a state you had set previously, call one or more of the following methods: {@link
+     * #setFocusable(boolean) setFocusable()}, {@link #setFocusableInTouchMode(boolean)
+     * setFocusableInTouchMode()}, {@link #setClickable(boolean) setClickable()} or {@link
+     * #setLongClickable(boolean) setLongClickable()}.
      *
      * @param selectable Whether the content of this TextView should be selectable.
      */
     public void setTextIsSelectable(boolean selectable) {
-        if (!selectable && mEditor == null) return; 
+        if (!selectable && mEditor == null) return;
 
         createEditorIfNeeded();
         if (mEditor.mTextIsSelectable == selectable) return;
@@ -5188,12 +4955,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         setClickable(selectable);
         setLongClickable(selectable);
 
-        
-
         setMovementMethod(selectable ? ArrowKeyMovementMethod.getInstance() : null);
         setText(mText, selectable ? BufferType.SPANNABLE : BufferType.NORMAL);
 
-        
         mEditor.prepareCursorControllers();
     }
 
@@ -5209,10 +4973,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         if (isTextSelectable()) {
-            
-            
-            
-            
+
             final int length = drawableState.length;
             for (int i = 0; i < length; i++) {
                 if (drawableState[i] == R.attr.state_pressed) {
@@ -5235,9 +4996,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         final int selEnd = getSelectionEnd();
         if (mMovement != null && (isFocused() || isPressed()) && selStart >= 0) {
             if (selStart == selEnd) {
-                if (mEditor != null && mEditor.isCursorVisible() &&
-                        (SystemClock.uptimeMillis() - mEditor.mShowCursor) %
-                        (2 * Editor.BLINK) < Editor.BLINK) {
+                if (mEditor != null
+                        && mEditor.isCursorVisible()
+                        && (SystemClock.uptimeMillis() - mEditor.mShowCursor) % (2 * Editor.BLINK)
+                                < Editor.BLINK) {
                     if (mHighlightPathBogus) {
                         if (mHighlightPath == null) mHighlightPath = new Path();
                         mHighlightPath.reset();
@@ -5246,7 +5008,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                         mHighlightPathBogus = false;
                     }
 
-                    
                     highlightPaint.setColor(mCurTextColor);
                     highlightPaint.setStyle(Paint.Style.STROKE);
                     highlight = mHighlightPath;
@@ -5259,7 +5020,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                     mHighlightPathBogus = false;
                 }
 
-                
                 highlightPaint.setColor(mHighlightColor);
                 highlightPaint.setStyle(Paint.Style.FILL);
 
@@ -5269,9 +5029,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         return highlight;
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     public int getHorizontalOffsetForDrawables() {
         return 0;
     }
@@ -5280,7 +5038,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     protected void onDraw(Canvas canvas) {
         restartMarqueeIfNeeded();
 
-        
         super.onDraw(canvas);
 
         final int compoundPaddingLeft = getCompoundPaddingLeft();
@@ -5296,7 +5053,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         final boolean isLayoutRtl = isLayoutRtl();
         final int offset = getHorizontalOffsetForDrawables();
         final int leftOffset = isLayoutRtl ? 0 : offset;
-        final int rightOffset = isLayoutRtl ? offset : 0 ;
+        final int rightOffset = isLayoutRtl ? offset : 0;
 
         final Drawables dr = mDrawables;
         if (dr != null) {
@@ -5308,45 +5065,43 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             int vspace = bottom - top - compoundPaddingBottom - compoundPaddingTop;
             int hspace = right - left - compoundPaddingRight - compoundPaddingLeft;
 
-            
-            
             if (dr.mShowing[Drawables.LEFT] != null) {
                 canvas.save();
-                canvas.translate(scrollX + mPaddingLeft + leftOffset,
-                                 scrollY + compoundPaddingTop +
-                                 (vspace - dr.mDrawableHeightLeft) / 2);
+                canvas.translate(
+                        scrollX + mPaddingLeft + leftOffset,
+                        scrollY + compoundPaddingTop + (vspace - dr.mDrawableHeightLeft) / 2);
                 dr.mShowing[Drawables.LEFT].draw(canvas);
                 canvas.restore();
             }
 
-            
-            
             if (dr.mShowing[Drawables.RIGHT] != null) {
                 canvas.save();
-                canvas.translate(scrollX + right - left - mPaddingRight
-                        - dr.mDrawableSizeRight - rightOffset,
-                         scrollY + compoundPaddingTop + (vspace - dr.mDrawableHeightRight) / 2);
+                canvas.translate(
+                        scrollX
+                                + right
+                                - left
+                                - mPaddingRight
+                                - dr.mDrawableSizeRight
+                                - rightOffset,
+                        scrollY + compoundPaddingTop + (vspace - dr.mDrawableHeightRight) / 2);
                 dr.mShowing[Drawables.RIGHT].draw(canvas);
                 canvas.restore();
             }
 
-            
-            
             if (dr.mShowing[Drawables.TOP] != null) {
                 canvas.save();
-                canvas.translate(scrollX + compoundPaddingLeft +
-                        (hspace - dr.mDrawableWidthTop) / 2, scrollY + mPaddingTop);
+                canvas.translate(
+                        scrollX + compoundPaddingLeft + (hspace - dr.mDrawableWidthTop) / 2,
+                        scrollY + mPaddingTop);
                 dr.mShowing[Drawables.TOP].draw(canvas);
                 canvas.restore();
             }
 
-            
-            
             if (dr.mShowing[Drawables.BOTTOM] != null) {
                 canvas.save();
-                canvas.translate(scrollX + compoundPaddingLeft +
-                        (hspace - dr.mDrawableWidthBottom) / 2,
-                         scrollY + bottom - top - mPaddingBottom - dr.mDrawableSizeBottom);
+                canvas.translate(
+                        scrollX + compoundPaddingLeft + (hspace - dr.mDrawableWidthBottom) / 2,
+                        scrollY + bottom - top - mPaddingBottom - dr.mDrawableSizeBottom);
                 dr.mShowing[Drawables.BOTTOM].draw(canvas);
                 canvas.restore();
             }
@@ -5385,8 +5140,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         float clipLeft = compoundPaddingLeft + scrollX;
         float clipTop = (scrollY == 0) ? 0 : extendedPaddingTop + scrollY;
         float clipRight = right - left - getFudgedPaddingRight() + scrollX;
-        float clipBottom = bottom - top + scrollY -
-                ((scrollY == maxScrollY) ? 0 : extendedPaddingBottom);
+        float clipBottom =
+                bottom - top + scrollY - ((scrollY == maxScrollY) ? 0 : extendedPaddingBottom);
 
         if (mShadowRadius != 0) {
             clipLeft += Math.min(0, mShadowDx - mShadowRadius);
@@ -5401,8 +5156,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         int voffsetText = 0;
         int voffsetCursor = 0;
 
-        
-        
         if ((mGravity & Gravity.VERTICAL_GRAVITY_MASK) != Gravity.TOP) {
             voffsetText = getVerticalOffset(false);
             voffsetCursor = getVerticalOffset(true);
@@ -5411,10 +5164,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         final int layoutDirection = getLayoutDirection();
         final int absoluteGravity = Gravity.getAbsoluteGravity(mGravity, layoutDirection);
-        if (mEllipsize == TextUtils.TruncateAt.MARQUEE &&
-                mMarqueeFadeMode != MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS) {
-            if (!mSingleLine && getLineCount() == 1 && canMarquee() &&
-                    (absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK) != Gravity.LEFT) {
+        if (mEllipsize == TextUtils.TruncateAt.MARQUEE
+                && mMarqueeFadeMode != MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS) {
+            if (!mSingleLine
+                    && getLineCount() == 1
+                    && canMarquee()
+                    && (absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK) != Gravity.LEFT) {
                 final int width = mRight - mLeft;
                 final int padding = getCompoundPaddingLeft() + getCompoundPaddingRight();
                 final float dx = mLayout.getLineRight(0) - (width - padding);
@@ -5474,8 +5229,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 r.left = (int) mLayout.getPrimaryHorizontal(selStart);
                 r.right = (int) mLayout.getPrimaryHorizontal(selEnd);
             } else {
-                
-                
+
                 if (mHighlightPathBogus) {
                     if (mHighlightPath == null) mHighlightPath = new Path();
                     mHighlightPath.reset();
@@ -5484,13 +5238,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 }
                 synchronized (TEMP_RECTF) {
                     mHighlightPath.computeBounds(TEMP_RECTF, true);
-                    r.left = (int)TEMP_RECTF.left-1;
-                    r.right = (int)TEMP_RECTF.right+1;
+                    r.left = (int) TEMP_RECTF.left - 1;
+                    r.right = (int) TEMP_RECTF.right + 1;
                 }
             }
         }
 
-        
         int paddingLeft = getCompoundPaddingLeft();
         int paddingTop = getExtendedPaddingTop();
         if ((mGravity & Gravity.VERTICAL_GRAVITY_MASK) != Gravity.TOP) {
@@ -5501,19 +5254,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         r.bottom += paddingBottom;
     }
 
-    /**
-     * Return the number of lines of text, or 0 if the internal Layout has not
-     * been built.
-     */
+    /** Return the number of lines of text, or 0 if the internal Layout has not been built. */
     public int getLineCount() {
         return mLayout != null ? mLayout.getLineCount() : 0;
     }
 
     /**
-     * Return the baseline for the specified line (0...getLineCount() - 1)
-     * If bounds is not null, return the top, left, right, bottom extents
-     * of the specified line in it. If the internal Layout has not been built,
-     * return 0 and set bounds to (0, 0, 0, 0)
+     * Return the baseline for the specified line (0...getLineCount() - 1) If bounds is not null,
+     * return the top, left, right, bottom extents of the specified line in it. If the internal
+     * Layout has not been built, return 0 and set bounds to (0, 0, 0, 0)
+     *
      * @param line which line to examine (0..getLineCount() - 1)
      * @param bounds Optional. If not null, it returns the extent of the line
      * @return the Y-coordinate of the baseline
@@ -5524,8 +5274,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 bounds.set(0, 0, 0, 0);
             }
             return 0;
-        }
-        else {
+        } else {
             int baseline = mLayout.getLineBounds(line, bounds);
 
             int voffset = getExtendedPaddingTop();
@@ -5561,9 +5310,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         return getExtendedPaddingTop() + voffset;
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     protected int getFadeTop(boolean offsetRequired) {
         if (mLayout == null) return 0;
@@ -5578,9 +5325,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         return getExtendedPaddingTop() + voffset;
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     protected int getFadeHeight(boolean offsetRequired) {
         return mLayout != null ? mLayout.getHeight() : 0;
@@ -5588,20 +5333,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     @Override
     public boolean onKeyPreIme(int keyCode, KeyEvent event) {
-        
-        
-        
+
         if (keyCode == KeyEvent.KEYCODE_BACK && handleBackInTextActionModeIfNeeded(event)) {
             return true;
         }
         return super.onKeyPreIme(keyCode, event);
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     public boolean handleBackInTextActionModeIfNeeded(KeyEvent event) {
-        
+
         if (mEditor == null || mEditor.mTextActionMode == null) {
             return false;
         }
@@ -5641,37 +5382,32 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         int which = doKeyDown(keyCode, down, event);
         if (which == 0) {
-            
+
             return super.onKeyMultiple(keyCode, repeatCount, event);
         }
         if (which == -1) {
-            
+
             return true;
         }
 
         repeatCount--;
 
-        
-        
-        
-        
-        
         KeyEvent up = KeyEvent.changeAction(event, KeyEvent.ACTION_UP);
         if (which == 1) {
-            
-            mEditor.mKeyListener.onKeyUp(this, (Editable)mText, keyCode, up);
+
+            mEditor.mKeyListener.onKeyUp(this, (Editable) mText, keyCode, up);
             while (--repeatCount > 0) {
-                mEditor.mKeyListener.onKeyDown(this, (Editable)mText, keyCode, down);
-                mEditor.mKeyListener.onKeyUp(this, (Editable)mText, keyCode, up);
+                mEditor.mKeyListener.onKeyDown(this, (Editable) mText, keyCode, down);
+                mEditor.mKeyListener.onKeyUp(this, (Editable) mText, keyCode, up);
             }
             hideErrorIfUnchanged();
 
         } else if (which == 2) {
-            
-            mMovement.onKeyUp(this, (Spannable)mText, keyCode, up);
+
+            mMovement.onKeyUp(this, (Spannable) mText, keyCode, up);
             while (--repeatCount > 0) {
-                mMovement.onKeyDown(this, (Spannable)mText, keyCode, down);
-                mMovement.onKeyUp(this, (Spannable)mText, keyCode, up);
+                mMovement.onKeyDown(this, (Spannable) mText, keyCode, down);
+                mMovement.onKeyUp(this, (Spannable) mText, keyCode, up);
             }
         }
 
@@ -5679,10 +5415,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns true if pressing ENTER in this field advances focus instead
-     * of inserting the character.  This is true mostly in single-line fields,
-     * but also in mail addresses and subjects which will display on multiple
-     * lines but where it doesn't make sense to insert newlines.
+     * Returns true if pressing ENTER in this field advances focus instead of inserting the
+     * character. This is true mostly in single-line fields, but also in mail addresses and subjects
+     * which will display on multiple lines but where it doesn't make sense to insert newlines.
      */
     private boolean shouldAdvanceFocusOnEnter() {
         if (getKeyListener() == null) {
@@ -5693,8 +5428,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return true;
         }
 
-        if (mEditor != null &&
-                (mEditor.mInputType & EditorInfo.TYPE_MASK_CLASS) == EditorInfo.TYPE_CLASS_TEXT) {
+        if (mEditor != null
+                && (mEditor.mInputType & EditorInfo.TYPE_MASK_CLASS)
+                        == EditorInfo.TYPE_CLASS_TEXT) {
             int variation = mEditor.mInputType & EditorInfo.TYPE_MASK_VARIATION;
             if (variation == EditorInfo.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
                     || variation == EditorInfo.TYPE_TEXT_VARIATION_EMAIL_SUBJECT) {
@@ -5706,12 +5442,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns true if pressing TAB in this field advances focus instead
-     * of inserting the character.  Insert tabs only in multi-line editors.
+     * Returns true if pressing TAB in this field advances focus instead of inserting the character.
+     * Insert tabs only in multi-line editors.
      */
     private boolean shouldAdvanceFocusOnTab() {
-        if (getKeyListener() != null && !mSingleLine && mEditor != null &&
-                (mEditor.mInputType & EditorInfo.TYPE_MASK_CLASS) == EditorInfo.TYPE_CLASS_TEXT) {
+        if (getKeyListener() != null
+                && !mSingleLine
+                && mEditor != null
+                && (mEditor.mInputType & EditorInfo.TYPE_MASK_CLASS)
+                        == EditorInfo.TYPE_CLASS_TEXT) {
             int variation = mEditor.mInputType & EditorInfo.TYPE_MASK_VARIATION;
             if (variation == EditorInfo.TYPE_TEXT_FLAG_IME_MULTI_LINE
                     || variation == EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE) {
@@ -5726,11 +5465,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return 0;
         }
 
-        
-        
-        
-        
-        
         if (event.getRepeatCount() == 0 && !KeyEvent.isModifierKey(keyCode)) {
             mPreventDefaultMovement = false;
         }
@@ -5738,25 +5472,18 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         switch (keyCode) {
             case KeyEvent.KEYCODE_ENTER:
                 if (event.hasNoModifiers()) {
-                    
-                    
-                    
-                    
+
                     if (mEditor != null && mEditor.mInputContentType != null) {
-                        
-                        
-                        if (mEditor.mInputContentType.onEditorActionListener != null &&
-                                mEditor.mInputContentType.onEditorActionListener.onEditorAction(
-                                this, EditorInfo.IME_NULL, event)) {
+
+                        if (mEditor.mInputContentType.onEditorActionListener != null
+                                && mEditor.mInputContentType.onEditorActionListener.onEditorAction(
+                                        this, EditorInfo.IME_NULL, event)) {
                             mEditor.mInputContentType.enterDown = true;
-                            
+
                             return -1;
                         }
                     }
 
-                    
-                    
-                    
                     if ((event.getFlags() & KeyEvent.FLAG_EDITOR_ACTION) != 0
                             || shouldAdvanceFocusOnEnter()) {
                         if (hasOnClickListeners()) {
@@ -5783,7 +5510,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 }
                 break;
 
-                
             case KeyEvent.KEYCODE_BACK:
                 if (mEditor != null && mEditor.mTextActionMode != null) {
                     stopTextActionMode();
@@ -5797,16 +5523,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             if (otherEvent != null) {
                 try {
                     beginBatchEdit();
-                    final boolean handled = mEditor.mKeyListener.onKeyOther(this, (Editable) mText,
-                            otherEvent);
+                    final boolean handled =
+                            mEditor.mKeyListener.onKeyOther(this, (Editable) mText, otherEvent);
                     hideErrorIfUnchanged();
                     doDown = false;
                     if (handled) {
                         return -1;
                     }
                 } catch (AbstractMethodError e) {
-                    
-                    
+
                 } finally {
                     endBatchEdit();
                 }
@@ -5814,34 +5539,29 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
             if (doDown) {
                 beginBatchEdit();
-                final boolean handled = mEditor.mKeyListener.onKeyDown(this, (Editable) mText,
-                        keyCode, event);
+                final boolean handled =
+                        mEditor.mKeyListener.onKeyDown(this, (Editable) mText, keyCode, event);
                 endBatchEdit();
                 hideErrorIfUnchanged();
                 if (handled) return 1;
             }
         }
 
-        
-        
-
         if (mMovement != null && mLayout != null) {
             boolean doDown = true;
             if (otherEvent != null) {
                 try {
-                    boolean handled = mMovement.onKeyOther(this, (Spannable) mText,
-                            otherEvent);
+                    boolean handled = mMovement.onKeyOther(this, (Spannable) mText, otherEvent);
                     doDown = false;
                     if (handled) {
                         return -1;
                     }
                 } catch (AbstractMethodError e) {
-                    
-                    
+
                 }
             }
             if (doDown) {
-                if (mMovement.onKeyDown(this, (Spannable)mText, keyCode, event)) {
+                if (mMovement.onKeyDown(this, (Spannable) mText, keyCode, event)) {
                     if (event.getRepeatCount() == 0 && !KeyEvent.isModifierKey(keyCode)) {
                         mPreventDefaultMovement = true;
                     }
@@ -5854,8 +5574,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Resets the mErrorWasChanged flag, so that future calls to {@link #setError(CharSequence)}
-     * can be recorded.
+     * Resets the mErrorWasChanged flag, so that future calls to {@link #setError(CharSequence)} can
+     * be recorded.
+     *
      * @hide
      */
     public void resetErrorChangedFlag() {
@@ -5868,9 +5589,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if (mEditor != null) mEditor.mErrorWasChanged = false;
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     public void hideErrorIfUnchanged() {
         if (mEditor != null && mEditor.mError != null && !mEditor.mErrorWasChanged) {
             setError(null, null);
@@ -5900,8 +5619,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                      * this case.)
                      */
                     if (!hasOnClickListeners()) {
-                        if (mMovement != null && mText instanceof Editable
-                                && mLayout != null && onCheckIsTextEditor()) {
+                        if (mMovement != null
+                                && mText instanceof Editable
+                                && mLayout != null
+                                && onCheckIsTextEditor()) {
                             InputMethodManager imm = InputMethodManager.peekInstance();
                             viewClicked(imm);
                             if (imm != null && getShowSoftInputOnFocus()) {
@@ -5914,7 +5635,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
             case KeyEvent.KEYCODE_ENTER:
                 if (event.hasNoModifiers()) {
-                    if (mEditor != null && mEditor.mInputContentType != null
+                    if (mEditor != null
+                            && mEditor.mInputContentType != null
                             && mEditor.mInputContentType.onEditorActionListener != null
                             && mEditor.mInputContentType.enterDown) {
                         mEditor.mInputContentType.enterDown = false;
@@ -5942,8 +5664,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                             if (v != null) {
                                 if (!v.requestFocus(FOCUS_DOWN)) {
                                     throw new IllegalStateException(
-                                            "focus search returned a view " +
-                                            "that wasn't able to take focus!");
+                                            "focus search returned a view "
+                                                    + "that wasn't able to take focus!");
                                 }
 
                                 /*
@@ -5953,10 +5675,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                                  */
                                 super.onKeyUp(keyCode, event);
                                 return true;
-                            } else if ((event.getFlags()
-                                    & KeyEvent.FLAG_EDITOR_ACTION) != 0) {
-                                
-                                
+                            } else if ((event.getFlags() & KeyEvent.FLAG_EDITOR_ACTION) != 0) {
+
                                 InputMethodManager imm = InputMethodManager.peekInstance();
                                 if (imm != null && imm.isActive(this)) {
                                     imm.hideSoftInputFromWindow(getWindowToken(), 0);
@@ -5970,12 +5690,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         if (mEditor != null && mEditor.mKeyListener != null)
-            if (mEditor.mKeyListener.onKeyUp(this, (Editable) mText, keyCode, event))
-                return true;
+            if (mEditor.mKeyListener.onKeyUp(this, (Editable) mText, keyCode, event)) return true;
 
         if (mMovement != null && mLayout != null)
-            if (mMovement.onKeyUp(this, (Spannable) mText, keyCode, event))
-                return true;
+            if (mMovement.onKeyUp(this, (Spannable) mText, keyCode, event)) return true;
 
         return super.onKeyUp(keyCode, event);
     }
@@ -6005,15 +5723,13 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             if (focusSearch(FOCUS_UP) != null) {
                 outAttrs.imeOptions |= EditorInfo.IME_FLAG_NAVIGATE_PREVIOUS;
             }
-            if ((outAttrs.imeOptions&EditorInfo.IME_MASK_ACTION)
+            if ((outAttrs.imeOptions & EditorInfo.IME_MASK_ACTION)
                     == EditorInfo.IME_ACTION_UNSPECIFIED) {
-                if ((outAttrs.imeOptions&EditorInfo.IME_FLAG_NAVIGATE_NEXT) != 0) {
-                    
-                    
+                if ((outAttrs.imeOptions & EditorInfo.IME_FLAG_NAVIGATE_NEXT) != 0) {
+
                     outAttrs.imeOptions |= EditorInfo.IME_ACTION_NEXT;
                 } else {
-                    
-                    
+
                     outAttrs.imeOptions |= EditorInfo.IME_ACTION_DONE;
                 }
                 if (!shouldAdvanceFocusOnEnter()) {
@@ -6021,7 +5737,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 }
             }
             if (isMultilineInputType(outAttrs.inputType)) {
-                
+
                 outAttrs.imeOptions |= EditorInfo.IME_FLAG_NO_ENTER_ACTION;
             }
             outAttrs.hintText = mHint;
@@ -6037,8 +5753,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * If this TextView contains editable content, extract a portion of it
-     * based on the information in <var>request</var> in to <var>outText</var>.
+     * If this TextView contains editable content, extract a portion of it based on the information
+     * in <var>request</var> in to <var>outText</var>.
+     *
      * @return Returns true if the text was successfully extracted, else false.
      */
     public boolean extractText(ExtractedTextRequest request, ExtractedText outText) {
@@ -6047,9 +5764,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * This is used to remove all style-impacting spans from text before new
-     * extracted text is being replaced into it, so that we don't have any
-     * lingering spans applied during the replace.
+     * This is used to remove all style-impacting spans from text before new extracted text is being
+     * replaced into it, so that we don't have any lingering spans applied during the replace.
      */
     static void removeParcelableSpans(Spannable spannable, int start, int end) {
         Object[] spans = spannable.getSpans(start, end, ParcelableSpan.class);
@@ -6061,8 +5777,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Apply to this text view the given extracted text, as previously
-     * returned by {@link #extractText(ExtractedTextRequest, ExtractedText)}.
+     * Apply to this text view the given extracted text, as previously returned by {@link
+     * #extractText(ExtractedTextRequest, ExtractedText)}.
      */
     public void setExtractedText(ExtractedText text) {
         Editable content = getEditableText();
@@ -6084,9 +5800,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 removeParcelableSpans(content, start, end);
                 if (TextUtils.equals(content.subSequence(start, end), text.text)) {
                     if (text.text instanceof Spanned) {
-                        
-                        TextUtils.copySpansFrom((Spanned) text.text, start, end,
-                                Object.class, content, start);
+
+                        TextUtils.copySpansFrom(
+                                (Spanned) text.text, start, end, Object.class, content, start);
                     }
                 } else {
                     content.replace(start, end, text.text);
@@ -6094,11 +5810,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
         }
 
-        
-        
-        
-        
-        Spannable sp = (Spannable)getText();
+        Spannable sp = (Spannable) getText();
         final int N = sp.length();
         int start = text.selectionStart;
         if (start < 0) start = 0;
@@ -6108,46 +5820,37 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         else if (end > N) end = N;
         Selection.setSelection(sp, start, end);
 
-        
-        if ((text.flags&ExtractedText.FLAG_SELECTING) != 0) {
+        if ((text.flags & ExtractedText.FLAG_SELECTING) != 0) {
             MetaKeyKeyListener.startSelecting(this, sp);
         } else {
             MetaKeyKeyListener.stopSelecting(this, sp);
         }
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     public void setExtracting(ExtractedTextRequest req) {
         if (mEditor.mInputMethodState != null) {
             mEditor.mInputMethodState.mExtractedTextRequest = req;
         }
-        
-        
-        
+
         mEditor.hideCursorAndSpanControllers();
         stopTextActionMode();
     }
 
     /**
-     * Called by the framework in response to a text completion from
-     * the current input method, provided by it calling
-     * {@link InputConnection#commitCompletion
-     * InputConnection.commitCompletion()}.  The default implementation does
-     * nothing; text views that are supporting auto-completion should override
-     * this to do their desired behavior.
+     * Called by the framework in response to a text completion from the current input method,
+     * provided by it calling {@link InputConnection#commitCompletion
+     * InputConnection.commitCompletion()}. The default implementation does nothing; text views that
+     * are supporting auto-completion should override this to do their desired behavior.
      *
      * @param text The auto complete text the user has selected.
      */
-    public void onCommitCompletion(CompletionInfo text) {
-        
-    }
+    public void onCommitCompletion(CompletionInfo text) {}
 
     /**
      * Called by the framework in response to a text auto-correction (such as fixing a typo using a
-     * a dictionnary) from the current input method, provided by it calling
-     * {@link InputConnection#commitCorrection} InputConnection.commitCorrection()}. The default
+     * a dictionnary) from the current input method, provided by it calling {@link
+     * InputConnection#commitCorrection} InputConnection.commitCorrection()}. The default
      * implementation flashes the background of the corrected word to provide feedback to the user.
      *
      * @param info The auto correct info about the text that was corrected.
@@ -6165,29 +5868,24 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Called by the framework in response to a request to begin a batch
-     * of edit operations through a call to link {@link #beginBatchEdit()}.
+     * Called by the framework in response to a request to begin a batch of edit operations through
+     * a call to link {@link #beginBatchEdit()}.
      */
-    public void onBeginBatchEdit() {
-        
-    }
+    public void onBeginBatchEdit() {}
 
     /**
-     * Called by the framework in response to a request to end a batch
-     * of edit operations through a call to link {@link #endBatchEdit}.
+     * Called by the framework in response to a request to end a batch of edit operations through a
+     * call to link {@link #endBatchEdit}.
      */
-    public void onEndBatchEdit() {
-        
-    }
+    public void onEndBatchEdit() {}
 
     /**
-     * Called by the framework in response to a private command from the
-     * current method, provided by it calling
-     * {@link InputConnection#performPrivateCommand
+     * Called by the framework in response to a private command from the current method, provided by
+     * it calling {@link InputConnection#performPrivateCommand
      * InputConnection.performPrivateCommand()}.
      *
      * @param action The action name of the command.
-     * @param data Any additional data for the command.  This may be null.
+     * @param data Any additional data for the command. This may be null.
      * @return Return true if you handled the command, else false.
      */
     public boolean onPrivateIMECommand(String action, Bundle data) {
@@ -6206,13 +5904,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         mBoring = mHintBoring = null;
 
-        
         if (mEditor != null) mEditor.prepareCursorControllers();
     }
 
     /**
-     * Make a new Layout based on the already-measured size of the view,
-     * on the assumption that it was measured correctly at some point.
+     * Make a new Layout based on the already-measured size of the view, on the assumption that it
+     * was measured correctly at some point.
      */
     private void assumeLayout() {
         int width = mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight();
@@ -6227,8 +5924,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             width = VERY_WIDE;
         }
 
-        makeNewLayout(width, physicalWidth, UNKNOWN_BORING, UNKNOWN_BORING,
-                      physicalWidth, false);
+        makeNewLayout(width, physicalWidth, UNKNOWN_BORING, UNKNOWN_BORING, physicalWidth, false);
     }
 
     private Layout.Alignment getLayoutAlignment() {
@@ -6266,16 +5962,19 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 alignment = Layout.Alignment.ALIGN_CENTER;
                 break;
             case TEXT_ALIGNMENT_VIEW_START:
-                alignment = (getLayoutDirection() == LAYOUT_DIRECTION_RTL) ?
-                        Layout.Alignment.ALIGN_RIGHT : Layout.Alignment.ALIGN_LEFT;
+                alignment =
+                        (getLayoutDirection() == LAYOUT_DIRECTION_RTL)
+                                ? Layout.Alignment.ALIGN_RIGHT
+                                : Layout.Alignment.ALIGN_LEFT;
                 break;
             case TEXT_ALIGNMENT_VIEW_END:
-                alignment = (getLayoutDirection() == LAYOUT_DIRECTION_RTL) ?
-                        Layout.Alignment.ALIGN_LEFT : Layout.Alignment.ALIGN_RIGHT;
+                alignment =
+                        (getLayoutDirection() == LAYOUT_DIRECTION_RTL)
+                                ? Layout.Alignment.ALIGN_LEFT
+                                : Layout.Alignment.ALIGN_RIGHT;
                 break;
             case TEXT_ALIGNMENT_INHERIT:
-                
-                
+
             default:
                 alignment = Layout.Alignment.ALIGN_NORMAL;
                 break;
@@ -6284,17 +5983,18 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * The width passed in is now the desired layout width,
-     * not the full view width with padding.
+     * The width passed in is now the desired layout width, not the full view width with padding.
      * {@hide}
      */
-    protected void makeNewLayout(int wantWidth, int hintWidth,
-                                 BoringLayout.Metrics boring,
-                                 BoringLayout.Metrics hintBoring,
-                                 int ellipsisWidth, boolean bringIntoView) {
+    protected void makeNewLayout(
+            int wantWidth,
+            int hintWidth,
+            BoringLayout.Metrics boring,
+            BoringLayout.Metrics hintBoring,
+            int ellipsisWidth,
+            boolean bringIntoView) {
         stopMarquee();
 
-        
         mOldMaximum = mMaximum;
         mOldMaxMode = mMaxMode;
 
@@ -6308,17 +6008,19 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         Layout.Alignment alignment = getLayoutAlignment();
-        final boolean testDirChange = mSingleLine && mLayout != null &&
-            (alignment == Layout.Alignment.ALIGN_NORMAL ||
-             alignment == Layout.Alignment.ALIGN_OPPOSITE);
+        final boolean testDirChange =
+                mSingleLine
+                        && mLayout != null
+                        && (alignment == Layout.Alignment.ALIGN_NORMAL
+                                || alignment == Layout.Alignment.ALIGN_OPPOSITE);
         int oldDir = 0;
         if (testDirChange) oldDir = mLayout.getParagraphDirection(0);
         boolean shouldEllipsize = mEllipsize != null && getKeyListener() == null;
-        final boolean switchEllipsize = mEllipsize == TruncateAt.MARQUEE &&
-                mMarqueeFadeMode != MARQUEE_FADE_NORMAL;
+        final boolean switchEllipsize =
+                mEllipsize == TruncateAt.MARQUEE && mMarqueeFadeMode != MARQUEE_FADE_NORMAL;
         TruncateAt effectiveEllipsize = mEllipsize;
-        if (mEllipsize == TruncateAt.MARQUEE &&
-                mMarqueeFadeMode == MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS) {
+        if (mEllipsize == TruncateAt.MARQUEE
+                && mMarqueeFadeMode == MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS) {
             effectiveEllipsize = TruncateAt.END_SMALL;
         }
 
@@ -6326,13 +6028,27 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             mTextDir = getTextDirectionHeuristic();
         }
 
-        mLayout = makeSingleLayout(wantWidth, boring, ellipsisWidth, alignment, shouldEllipsize,
-                effectiveEllipsize, effectiveEllipsize == mEllipsize);
+        mLayout =
+                makeSingleLayout(
+                        wantWidth,
+                        boring,
+                        ellipsisWidth,
+                        alignment,
+                        shouldEllipsize,
+                        effectiveEllipsize,
+                        effectiveEllipsize == mEllipsize);
         if (switchEllipsize) {
-            TruncateAt oppositeEllipsize = effectiveEllipsize == TruncateAt.MARQUEE ?
-                    TruncateAt.END : TruncateAt.MARQUEE;
-            mSavedMarqueeModeLayout = makeSingleLayout(wantWidth, boring, ellipsisWidth, alignment,
-                    shouldEllipsize, oppositeEllipsize, effectiveEllipsize != mEllipsize);
+            TruncateAt oppositeEllipsize =
+                    effectiveEllipsize == TruncateAt.MARQUEE ? TruncateAt.END : TruncateAt.MARQUEE;
+            mSavedMarqueeModeLayout =
+                    makeSingleLayout(
+                            wantWidth,
+                            boring,
+                            ellipsisWidth,
+                            alignment,
+                            shouldEllipsize,
+                            oppositeEllipsize,
+                            effectiveEllipsize != mEllipsize);
         }
 
         shouldEllipsize = mEllipsize != null;
@@ -6342,53 +6058,80 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             if (shouldEllipsize) hintWidth = wantWidth;
 
             if (hintBoring == UNKNOWN_BORING) {
-                hintBoring = BoringLayout.isBoring(mHint, mTextPaint, mTextDir,
-                                                   mHintBoring);
+                hintBoring = BoringLayout.isBoring(mHint, mTextPaint, mTextDir, mHintBoring);
                 if (hintBoring != null) {
                     mHintBoring = hintBoring;
                 }
             }
 
             if (hintBoring != null) {
-                if (hintBoring.width <= hintWidth &&
-                    (!shouldEllipsize || hintBoring.width <= ellipsisWidth)) {
+                if (hintBoring.width <= hintWidth
+                        && (!shouldEllipsize || hintBoring.width <= ellipsisWidth)) {
                     if (mSavedHintLayout != null) {
-                        mHintLayout = mSavedHintLayout.
-                                replaceOrMake(mHint, mTextPaint,
-                                hintWidth, alignment, mSpacingMult, mSpacingAdd,
-                                hintBoring, mIncludePad);
+                        mHintLayout =
+                                mSavedHintLayout.replaceOrMake(
+                                        mHint,
+                                        mTextPaint,
+                                        hintWidth,
+                                        alignment,
+                                        mSpacingMult,
+                                        mSpacingAdd,
+                                        hintBoring,
+                                        mIncludePad);
                     } else {
-                        mHintLayout = BoringLayout.make(mHint, mTextPaint,
-                                hintWidth, alignment, mSpacingMult, mSpacingAdd,
-                                hintBoring, mIncludePad);
+                        mHintLayout =
+                                BoringLayout.make(
+                                        mHint,
+                                        mTextPaint,
+                                        hintWidth,
+                                        alignment,
+                                        mSpacingMult,
+                                        mSpacingAdd,
+                                        hintBoring,
+                                        mIncludePad);
                     }
 
                     mSavedHintLayout = (BoringLayout) mHintLayout;
                 } else if (shouldEllipsize && hintBoring.width <= hintWidth) {
                     if (mSavedHintLayout != null) {
-                        mHintLayout = mSavedHintLayout.
-                                replaceOrMake(mHint, mTextPaint,
-                                hintWidth, alignment, mSpacingMult, mSpacingAdd,
-                                hintBoring, mIncludePad, mEllipsize,
-                                ellipsisWidth);
+                        mHintLayout =
+                                mSavedHintLayout.replaceOrMake(
+                                        mHint,
+                                        mTextPaint,
+                                        hintWidth,
+                                        alignment,
+                                        mSpacingMult,
+                                        mSpacingAdd,
+                                        hintBoring,
+                                        mIncludePad,
+                                        mEllipsize,
+                                        ellipsisWidth);
                     } else {
-                        mHintLayout = BoringLayout.make(mHint, mTextPaint,
-                                hintWidth, alignment, mSpacingMult, mSpacingAdd,
-                                hintBoring, mIncludePad, mEllipsize,
-                                ellipsisWidth);
+                        mHintLayout =
+                                BoringLayout.make(
+                                        mHint,
+                                        mTextPaint,
+                                        hintWidth,
+                                        alignment,
+                                        mSpacingMult,
+                                        mSpacingAdd,
+                                        hintBoring,
+                                        mIncludePad,
+                                        mEllipsize,
+                                        ellipsisWidth);
                     }
                 }
             }
-            
+
             if (mHintLayout == null) {
-                StaticLayout.Builder builder = StaticLayout.Builder.obtain(mHint, 0,
-                        mHint.length(), mTextPaint, hintWidth)
-                        .setAlignment(alignment)
-                        .setTextDirection(mTextDir)
-                        .setLineSpacing(mSpacingAdd, mSpacingMult)
-                        .setIncludePad(mIncludePad)
-                        .setBreakStrategy(mBreakStrategy)
-                        .setHyphenationFrequency(mHyphenationFrequency);
+                StaticLayout.Builder builder =
+                        StaticLayout.Builder.obtain(mHint, 0, mHint.length(), mTextPaint, hintWidth)
+                                .setAlignment(alignment)
+                                .setTextDirection(mTextDir)
+                                .setLineSpacing(mSpacingAdd, mSpacingMult)
+                                .setIncludePad(mIncludePad)
+                                .setBreakStrategy(mBreakStrategy)
+                                .setHyphenationFrequency(mHyphenationFrequency);
                 if (shouldEllipsize) {
                     builder.setEllipsize(mEllipsize)
                             .setEllipsizedWidth(ellipsisWidth)
@@ -6405,30 +6148,44 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if (mEllipsize == TextUtils.TruncateAt.MARQUEE) {
             if (!compressText(ellipsisWidth)) {
                 final int height = mLayoutParams.height;
-                
-                
+
                 if (height != LayoutParams.WRAP_CONTENT && height != LayoutParams.MATCH_PARENT) {
                     startMarquee();
                 } else {
-                    
+
                     mRestartMarquee = true;
                 }
             }
         }
 
-        
         if (mEditor != null) mEditor.prepareCursorControllers();
     }
 
-    private Layout makeSingleLayout(int wantWidth, BoringLayout.Metrics boring, int ellipsisWidth,
-            Layout.Alignment alignment, boolean shouldEllipsize, TruncateAt effectiveEllipsize,
+    private Layout makeSingleLayout(
+            int wantWidth,
+            BoringLayout.Metrics boring,
+            int ellipsisWidth,
+            Layout.Alignment alignment,
+            boolean shouldEllipsize,
+            TruncateAt effectiveEllipsize,
             boolean useSaved) {
         Layout result = null;
         if (mText instanceof Spannable) {
-            result = new DynamicLayout(mText, mTransformed, mTextPaint, wantWidth,
-                    alignment, mTextDir, mSpacingMult, mSpacingAdd, mIncludePad,
-                    mBreakStrategy, mHyphenationFrequency,
-                    getKeyListener() == null ? effectiveEllipsize : null, ellipsisWidth);
+            result =
+                    new DynamicLayout(
+                            mText,
+                            mTransformed,
+                            mTextPaint,
+                            wantWidth,
+                            alignment,
+                            mTextDir,
+                            mSpacingMult,
+                            mSpacingAdd,
+                            mIncludePad,
+                            mBreakStrategy,
+                            mHyphenationFrequency,
+                            getKeyListener() == null ? effectiveEllipsize : null,
+                            ellipsisWidth);
         } else {
             if (boring == UNKNOWN_BORING) {
                 boring = BoringLayout.isBoring(mTransformed, mTextPaint, mTextDir, mBoring);
@@ -6438,16 +6195,30 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
 
             if (boring != null) {
-                if (boring.width <= wantWidth &&
-                        (effectiveEllipsize == null || boring.width <= ellipsisWidth)) {
+                if (boring.width <= wantWidth
+                        && (effectiveEllipsize == null || boring.width <= ellipsisWidth)) {
                     if (useSaved && mSavedLayout != null) {
-                        result = mSavedLayout.replaceOrMake(mTransformed, mTextPaint,
-                                wantWidth, alignment, mSpacingMult, mSpacingAdd,
-                                boring, mIncludePad);
+                        result =
+                                mSavedLayout.replaceOrMake(
+                                        mTransformed,
+                                        mTextPaint,
+                                        wantWidth,
+                                        alignment,
+                                        mSpacingMult,
+                                        mSpacingAdd,
+                                        boring,
+                                        mIncludePad);
                     } else {
-                        result = BoringLayout.make(mTransformed, mTextPaint,
-                                wantWidth, alignment, mSpacingMult, mSpacingAdd,
-                                boring, mIncludePad);
+                        result =
+                                BoringLayout.make(
+                                        mTransformed,
+                                        mTextPaint,
+                                        wantWidth,
+                                        alignment,
+                                        mSpacingMult,
+                                        mSpacingAdd,
+                                        boring,
+                                        mIncludePad);
                     }
 
                     if (useSaved) {
@@ -6455,34 +6226,51 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                     }
                 } else if (shouldEllipsize && boring.width <= wantWidth) {
                     if (useSaved && mSavedLayout != null) {
-                        result = mSavedLayout.replaceOrMake(mTransformed, mTextPaint,
-                                wantWidth, alignment, mSpacingMult, mSpacingAdd,
-                                boring, mIncludePad, effectiveEllipsize,
-                                ellipsisWidth);
+                        result =
+                                mSavedLayout.replaceOrMake(
+                                        mTransformed,
+                                        mTextPaint,
+                                        wantWidth,
+                                        alignment,
+                                        mSpacingMult,
+                                        mSpacingAdd,
+                                        boring,
+                                        mIncludePad,
+                                        effectiveEllipsize,
+                                        ellipsisWidth);
                     } else {
-                        result = BoringLayout.make(mTransformed, mTextPaint,
-                                wantWidth, alignment, mSpacingMult, mSpacingAdd,
-                                boring, mIncludePad, effectiveEllipsize,
-                                ellipsisWidth);
+                        result =
+                                BoringLayout.make(
+                                        mTransformed,
+                                        mTextPaint,
+                                        wantWidth,
+                                        alignment,
+                                        mSpacingMult,
+                                        mSpacingAdd,
+                                        boring,
+                                        mIncludePad,
+                                        effectiveEllipsize,
+                                        ellipsisWidth);
                     }
                 }
             }
         }
         if (result == null) {
-            StaticLayout.Builder builder = StaticLayout.Builder.obtain(mTransformed,
-                    0, mTransformed.length(), mTextPaint, wantWidth)
-                    .setAlignment(alignment)
-                    .setTextDirection(mTextDir)
-                    .setLineSpacing(mSpacingAdd, mSpacingMult)
-                    .setIncludePad(mIncludePad)
-                    .setBreakStrategy(mBreakStrategy)
-                    .setHyphenationFrequency(mHyphenationFrequency);
+            StaticLayout.Builder builder =
+                    StaticLayout.Builder.obtain(
+                                    mTransformed, 0, mTransformed.length(), mTextPaint, wantWidth)
+                            .setAlignment(alignment)
+                            .setTextDirection(mTextDir)
+                            .setLineSpacing(mSpacingAdd, mSpacingMult)
+                            .setIncludePad(mIncludePad)
+                            .setBreakStrategy(mBreakStrategy)
+                            .setHyphenationFrequency(mHyphenationFrequency);
             if (shouldEllipsize) {
                 builder.setEllipsize(effectiveEllipsize)
                         .setEllipsizedWidth(ellipsisWidth)
                         .setMaxLines(mMaxMode == LINES ? mMaximum : Integer.MAX_VALUE);
             }
-            
+
             result = builder.build();
         }
         return result;
@@ -6491,18 +6279,21 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     private boolean compressText(float width) {
         if (isHardwareAccelerated()) return false;
 
-        
-        if (width > 0.0f && mLayout != null && getLineCount() == 1 && !mUserSetTextScaleX &&
-                mTextPaint.getTextScaleX() == 1.0f) {
+        if (width > 0.0f
+                && mLayout != null
+                && getLineCount() == 1
+                && !mUserSetTextScaleX
+                && mTextPaint.getTextScaleX() == 1.0f) {
             final float textWidth = mLayout.getLineWidth(0);
             final float overflow = (textWidth + 1.0f - width) / width;
             if (overflow > 0.0f && overflow <= Marquee.MARQUEE_DELTA_MAX) {
                 mTextPaint.setTextScaleX(1.0f - overflow - 0.005f);
-                post(new Runnable() {
-                    public void run() {
-                        requestLayout();
-                    }
-                });
+                post(
+                        new Runnable() {
+                            public void run() {
+                                requestLayout();
+                            }
+                        });
                 return true;
             }
         }
@@ -6515,12 +6306,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         CharSequence text = layout.getText();
         float max = 0;
 
-        
-        
-
         for (int i = 0; i < n - 1; i++) {
-            if (text.charAt(layout.getLineEnd(i) - 1) != '\n')
-                return -1;
+            if (text.charAt(layout.getLineEnd(i) - 1) != '\n') return -1;
         }
 
         for (int i = 0; i < n; i++) {
@@ -6531,12 +6318,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Set whether the TextView includes extra top and bottom padding to make
-     * room for accents that go above the normal ascent and descent.
-     * The default is true.
+     * Set whether the TextView includes extra top and bottom padding to make room for accents that
+     * go above the normal ascent and descent. The default is true.
      *
      * @see #getIncludeFontPadding()
-     *
      * @attr ref android.R.styleable#TextView_includeFontPadding
      */
     public void setIncludeFontPadding(boolean includepad) {
@@ -6552,11 +6337,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Gets whether the TextView includes extra top and bottom padding to make
-     * room for accents that go above the normal ascent and descent.
+     * Gets whether the TextView includes extra top and bottom padding to make room for accents that
+     * go above the normal ascent and descent.
      *
      * @see #setIncludeFontPadding(boolean)
-     *
      * @attr ref android.R.styleable#TextView_includeFontPadding
      */
     public boolean getIncludeFontPadding() {
@@ -6586,7 +6370,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         boolean fromexisting = false;
 
         if (widthMode == MeasureSpec.EXACTLY) {
-            
+
             width = widthSize;
         } else {
             if (mLayout != null && mEllipsize == null) {
@@ -6660,7 +6444,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 width = Math.max(width, mMinWidth);
             }
 
-            
             width = Math.max(width, getSuggestedMinimumWidth());
 
             if (widthMode == MeasureSpec.AT_MOST) {
@@ -6677,18 +6460,28 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         int hintWidth = (mHintLayout == null) ? hintWant : mHintLayout.getWidth();
 
         if (mLayout == null) {
-            makeNewLayout(want, hintWant, boring, hintBoring,
-                          width - getCompoundPaddingLeft() - getCompoundPaddingRight(), false);
+            makeNewLayout(
+                    want,
+                    hintWant,
+                    boring,
+                    hintBoring,
+                    width - getCompoundPaddingLeft() - getCompoundPaddingRight(),
+                    false);
         } else {
-            final boolean layoutChanged = (mLayout.getWidth() != want) ||
-                    (hintWidth != hintWant) ||
-                    (mLayout.getEllipsizedWidth() !=
-                            width - getCompoundPaddingLeft() - getCompoundPaddingRight());
+            final boolean layoutChanged =
+                    (mLayout.getWidth() != want)
+                            || (hintWidth != hintWant)
+                            || (mLayout.getEllipsizedWidth()
+                                    != width
+                                            - getCompoundPaddingLeft()
+                                            - getCompoundPaddingRight());
 
-            final boolean widthChanged = (mHint == null) &&
-                    (mEllipsize == null) &&
-                    (want > mLayout.getWidth()) &&
-                    (mLayout instanceof BoringLayout || (fromexisting && des >= 0 && des <= want));
+            final boolean widthChanged =
+                    (mHint == null)
+                            && (mEllipsize == null)
+                            && (want > mLayout.getWidth())
+                            && (mLayout instanceof BoringLayout
+                                    || (fromexisting && des >= 0 && des <= want));
 
             final boolean maximumChanged = (mMaxMode != mOldMaxMode) || (mMaximum != mOldMaximum);
 
@@ -6696,16 +6489,21 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 if (!maximumChanged && widthChanged) {
                     mLayout.increaseWidthTo(want);
                 } else {
-                    makeNewLayout(want, hintWant, boring, hintBoring,
-                            width - getCompoundPaddingLeft() - getCompoundPaddingRight(), false);
+                    makeNewLayout(
+                            want,
+                            hintWant,
+                            boring,
+                            hintBoring,
+                            width - getCompoundPaddingLeft() - getCompoundPaddingRight(),
+                            false);
                 }
             } else {
-                
+
             }
         }
 
         if (heightMode == MeasureSpec.EXACTLY) {
-            
+
             height = heightSize;
             mDesiredHeightAtMeasure = -1;
         } else {
@@ -6728,9 +6526,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
          * We didn't let makeNewLayout() register to bring the cursor into view,
          * so do it here if there is any possibility that it is needed.
          */
-        if (mMovement != null ||
-            mLayout.getWidth() > unpaddedWidth ||
-            mLayout.getHeight() > unpaddedHeight) {
+        if (mMovement != null
+                || mLayout.getWidth() > unpaddedWidth
+                || mLayout.getHeight() > unpaddedHeight) {
             registerForPreDraw();
         } else {
             scrollTo(0, 0);
@@ -6741,8 +6539,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     private int getDesiredHeight() {
         return Math.max(
-                getDesiredHeight(mLayout, true),
-                getDesiredHeight(mHintLayout, mEllipsize != null));
+                getDesiredHeight(mLayout, true), getDesiredHeight(mHintLayout, mEllipsize != null));
     }
 
     private int getDesiredHeight(Layout layout, boolean cap) {
@@ -6792,27 +6589,22 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             desired = Math.max(desired, mMinimum);
         }
 
-        
         desired = Math.max(desired, getSuggestedMinimumHeight());
 
         return desired;
     }
 
-    /**
-     * Check whether a change to the existing text layout requires a
-     * new view layout.
-     */
+    /** Check whether a change to the existing text layout requires a new view layout. */
     private void checkForResize() {
         boolean sizeChanged = false;
 
         if (mLayout != null) {
-            
+
             if (mLayoutParams.width == LayoutParams.WRAP_CONTENT) {
                 sizeChanged = true;
                 invalidate();
             }
 
-            
             if (mLayoutParams.height == LayoutParams.WRAP_CONTENT) {
                 int desiredHeight = getDesiredHeight();
 
@@ -6832,23 +6624,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         if (sizeChanged) {
             requestLayout();
-            
         }
     }
 
-    /**
-     * Check whether entirely new text requires a new view layout
-     * or merely a new text layout.
-     */
+    /** Check whether entirely new text requires a new view layout or merely a new text layout. */
     private void checkForRelayout() {
-        
-        
 
-        if ((mLayoutParams.width != LayoutParams.WRAP_CONTENT ||
-                (mMaxWidthMode == mMinWidthMode && mMaxWidth == mMinWidth)) &&
-                (mHint == null || mHintLayout != null) &&
-                (mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight() > 0)) {
-            
+        if ((mLayoutParams.width != LayoutParams.WRAP_CONTENT
+                        || (mMaxWidthMode == mMinWidthMode && mMaxWidth == mMinWidth))
+                && (mHint == null || mHintLayout != null)
+                && (mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight() > 0)) {
 
             int oldht = mLayout.getHeight();
             int want = mLayout.getWidth();
@@ -6859,34 +6644,33 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
              * changing (unless we do the requestLayout(), in which case it
              * will happen at measure).
              */
-            makeNewLayout(want, hintWant, UNKNOWN_BORING, UNKNOWN_BORING,
-                          mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight(),
-                          false);
+            makeNewLayout(
+                    want,
+                    hintWant,
+                    UNKNOWN_BORING,
+                    UNKNOWN_BORING,
+                    mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight(),
+                    false);
 
             if (mEllipsize != TextUtils.TruncateAt.MARQUEE) {
-                
-                if (mLayoutParams.height != LayoutParams.WRAP_CONTENT &&
-                    mLayoutParams.height != LayoutParams.MATCH_PARENT) {
+
+                if (mLayoutParams.height != LayoutParams.WRAP_CONTENT
+                        && mLayoutParams.height != LayoutParams.MATCH_PARENT) {
                     invalidate();
                     return;
                 }
 
-                
-                
-                if (mLayout.getHeight() == oldht &&
-                    (mHintLayout == null || mHintLayout.getHeight() == oldht)) {
+                if (mLayout.getHeight() == oldht
+                        && (mHintLayout == null || mHintLayout.getHeight() == oldht)) {
                     invalidate();
                     return;
                 }
             }
 
-            
-            
             requestLayout();
             invalidate();
         } else {
-            
-            
+
             nullLayouts();
             requestLayout();
             invalidate();
@@ -6907,9 +6691,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         return TextUtils.isEmpty(mText) && !TextUtils.isEmpty(mHint);
     }
 
-    /**
-     * Returns true if anything changed.
-     */
+    /** Returns true if anything changed. */
     private boolean bringTextIntoView() {
         Layout layout = isShowingHint() ? mHintLayout : mLayout;
         int line = 0;
@@ -6925,13 +6707,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         int scrollx, scrolly;
 
-        
         if (a == Layout.Alignment.ALIGN_NORMAL) {
-            a = dir == Layout.DIR_LEFT_TO_RIGHT ? Layout.Alignment.ALIGN_LEFT :
-                Layout.Alignment.ALIGN_RIGHT;
-        } else if (a == Layout.Alignment.ALIGN_OPPOSITE){
-            a = dir == Layout.DIR_LEFT_TO_RIGHT ? Layout.Alignment.ALIGN_RIGHT :
-                Layout.Alignment.ALIGN_LEFT;
+            a =
+                    dir == Layout.DIR_LEFT_TO_RIGHT
+                            ? Layout.Alignment.ALIGN_LEFT
+                            : Layout.Alignment.ALIGN_RIGHT;
+        } else if (a == Layout.Alignment.ALIGN_OPPOSITE) {
+            a =
+                    dir == Layout.DIR_LEFT_TO_RIGHT
+                            ? Layout.Alignment.ALIGN_RIGHT
+                            : Layout.Alignment.ALIGN_LEFT;
         }
 
         if (a == Layout.Alignment.ALIGN_CENTER) {
@@ -6955,7 +6740,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         } else if (a == Layout.Alignment.ALIGN_RIGHT) {
             int right = (int) Math.ceil(layout.getLineRight(line));
             scrollx = right - hspace;
-        } else { 
+        } else {
             scrollx = (int) Math.floor(layout.getLineLeft(line));
         }
 
@@ -6978,8 +6763,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Move the point, specified by the offset, into the view if it is needed.
-     * This has to be called after layout. Returns true if anything changed.
+     * Move the point, specified by the offset, into the view if it is needed. This has to be called
+     * after layout. Returns true if anything changed.
      */
     public boolean bringPointIntoView(int offset) {
         if (isLayoutRequested()) {
@@ -6988,7 +6773,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
         boolean changed = false;
 
-        Layout layout = isShowingHint() ? mHintLayout: mLayout;
+        Layout layout = isShowingHint() ? mHintLayout : mLayout;
 
         if (layout == null) return changed;
 
@@ -7015,19 +6800,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 break;
         }
 
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         final boolean clamped = grav > 0;
-        
-        final int x = (int)layout.getPrimaryHorizontal(offset, clamped);
+
+        final int x = (int) layout.getPrimaryHorizontal(offset, clamped);
         final int top = layout.getLineTop(line);
         final int bottom = layout.getLineTop(line + 1);
 
@@ -7038,29 +6813,23 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         int hspace = mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight();
         int vspace = mBottom - mTop - getExtendedPaddingTop() - getExtendedPaddingBottom();
         if (!mHorizontallyScrolling && right - left > hspace && right > x) {
-            
+
             right = Math.max(x, left + hspace);
         }
 
         int hslack = (bottom - top) / 2;
         int vslack = hslack;
 
-        if (vslack > vspace / 4)
-            vslack = vspace / 4;
-        if (hslack > hspace / 4)
-            hslack = hspace / 4;
+        if (vslack > vspace / 4) vslack = vspace / 4;
+        if (hslack > hspace / 4) hslack = hspace / 4;
 
         int hs = mScrollX;
         int vs = mScrollY;
 
-        if (top - vs < vslack)
-            vs = top - vslack;
-        if (bottom - vs > vspace - vslack)
-            vs = bottom - (vspace - vslack);
-        if (ht - vs < vspace)
-            vs = ht - vspace;
-        if (0 - vs > 0)
-            vs = 0;
+        if (top - vs < vslack) vs = top - vslack;
+        if (bottom - vs > vspace - vslack) vs = bottom - (vspace - vslack);
+        if (ht - vs < vspace) vs = ht - vspace;
+        if (0 - vs > 0) vs = 0;
 
         if (grav != 0) {
             if (x - hs < hslack) {
@@ -7072,16 +6841,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         if (grav < 0) {
-            if (left - hs > 0)
-                hs = left;
-            if (right - hs < hspace)
-                hs = right - hspace;
+            if (left - hs > 0) hs = left;
+            if (right - hs < hspace) hs = right - hspace;
         } else if (grav > 0) {
-            if (right - hs < hspace)
-                hs = right - hspace;
-            if (left - hs > 0)
-                hs = left;
-        } else  {
+            if (right - hs < hspace) hs = right - hspace;
+            if (left - hs > 0) hs = left;
+        } else {
             if (right - left <= hspace) {
                 /*
                  * If the entire text fits, center it exactly.
@@ -7149,13 +6914,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         if (isFocused()) {
-            
-            
 
-            
-            
-            
-            
             if (mTempRect == null) mTempRect = new Rect();
             mTempRect.set(x - 2, top, x + 2, bottom);
             getInterestingRect(mTempRect, line);
@@ -7170,10 +6929,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Move the cursor, if needed, so that it is at an offset that is visible
-     * to the user.  This will not move the cursor if it represents more than
-     * one character (a selection range).  This will only work if the
-     * TextView contains spannable text; otherwise it will do nothing.
+     * Move the cursor, if needed, so that it is at an offset that is visible to the user. This will
+     * not move the cursor if it represents more than one character (a selection range). This will
+     * only work if the TextView contains spannable text; otherwise it will do nothing.
      *
      * @return True if the cursor was actually moved, false otherwise.
      */
@@ -7187,32 +6945,26 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return false;
         }
 
-        
-
         int line = mLayout.getLineForOffset(start);
 
         final int top = mLayout.getLineTop(line);
         final int bottom = mLayout.getLineTop(line + 1);
         final int vspace = mBottom - mTop - getExtendedPaddingTop() - getExtendedPaddingBottom();
         int vslack = (bottom - top) / 2;
-        if (vslack > vspace / 4)
-            vslack = vspace / 4;
+        if (vslack > vspace / 4) vslack = vspace / 4;
         final int vs = mScrollY;
 
-        if (top < (vs+vslack)) {
-            line = mLayout.getLineForVertical(vs+vslack+(bottom-top));
-        } else if (bottom > (vspace+vs-vslack)) {
-            line = mLayout.getLineForVertical(vspace+vs-vslack-(bottom-top));
+        if (top < (vs + vslack)) {
+            line = mLayout.getLineForVertical(vs + vslack + (bottom - top));
+        } else if (bottom > (vspace + vs - vslack)) {
+            line = mLayout.getLineForVertical(vspace + vs - vslack - (bottom - top));
         }
-
-        
 
         final int hspace = mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight();
         final int hs = mScrollX;
         final int leftChar = mLayout.getOffsetForHorizontal(line, hs);
-        final int rightChar = mLayout.getOffsetForHorizontal(line, hspace+hs);
+        final int rightChar = mLayout.getOffsetForHorizontal(line, hspace + hs);
 
-        
         final int lowChar = leftChar < rightChar ? leftChar : rightChar;
         final int highChar = leftChar > rightChar ? leftChar : rightChar;
 
@@ -7224,7 +6976,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         if (newStart != start) {
-            Selection.setSelection((Spannable)mText, newStart);
+            Selection.setSelection((Spannable) mText, newStart);
             return true;
         }
 
@@ -7238,7 +6990,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 mScrollX = mScroller.getCurrX();
                 mScrollY = mScroller.getCurrY();
                 invalidateParentCaches();
-                postInvalidate();  
+                postInvalidate();
             }
         }
     }
@@ -7246,9 +6998,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     private void getInterestingRect(Rect r, int line) {
         convertFromViewportToContentCoordinates(r);
 
-        
-        
-        
         if (line == 0) r.top -= getExtendedPaddingTop();
         if (line == mLayout.getLineCount() - 1) r.bottom += getExtendedPaddingBottom();
     }
@@ -7280,16 +7029,26 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         super.debug(depth);
 
         String output = debugIndent(depth);
-        output += "frame={" + mLeft + ", " + mTop + ", " + mRight
-                + ", " + mBottom + "} scroll={" + mScrollX + ", " + mScrollY
-                + "} ";
+        output +=
+                "frame={"
+                        + mLeft
+                        + ", "
+                        + mTop
+                        + ", "
+                        + mRight
+                        + ", "
+                        + mBottom
+                        + "} scroll={"
+                        + mScrollX
+                        + ", "
+                        + mScrollY
+                        + "} ";
 
         if (mText != null) {
 
             output += "mText=\"" + mText + "\" ";
             if (mLayout != null) {
-                output += "mLayout width=" + mLayout.getWidth()
-                        + " height=" + mLayout.getHeight();
+                output += "mLayout width=" + mLayout.getWidth() + " height=" + mLayout.getHeight();
             }
         } else {
             output += "mText=NULL";
@@ -7297,25 +7056,17 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         Log.d(VIEW_LOG_TAG, output);
     }
 
-    /**
-     * Convenience for {@link Selection#getSelectionStart}.
-     */
-    
+    /** Convenience for {@link Selection#getSelectionStart}. */
     public int getSelectionStart() {
         return Selection.getSelectionStart(getText());
     }
 
-    /**
-     * Convenience for {@link Selection#getSelectionEnd}.
-     */
-    
+    /** Convenience for {@link Selection#getSelectionEnd}. */
     public int getSelectionEnd() {
         return Selection.getSelectionEnd(getText());
     }
 
-    /**
-     * Return true iff there is a selection inside this text view.
-     */
+    /** Return true iff there is a selection inside this text view. */
     public boolean hasSelection() {
         final int selectionStart = getSelectionStart();
         final int selectionEnd = getSelectionEnd();
@@ -7335,8 +7086,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the properties of this field (lines, horizontally scrolling,
-     * transformation method) to be for a single-line input.
+     * Sets the properties of this field (lines, horizontally scrolling, transformation method) to
+     * be for a single-line input.
      *
      * @attr ref android.R.styleable#TextView_singleLine
      */
@@ -7345,13 +7096,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets the properties of this field to transform input to ALL CAPS
-     * display. This may use a "small caps" formatting if available.
-     * This setting will be ignored if this field is editable or selectable.
+     * Sets the properties of this field to transform input to ALL CAPS display. This may use a
+     * "small caps" formatting if available. This setting will be ignored if this field is editable
+     * or selectable.
      *
-     * This call replaces the current transformation method. Disabling this
-     * will not necessarily restore the previous behavior from before this
-     * was enabled.
+     * <p>This call replaces the current transformation method. Disabling this will not necessarily
+     * restore the previous behavior from before this was enabled.
      *
      * @see #setTransformationMethod(TransformationMethod)
      * @attr ref android.R.styleable#TextView_textAllCaps
@@ -7369,26 +7119,26 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * transformation method) to be for a single-line input; if false, restores these to the default
      * conditions.
      *
-     * Note that the default conditions are not necessarily those that were in effect prior this
+     * <p>Note that the default conditions are not necessarily those that were in effect prior this
      * method, and you may want to reset these properties to your custom values.
      *
      * @attr ref android.R.styleable#TextView_singleLine
      */
-    
     public void setSingleLine(boolean singleLine) {
-        
-        
+
         setInputTypeSingleLine(singleLine);
         applySingleLine(singleLine, true, true);
     }
 
     /**
      * Adds or remove the EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE on the mInputType.
+     *
      * @param singleLine
      */
     private void setInputTypeSingleLine(boolean singleLine) {
-        if (mEditor != null &&
-                (mEditor.mInputType & EditorInfo.TYPE_MASK_CLASS) == EditorInfo.TYPE_CLASS_TEXT) {
+        if (mEditor != null
+                && (mEditor.mInputType & EditorInfo.TYPE_MASK_CLASS)
+                        == EditorInfo.TYPE_CLASS_TEXT) {
             if (singleLine) {
                 mEditor.mInputType &= ~EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE;
             } else {
@@ -7397,8 +7147,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    private void applySingleLine(boolean singleLine, boolean applyTransformation,
-            boolean changeMaxLines) {
+    private void applySingleLine(
+            boolean singleLine, boolean applyTransformation, boolean changeMaxLines) {
         mSingleLine = singleLine;
         if (singleLine) {
             setLines(1);
@@ -7418,21 +7168,19 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Causes words in the text that are longer than the view is wide
-     * to be ellipsized instead of broken in the middle.  You may also
-     * want to {@link #setSingleLine} or {@link #setHorizontallyScrolling}
-     * to constrain the text to a single line.  Use <code>null</code>
-     * to turn off ellipsizing.
+     * Causes words in the text that are longer than the view is wide to be ellipsized instead of
+     * broken in the middle. You may also want to {@link #setSingleLine} or {@link
+     * #setHorizontallyScrolling} to constrain the text to a single line. Use <code>null</code> to
+     * turn off ellipsizing.
      *
-     * If {@link #setMaxLines} has been used to set two or more lines,
-     * only {@link android.text.TextUtils.TruncateAt#END} and
-     * {@link android.text.TextUtils.TruncateAt#MARQUEE} are supported
-     * (other ellipsizing types will not do anything).
+     * <p>If {@link #setMaxLines} has been used to set two or more lines, only {@link
+     * android.text.TextUtils.TruncateAt#END} and {@link android.text.TextUtils.TruncateAt#MARQUEE}
+     * are supported (other ellipsizing types will not do anything).
      *
      * @attr ref android.R.styleable#TextView_ellipsize
      */
     public void setEllipsize(TextUtils.TruncateAt where) {
-        
+
         if (mEllipsize != where) {
             mEllipsize = where;
 
@@ -7445,11 +7193,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Sets how many times to repeat the marquee animation. Only applied if the
-     * TextView has marquee enabled. Set to -1 to repeat indefinitely.
+     * Sets how many times to repeat the marquee animation. Only applied if the TextView has marquee
+     * enabled. Set to -1 to repeat indefinitely.
      *
      * @see #getMarqueeRepeatLimit()
-     *
      * @attr ref android.R.styleable#TextView_marqueeRepeatLimit
      */
     public void setMarqueeRepeatLimit(int marqueeLimit) {
@@ -7457,14 +7204,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Gets the number of times the marquee animation is repeated. Only meaningful if the
-     * TextView has marquee enabled.
+     * Gets the number of times the marquee animation is repeated. Only meaningful if the TextView
+     * has marquee enabled.
      *
-     * @return the number of times the marquee animation is repeated. -1 if the animation
-     * repeats indefinitely
-     *
+     * @return the number of times the marquee animation is repeated. -1 if the animation repeats
+     *     indefinitely
      * @see #setMarqueeRepeatLimit(int)
-     *
      * @attr ref android.R.styleable#TextView_marqueeRepeatLimit
      */
     public int getMarqueeRepeatLimit() {
@@ -7472,21 +7217,17 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns where, if anywhere, words that are longer than the view
-     * is wide should be ellipsized.
+     * Returns where, if anywhere, words that are longer than the view is wide should be ellipsized.
      */
-    
     public TextUtils.TruncateAt getEllipsize() {
         return mEllipsize;
     }
 
     /**
-     * Set the TextView so that when it takes focus, all the text is
-     * selected.
+     * Set the TextView so that when it takes focus, all the text is selected.
      *
      * @attr ref android.R.styleable#TextView_selectAllOnFocus
      */
-    
     public void setSelectAllOnFocus(boolean selectAllOnFocus) {
         createEditorIfNeeded();
         mEditor.mSelectAllOnFocus = selectAllOnFocus;
@@ -7497,16 +7238,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Set whether the cursor is visible. The default is true. Note that this property only
-     * makes sense for editable TextView.
+     * Set whether the cursor is visible. The default is true. Note that this property only makes
+     * sense for editable TextView.
      *
      * @see #isCursorVisible()
-     *
      * @attr ref android.R.styleable#TextView_cursorVisible
      */
-    
     public void setCursorVisible(boolean visible) {
-        if (visible && mEditor == null) return; 
+        if (visible && mEditor == null) return;
         createEditorIfNeeded();
         if (mEditor.mCursorVisible != visible) {
             mEditor.mCursorVisible = visible;
@@ -7514,40 +7253,41 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
             mEditor.makeBlink();
 
-            
             mEditor.prepareCursorControllers();
         }
     }
 
     /**
      * @return whether or not the cursor is visible (assuming this TextView is editable)
-     *
      * @see #setCursorVisible(boolean)
-     *
      * @attr ref android.R.styleable#TextView_cursorVisible
      */
     public boolean isCursorVisible() {
-        
+
         return mEditor == null ? true : mEditor.mCursorVisible;
     }
 
     private boolean canMarquee() {
         int width = (mRight - mLeft - getCompoundPaddingLeft() - getCompoundPaddingRight());
-        return width > 0 && (mLayout.getLineWidth(0) > width ||
-                (mMarqueeFadeMode != MARQUEE_FADE_NORMAL && mSavedMarqueeModeLayout != null &&
-                        mSavedMarqueeModeLayout.getLineWidth(0) > width));
+        return width > 0
+                && (mLayout.getLineWidth(0) > width
+                        || (mMarqueeFadeMode != MARQUEE_FADE_NORMAL
+                                && mSavedMarqueeModeLayout != null
+                                && mSavedMarqueeModeLayout.getLineWidth(0) > width));
     }
 
     private void startMarquee() {
-        
+
         if (getKeyListener() != null) return;
 
         if (compressText(getWidth() - getCompoundPaddingLeft() - getCompoundPaddingRight())) {
             return;
         }
 
-        if ((mMarquee == null || mMarquee.isStopped()) && (isFocused() || isSelected()) &&
-                getLineCount() == 1 && canMarquee()) {
+        if ((mMarquee == null || mMarquee.isStopped())
+                && (isFocused() || isSelected())
+                && getLineCount() == 1
+                && canMarquee()) {
 
             if (mMarqueeFadeMode == MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS) {
                 mMarqueeFadeMode = MARQUEE_FADE_SWITCH_SHOW_FADE;
@@ -7591,27 +7331,22 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * This method is called when the text is changed, in case any subclasses
-     * would like to know.
+     * This method is called when the text is changed, in case any subclasses would like to know.
      *
-     * Within <code>text</code>, the <code>lengthAfter</code> characters
-     * beginning at <code>start</code> have just replaced old text that had
-     * length <code>lengthBefore</code>. It is an error to attempt to make
-     * changes to <code>text</code> from this callback.
+     * <p>Within <code>text</code>, the <code>lengthAfter</code> characters beginning at <code>start
+     * </code> have just replaced old text that had length <code>lengthBefore</code>. It is an error
+     * to attempt to make changes to <code>text</code> from this callback.
      *
      * @param text The text the TextView is displaying
-     * @param start The offset of the start of the range of the text that was
-     * modified
+     * @param start The offset of the start of the range of the text that was modified
      * @param lengthBefore The length of the former text that has been replaced
      * @param lengthAfter The length of the replacement modified text
      */
-    protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {
-        
-    }
+    protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {}
 
     /**
-     * This method is called when the selection has changed, in case any
-     * subclasses would like to know.
+     * This method is called when the selection has changed, in case any subclasses would like to
+     * know.
      *
      * @param selStart The new selection start location.
      * @param selEnd The new selection end location.
@@ -7621,13 +7356,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Adds a TextWatcher to the list of those whose methods are called
-     * whenever this TextView's text changes.
-     * <p>
-     * In 1.0, the {@link TextWatcher#afterTextChanged} method was erroneously
-     * not called after {@link #setText} calls.  Now, doing {@link #setText}
-     * if there are any text changed listeners forces the buffer type to
-     * Editable if it would not otherwise be and does call this method.
+     * Adds a TextWatcher to the list of those whose methods are called whenever this TextView's
+     * text changes.
+     *
+     * <p>In 1.0, the {@link TextWatcher#afterTextChanged} method was erroneously not called after
+     * {@link #setText} calls. Now, doing {@link #setText} if there are any text changed listeners
+     * forces the buffer type to Editable if it would not otherwise be and does call this method.
      */
     public void addTextChangedListener(TextWatcher watcher) {
         if (mListeners == null) {
@@ -7638,9 +7372,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Removes the specified TextWatcher from the list of those whose
-     * methods are called
-     * whenever this TextView's text changes.
+     * Removes the specified TextWatcher from the list of those whose methods are called whenever
+     * this TextView's text changes.
      */
     public void removeTextChangedListener(TextWatcher watcher) {
         if (mListeners != null) {
@@ -7661,12 +7394,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
         }
 
-        
         removeIntersectingNonAdjacentSpans(start, start + before, SpellCheckSpan.class);
         removeIntersectingNonAdjacentSpans(start, start + before, SuggestionSpan.class);
     }
 
-    
     private <T> void removeIntersectingNonAdjacentSpans(int start, int end, Class<T> type) {
         if (!(mText instanceof Editable)) return;
         Editable text = (Editable) mText;
@@ -7698,10 +7429,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * Not private so it can be called from an inner class without going
-     * through a thunk.
-     */
+    /** Not private so it can be called from an inner class without going through a thunk. */
     void sendOnTextChanged(CharSequence text, int start, int before, int after) {
         if (mListeners != null) {
             final ArrayList<TextWatcher> list = mListeners;
@@ -7714,10 +7442,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if (mEditor != null) mEditor.sendOnTextChanged(start, after);
     }
 
-    /**
-     * Not private so it can be called from an inner class without going
-     * through a thunk.
-     */
+    /** Not private so it can be called from an inner class without going through a thunk. */
     void sendAfterTextChanged(Editable text) {
         if (mListeners != null) {
             final ArrayList<TextWatcher> list = mListeners;
@@ -7746,10 +7471,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * Not private so it can be called from an inner class without going
-     * through a thunk.
-     */
+    /** Not private so it can be called from an inner class without going through a thunk. */
     void handleTextChanged(CharSequence buffer, int start, int before, int after) {
         sLastCutCopyOrTextChangedTime = 0;
 
@@ -7761,28 +7483,23 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             ims.mContentChanged = true;
             if (ims.mChangedStart < 0) {
                 ims.mChangedStart = start;
-                ims.mChangedEnd = start+before;
+                ims.mChangedEnd = start + before;
             } else {
                 ims.mChangedStart = Math.min(ims.mChangedStart, start);
                 ims.mChangedEnd = Math.max(ims.mChangedEnd, start + before - ims.mChangedDelta);
             }
-            ims.mChangedDelta += after-before;
+            ims.mChangedDelta += after - before;
         }
         resetErrorChangedFlag();
         sendOnTextChanged(buffer, start, before, after);
         onTextChanged(buffer, start, before, after);
     }
 
-    /**
-     * Not private so it can be called from an inner class without going
-     * through a thunk.
-     */
+    /** Not private so it can be called from an inner class without going through a thunk. */
     void spanChange(Spanned buf, Object what, int oldStart, int newStart, int oldEnd, int newEnd) {
-        
-        
 
         boolean selChanged = false;
-        int newSelStart=-1, newSelEnd=-1;
+        int newSelStart = -1, newSelEnd = -1;
 
         final Editor.InputMethodState ims = mEditor == null ? null : mEditor.mInputMethodState;
 
@@ -7812,7 +7529,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             mHighlightPathBogus = true;
             if (mEditor != null && !isFocused()) mEditor.mSelectionMoved = true;
 
-            if ((buf.getSpanFlags(what)&Spanned.SPAN_INTERMEDIATE) == 0) {
+            if ((buf.getSpanFlags(what) & Spanned.SPAN_INTERMEDIATE) == 0) {
                 if (newSelStart < 0) {
                     newSelStart = Selection.getSelectionStart(buf);
                 }
@@ -7823,8 +7540,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
         }
 
-        if (what instanceof UpdateAppearance || what instanceof ParagraphStyle ||
-                what instanceof CharacterStyle) {
+        if (what instanceof UpdateAppearance
+                || what instanceof ParagraphStyle
+                || what instanceof CharacterStyle) {
             if (ims == null || ims.mBatchEditNesting == 0) {
                 invalidate();
                 mHighlightPathBogus = true;
@@ -7854,8 +7572,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         if (what instanceof ParcelableSpan) {
-            
-            
+
             if (ims != null && ims.mExtractedTextRequest != null) {
                 if (ims.mBatchEditNesting != 0) {
                     if (oldStart >= 0) {
@@ -7875,23 +7592,33 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                         }
                     }
                 } else {
-                    if (DEBUG_EXTRACT) Log.v(LOG_TAG, "Span change outside of batch: "
-                            + oldStart + "-" + oldEnd + ","
-                            + newStart + "-" + newEnd + " " + what);
+                    if (DEBUG_EXTRACT)
+                        Log.v(
+                                LOG_TAG,
+                                "Span change outside of batch: "
+                                        + oldStart
+                                        + "-"
+                                        + oldEnd
+                                        + ","
+                                        + newStart
+                                        + "-"
+                                        + newEnd
+                                        + " "
+                                        + what);
                     ims.mContentChanged = true;
                 }
             }
         }
 
-        if (mEditor != null && mEditor.mSpellChecker != null && newStart < 0 &&
-                what instanceof SpellCheckSpan) {
+        if (mEditor != null
+                && mEditor.mSpellChecker != null
+                && newStart < 0
+                && what instanceof SpellCheckSpan) {
             mEditor.mSpellChecker.onSpellCheckSpanRemoved((SpellCheckSpan) what);
         }
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     public void dispatchFinishTemporaryDetach() {
         mDispatchTemporaryDetach = true;
@@ -7902,20 +7629,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     @Override
     public void onStartTemporaryDetach() {
         super.onStartTemporaryDetach();
-        
-        
+
         if (!mDispatchTemporaryDetach) mTemporaryDetach = true;
 
-        
-        
         if (mEditor != null) mEditor.mTemporaryDetach = true;
     }
 
     @Override
     public void onFinishTemporaryDetach() {
         super.onFinishTemporaryDetach();
-        
-        
+
         if (!mDispatchTemporaryDetach) mTemporaryDetach = false;
         if (mEditor != null) mEditor.mTemporaryDetach = false;
     }
@@ -7923,7 +7646,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     @Override
     protected void onFocusChanged(boolean focused, int direction, Rect previouslyFocusedRect) {
         if (mTemporaryDetach) {
-            
+
             super.onFocusChanged(focused, direction, previouslyFocusedRect);
             return;
         }
@@ -7966,12 +7689,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * Use {@link BaseInputConnection#removeComposingSpans
-     * BaseInputConnection.removeComposingSpans()} to remove any IME composing
-     * state from this text view.
+     * BaseInputConnection.removeComposingSpans()} to remove any IME composing state from this text
+     * view.
      */
     public void clearComposingText() {
         if (mText instanceof Spannable) {
-            BaseInputConnection.removeComposingSpans((Spannable)mText);
+            BaseInputConnection.removeComposingSpans((Spannable) mText);
         }
     }
 
@@ -7995,9 +7718,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         final int action = event.getActionMasked();
 
         if (mEditor != null && action == MotionEvent.ACTION_DOWN) {
-            
-            if (mFirstTouch && (SystemClock.uptimeMillis() - mLastTouchUpTime) <=
-                    ViewConfiguration.getDoubleTapTimeout()) {
+
+            if (mFirstTouch
+                    && (SystemClock.uptimeMillis() - mLastTouchUpTime)
+                            <= ViewConfiguration.getDoubleTapTimeout()) {
                 mEditor.mDoubleTap = true;
                 mFirstTouch = false;
             } else {
@@ -8013,8 +7737,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if (mEditor != null) {
             mEditor.onTouchEvent(event);
 
-            if (mEditor.mSelectionModifierCursorController != null &&
-                    mEditor.mSelectionModifierCursorController.isDragAcceleratorActive()) {
+            if (mEditor.mSelectionModifierCursorController != null
+                    && mEditor.mSelectionModifierCursorController.isDragAcceleratorActive()) {
                 return true;
             }
         }
@@ -8036,11 +7760,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return superResult;
         }
 
-        final boolean touchIsFinished = (action == MotionEvent.ACTION_UP) &&
-                (mEditor == null || !mEditor.mIgnoreActionUpEvent) && isFocused();
+        final boolean touchIsFinished =
+                (action == MotionEvent.ACTION_UP)
+                        && (mEditor == null || !mEditor.mIgnoreActionUpEvent)
+                        && isFocused();
 
-         if ((mMovement != null || onCheckIsTextEditor()) && isEnabled()
-                && mText instanceof Spannable && mLayout != null) {
+        if ((mMovement != null || onCheckIsTextEditor())
+                && isEnabled()
+                && mText instanceof Spannable
+                && mLayout != null) {
             boolean handled = false;
 
             if (mMovement != null) {
@@ -8049,11 +7777,13 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
             final boolean textIsSelectable = isTextSelectable();
             if (touchIsFinished && mLinksClickable && mAutoLinkMask != 0 && textIsSelectable) {
-                
-                
-                
-                ClickableSpan[] links = ((Spannable) mText).getSpans(getSelectionStart(),
-                        getSelectionEnd(), ClickableSpan.class);
+
+                ClickableSpan[] links =
+                        ((Spannable) mText)
+                                .getSpans(
+                                        getSelectionStart(),
+                                        getSelectionEnd(),
+                                        ClickableSpan.class);
 
                 if (links.length > 0) {
                     links[0].onClick(this);
@@ -8062,14 +7792,13 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             }
 
             if (touchIsFinished && (isTextEditable() || textIsSelectable)) {
-                
+
                 final InputMethodManager imm = InputMethodManager.peekInstance();
                 viewClicked(imm);
                 if (!textIsSelectable && mEditor.mShowSoftInputOnFocus) {
                     handled |= imm != null && imm.showSoftInput(this, 0);
                 }
 
-                
                 mEditor.onTouchUpEvent(event);
 
                 handled = true;
@@ -8091,27 +7820,24 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                     return true;
                 }
             } catch (AbstractMethodError ex) {
-                
-                
-                
+
             }
         }
         return super.onGenericMotionEvent(event);
     }
 
     /**
-     * @return True iff this TextView contains a text that can be edited, or if this is
-     * a selectable TextView.
+     * @return True iff this TextView contains a text that can be edited, or if this is a selectable
+     *     TextView.
      */
     boolean isTextEditable() {
         return mText instanceof Editable && onCheckIsTextEditor() && isEnabled();
     }
 
     /**
-     * Returns true, only while processing a touch gesture, if the initial
-     * touch down event caused focus to move to the text view and as a result
-     * its selection changed.  Only valid while processing the touch gesture
-     * of interest, in an editable text view.
+     * Returns true, only while processing a touch gesture, if the initial touch down event caused
+     * focus to move to the text view and as a result its selection changed. Only valid while
+     * processing the touch gesture of interest, in an editable text view.
      */
     public boolean didTouchFocusSelect() {
         return mEditor != null && mEditor.mTouchFocusSelected;
@@ -8140,8 +7866,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     @Override
     protected float getLeftFadingEdgeStrength() {
-        if (mEllipsize == TextUtils.TruncateAt.MARQUEE &&
-                mMarqueeFadeMode != MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS) {
+        if (mEllipsize == TextUtils.TruncateAt.MARQUEE
+                && mMarqueeFadeMode != MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS) {
             if (mMarquee != null && !mMarquee.isStopped()) {
                 final Marquee marquee = mMarquee;
                 if (marquee.shouldDrawLeftFade()) {
@@ -8157,18 +7883,24 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                     case Gravity.LEFT:
                         return 0.0f;
                     case Gravity.RIGHT:
-                        return (mLayout.getLineRight(0) - (mRight - mLeft) -
-                                getCompoundPaddingLeft() - getCompoundPaddingRight() -
-                                mLayout.getLineLeft(0)) / getHorizontalFadingEdgeLength();
+                        return (mLayout.getLineRight(0)
+                                        - (mRight - mLeft)
+                                        - getCompoundPaddingLeft()
+                                        - getCompoundPaddingRight()
+                                        - mLayout.getLineLeft(0))
+                                / getHorizontalFadingEdgeLength();
                     case Gravity.CENTER_HORIZONTAL:
                     case Gravity.FILL_HORIZONTAL:
                         final int textDirection = mLayout.getParagraphDirection(0);
                         if (textDirection == Layout.DIR_LEFT_TO_RIGHT) {
                             return 0.0f;
                         } else {
-                            return (mLayout.getLineRight(0) - (mRight - mLeft) -
-                                getCompoundPaddingLeft() - getCompoundPaddingRight() -
-                                mLayout.getLineLeft(0)) / getHorizontalFadingEdgeLength();
+                            return (mLayout.getLineRight(0)
+                                            - (mRight - mLeft)
+                                            - getCompoundPaddingLeft()
+                                            - getCompoundPaddingRight()
+                                            - mLayout.getLineLeft(0))
+                                    / getHorizontalFadingEdgeLength();
                         }
                 }
             }
@@ -8178,8 +7910,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     @Override
     protected float getRightFadingEdgeStrength() {
-        if (mEllipsize == TextUtils.TruncateAt.MARQUEE &&
-                mMarqueeFadeMode != MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS) {
+        if (mEllipsize == TextUtils.TruncateAt.MARQUEE
+                && mMarqueeFadeMode != MARQUEE_FADE_SWITCH_SHOW_ELLIPSIS) {
             if (mMarquee != null && !mMarquee.isStopped()) {
                 final Marquee marquee = mMarquee;
                 final float maxFadeScroll = marquee.getMaxFadeScroll();
@@ -8190,8 +7922,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 final int absoluteGravity = Gravity.getAbsoluteGravity(mGravity, layoutDirection);
                 switch (absoluteGravity & Gravity.HORIZONTAL_GRAVITY_MASK) {
                     case Gravity.LEFT:
-                        final int textWidth = (mRight - mLeft) - getCompoundPaddingLeft() -
-                                getCompoundPaddingRight();
+                        final int textWidth =
+                                (mRight - mLeft)
+                                        - getCompoundPaddingLeft()
+                                        - getCompoundPaddingRight();
                         final float lineWidth = mLayout.getLineWidth(0);
                         return (lineWidth - textWidth) / getHorizontalFadingEdgeLength();
                     case Gravity.RIGHT:
@@ -8202,9 +7936,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                         if (textDirection == Layout.DIR_RIGHT_TO_LEFT) {
                             return 0.0f;
                         } else {
-                            return (mLayout.getLineWidth(0) - ((mRight - mLeft) -
-                                getCompoundPaddingLeft() - getCompoundPaddingRight())) /
-                                getHorizontalFadingEdgeLength();
+                            return (mLayout.getLineWidth(0)
+                                            - ((mRight - mLeft)
+                                                    - getCompoundPaddingLeft()
+                                                    - getCompoundPaddingRight()))
+                                    / getHorizontalFadingEdgeLength();
                         }
                 }
             }
@@ -8215,8 +7951,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     @Override
     protected int computeHorizontalScrollRange() {
         if (mLayout != null) {
-            return mSingleLine && (mGravity & Gravity.HORIZONTAL_GRAVITY_MASK) == Gravity.LEFT ?
-                    (int) mLayout.getLineWidth(0) : mLayout.getWidth();
+            return mSingleLine && (mGravity & Gravity.HORIZONTAL_GRAVITY_MASK) == Gravity.LEFT
+                    ? (int) mLayout.getLineWidth(0)
+                    : mLayout.getWidth();
         }
 
         return super.computeHorizontalScrollRange();
@@ -8224,8 +7961,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     @Override
     protected int computeVerticalScrollRange() {
-        if (mLayout != null)
-            return mLayout.getHeight();
+        if (mLayout != null) return mLayout.getHeight();
 
         return super.computeVerticalScrollRange();
     }
@@ -8238,8 +7974,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     @Override
     public void findViewsWithText(ArrayList<View> outViews, CharSequence searched, int flags) {
         super.findViewsWithText(outViews, searched, flags);
-        if (!outViews.contains(this) && (flags & FIND_VIEWS_WITH_TEXT) != 0
-                && !TextUtils.isEmpty(searched) && !TextUtils.isEmpty(mText)) {
+        if (!outViews.contains(this)
+                && (flags & FIND_VIEWS_WITH_TEXT) != 0
+                && !TextUtils.isEmpty(searched)
+                && !TextUtils.isEmpty(mText)) {
             String searchedLowerCase = searched.toString().toLowerCase();
             String textLowerCase = mText.toString().toLowerCase();
             if (textLowerCase.contains(searchedLowerCase)) {
@@ -8249,33 +7987,31 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     public enum BufferType {
-        NORMAL, SPANNABLE, EDITABLE,
+        NORMAL,
+        SPANNABLE,
+        EDITABLE,
     }
 
     /**
-     * Returns the TextView_textColor attribute from the TypedArray, if set, or
-     * the TextAppearance_textColor from the TextView_textAppearance attribute,
-     * if TextView_textColor was not set directly.
+     * Returns the TextView_textColor attribute from the TypedArray, if set, or the
+     * TextAppearance_textColor from the TextView_textAppearance attribute, if TextView_textColor
+     * was not set directly.
      *
      * @removed
      */
     public static ColorStateList getTextColors(Context context, TypedArray attrs) {
         if (attrs == null) {
-            
+
             throw new NullPointerException();
         }
 
-        
-        
-        
-        
         final TypedArray a = context.obtainStyledAttributes(R.styleable.TextView);
         ColorStateList colors = a.getColorStateList(R.styleable.TextView_textColor);
         if (colors == null) {
             final int ap = a.getResourceId(R.styleable.TextView_textAppearance, 0);
             if (ap != 0) {
-                final TypedArray appearance = context.obtainStyledAttributes(
-                        ap, R.styleable.TextAppearance);
+                final TypedArray appearance =
+                        context.obtainStyledAttributes(ap, R.styleable.TextAppearance);
                 colors = appearance.getColorStateList(R.styleable.TextAppearance_textColor);
                 appearance.recycle();
             }
@@ -8286,10 +8022,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns the default color from the TextView_textColor attribute from the
-     * AttributeSet, if set, or the default color from the
-     * TextAppearance_textColor from the TextView_textAppearance attribute, if
-     * TextView_textColor was not set directly.
+     * Returns the default color from the TextView_textColor attribute from the AttributeSet, if
+     * set, or the default color from the TextAppearance_textColor from the TextView_textAppearance
+     * attribute, if TextView_textColor was not set directly.
      *
      * @removed
      */
@@ -8305,36 +8040,36 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     @Override
     public boolean onKeyShortcut(int keyCode, KeyEvent event) {
         if (event.hasModifiers(KeyEvent.META_CTRL_ON)) {
-            
+
             switch (keyCode) {
-            case KeyEvent.KEYCODE_A:
-                if (canSelectText()) {
-                    return onTextContextMenuItem(ID_SELECT_ALL);
-                }
-                break;
-            case KeyEvent.KEYCODE_Z:
-                if (canUndo()) {
-                    return onTextContextMenuItem(ID_UNDO);
-                }
-                break;
-            case KeyEvent.KEYCODE_X:
-                if (canCut()) {
-                    return onTextContextMenuItem(ID_CUT);
-                }
-                break;
-            case KeyEvent.KEYCODE_C:
-                if (canCopy()) {
-                    return onTextContextMenuItem(ID_COPY);
-                }
-                break;
-            case KeyEvent.KEYCODE_V:
-                if (canPaste()) {
-                    return onTextContextMenuItem(ID_PASTE);
-                }
-                break;
+                case KeyEvent.KEYCODE_A:
+                    if (canSelectText()) {
+                        return onTextContextMenuItem(ID_SELECT_ALL);
+                    }
+                    break;
+                case KeyEvent.KEYCODE_Z:
+                    if (canUndo()) {
+                        return onTextContextMenuItem(ID_UNDO);
+                    }
+                    break;
+                case KeyEvent.KEYCODE_X:
+                    if (canCut()) {
+                        return onTextContextMenuItem(ID_CUT);
+                    }
+                    break;
+                case KeyEvent.KEYCODE_C:
+                    if (canCopy()) {
+                        return onTextContextMenuItem(ID_COPY);
+                    }
+                    break;
+                case KeyEvent.KEYCODE_V:
+                    if (canPaste()) {
+                        return onTextContextMenuItem(ID_PASTE);
+                    }
+                    break;
             }
         } else if (event.hasModifiers(KeyEvent.META_CTRL_ON | KeyEvent.META_SHIFT_ON)) {
-            
+
             switch (keyCode) {
                 case KeyEvent.KEYCODE_Z:
                     if (canRedo()) {
@@ -8361,51 +8096,45 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Test based on the <i>intrinsic</i> charateristics of the TextView.
-     * The text must be spannable and the movement method must allow for arbitary selection.
+     * Test based on the <i>intrinsic</i> charateristics of the TextView. The text must be spannable
+     * and the movement method must allow for arbitary selection.
      *
-     * See also {@link #canSelectText()}.
+     * <p>See also {@link #canSelectText()}.
      */
     boolean textCanBeSelected() {
-        
-        
-        
+
         if (mMovement == null || !mMovement.canSelectArbitrarily()) return false;
-        return isTextEditable() ||
-                (isTextSelectable() && mText instanceof Spannable && isEnabled());
+        return isTextEditable()
+                || (isTextSelectable() && mText instanceof Spannable && isEnabled());
     }
 
     private Locale getTextServicesLocale(boolean allowNullLocale) {
-        
+
         updateTextServicesLocaleAsync();
-        
-        
-        return (mCurrentSpellCheckerLocaleCache == null && !allowNullLocale) ? Locale.getDefault()
+
+        return (mCurrentSpellCheckerLocaleCache == null && !allowNullLocale)
+                ? Locale.getDefault()
                 : mCurrentSpellCheckerLocaleCache;
     }
 
     /**
-     * This is a temporary method. Future versions may support multi-locale text.
-     * Caveat: This method may not return the latest text services locale, but this should be
-     * acceptable and it's more important to make this method asynchronous.
+     * This is a temporary method. Future versions may support multi-locale text. Caveat: This
+     * method may not return the latest text services locale, but this should be acceptable and it's
+     * more important to make this method asynchronous.
      *
-     * @return The locale that should be used for a word iterator
-     * in this TextView, based on the current spell checker settings,
-     * the current IME's locale, or the system default locale.
-     * Please note that a word iterator in this TextView is different from another word iterator
-     * used by SpellChecker.java of TextView. This method should be used for the former.
+     * @return The locale that should be used for a word iterator in this TextView, based on the
+     *     current spell checker settings, the current IME's locale, or the system default locale.
+     *     Please note that a word iterator in this TextView is different from another word iterator
+     *     used by SpellChecker.java of TextView. This method should be used for the former.
      * @hide
      */
-    
-    
-    
     public Locale getTextServicesLocale() {
-        return getTextServicesLocale(false );
+        return getTextServicesLocale(false);
     }
 
     /**
      * @return true if this TextView is specialized for showing and interacting with the extracted
-     * text in a full-screen input method.
+     *     text in a full-screen input method.
      * @hide
      */
     public boolean isInExtractedMode() {
@@ -8413,34 +8142,33 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * This is a temporary method. Future versions may support multi-locale text.
-     * Caveat: This method may not return the latest spell checker locale, but this should be
-     * acceptable and it's more important to make this method asynchronous.
+     * This is a temporary method. Future versions may support multi-locale text. Caveat: This
+     * method may not return the latest spell checker locale, but this should be acceptable and it's
+     * more important to make this method asynchronous.
      *
-     * @return The locale that should be used for a spell checker in this TextView,
-     * based on the current spell checker settings, the current IME's locale, or the system default
-     * locale.
+     * @return The locale that should be used for a spell checker in this TextView, based on the
+     *     current spell checker settings, the current IME's locale, or the system default locale.
      * @hide
      */
     public Locale getSpellCheckerLocale() {
-        return getTextServicesLocale(true );
+        return getTextServicesLocale(true);
     }
 
     private void updateTextServicesLocaleAsync() {
-        
-        
-        
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                updateTextServicesLocaleLocked();
-            }
-        });
+
+        AsyncTask.execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        updateTextServicesLocaleLocked();
+                    }
+                });
     }
 
     private void updateTextServicesLocaleLocked() {
-        final TextServicesManager textServicesManager = (TextServicesManager)
-                mContext.getSystemService(Context.TEXT_SERVICES_MANAGER_SERVICE);
+        final TextServicesManager textServicesManager =
+                (TextServicesManager)
+                        mContext.getSystemService(Context.TEXT_SERVICES_MANAGER_SERVICE);
         final SpellCheckerSubtype subtype = textServicesManager.getCurrentSpellCheckerSubtype(true);
         final Locale locale;
         if (subtype != null) {
@@ -8452,13 +8180,14 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     void onLocaleChanged() {
-        
+
         mEditor.mWordIterator = null;
     }
 
     /**
-     * This method is used by the ArrowKeyMovementMethod to jump from one word to the other.
-     * Made available to achieve a consistent behavior.
+     * This method is used by the ArrowKeyMovementMethod to jump from one word to the other. Made
+     * available to achieve a consistent behavior.
+     *
      * @hide
      */
     public WordIterator getWordIterator() {
@@ -8469,7 +8198,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    
     @Override
     public void onPopulateAccessibilityEventInternal(AccessibilityEvent event) {
         super.onPopulateAccessibilityEventInternal(event);
@@ -8484,13 +8212,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * @return true if the user has explicitly allowed accessibility services
-     * to speak passwords.
+     * @return true if the user has explicitly allowed accessibility services to speak passwords.
      */
     private boolean shouldSpeakPasswordsForAccessibility() {
-        return (Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                Settings.Secure.ACCESSIBILITY_SPEAK_PASSWORD, 0,
-                UserHandle.USER_CURRENT_OR_SELF) == 1);
+        return (Settings.Secure.getIntForUser(
+                        mContext.getContentResolver(),
+                        Settings.Secure.ACCESSIBILITY_SPEAK_PASSWORD,
+                        0,
+                        UserHandle.USER_CURRENT_OR_SELF)
+                == 1);
     }
 
     @Override
@@ -8501,8 +8231,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     @Override
     public void onProvideStructure(ViewStructure structure) {
         super.onProvideStructure(structure);
-        final boolean isPassword = hasPasswordTransformationMethod()
-                || isPasswordInputType(getInputType());
+        final boolean isPassword =
+                hasPasswordTransformationMethod() || isPasswordInputType(getInputType());
         if (!isPassword) {
             if (mLayout == null) {
                 assumeLayout();
@@ -8510,11 +8240,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             Layout layout = mLayout;
             final int lineCount = layout.getLineCount();
             if (lineCount <= 1) {
-                
+
                 structure.setText(getText(), getSelectionStart(), getSelectionEnd());
             } else {
-                
-                
+
                 final int[] tmpCords = new int[2];
                 getLocationInWindow(tmpCords);
                 final int topWindowLocation = tmpCords[1];
@@ -8528,30 +8257,27 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 final int topLine;
                 final int bottomLine;
                 if (topWindowLocation >= 0) {
-                    
+
                     topLine = getLineAtCoordinateUnclamped(0);
-                    bottomLine = getLineAtCoordinateUnclamped(windowHeight-1);
+                    bottomLine = getLineAtCoordinateUnclamped(windowHeight - 1);
                 } else {
-                    
-                    
+
                     topLine = getLineAtCoordinateUnclamped(-topWindowLocation);
-                    bottomLine = getLineAtCoordinateUnclamped(windowHeight-1-topWindowLocation);
+                    bottomLine = getLineAtCoordinateUnclamped(windowHeight - 1 - topWindowLocation);
                 }
-                
-                
-                int expandedTopLine = topLine - (bottomLine-topLine)/2;
+
+                int expandedTopLine = topLine - (bottomLine - topLine) / 2;
                 if (expandedTopLine < 0) {
                     expandedTopLine = 0;
                 }
-                int expandedBottomLine = bottomLine + (bottomLine-topLine)/2;
+                int expandedBottomLine = bottomLine + (bottomLine - topLine) / 2;
                 if (expandedBottomLine >= lineCount) {
-                    expandedBottomLine = lineCount-1;
+                    expandedBottomLine = lineCount - 1;
                 }
-                
+
                 int expandedTopChar = layout.getLineStart(expandedTopLine);
                 int expandedBottomChar = layout.getLineEnd(expandedBottomLine);
-                
-                
+
                 final int selStart = getSelectionStart();
                 final int selEnd = getSelectionEnd();
                 if (selStart < selEnd) {
@@ -8562,23 +8288,22 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                         expandedBottomChar = selEnd;
                     }
                 }
-                
+
                 CharSequence text = getText();
                 if (expandedTopChar > 0 || expandedBottomChar < text.length()) {
                     text = text.subSequence(expandedTopChar, expandedBottomChar);
                 }
-                structure.setText(text, selStart-expandedTopChar, selEnd-expandedTopChar);
-                final int[] lineOffsets = new int[bottomLine-topLine+1];
-                final int[] lineBaselines = new int[bottomLine-topLine+1];
+                structure.setText(text, selStart - expandedTopChar, selEnd - expandedTopChar);
+                final int[] lineOffsets = new int[bottomLine - topLine + 1];
+                final int[] lineBaselines = new int[bottomLine - topLine + 1];
                 final int baselineOffset = getBaselineOffset();
-                for (int i=topLine; i<=bottomLine; i++) {
-                    lineOffsets[i-topLine] = layout.getLineStart(i);
-                    lineBaselines[i-topLine] = layout.getLineBaseline(i) + baselineOffset;
+                for (int i = topLine; i <= bottomLine; i++) {
+                    lineOffsets[i - topLine] = layout.getLineStart(i);
+                    lineBaselines[i - topLine] = layout.getLineBaseline(i) + baselineOffset;
                 }
                 structure.setTextLines(lineOffsets, lineBaselines);
             }
 
-            
             int style = 0;
             int typefaceStyle = getTypefaceStyle();
             if ((typefaceStyle & Typeface.BOLD) != 0) {
@@ -8588,7 +8313,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 style |= AssistStructure.ViewNode.TEXT_STYLE_ITALIC;
             }
 
-            
             int paintFlags = mTextPaint.getFlags();
             if ((paintFlags & Paint.FAKE_BOLD_TEXT_FLAG) != 0) {
                 style |= AssistStructure.ViewNode.TEXT_STYLE_BOLD;
@@ -8600,15 +8324,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 style |= AssistStructure.ViewNode.TEXT_STYLE_STRIKE_THRU;
             }
 
-            
-            
-            structure.setTextStyle(getTextSize(), getCurrentTextColor(),
-                    AssistStructure.ViewNode.TEXT_COLOR_UNDEFINED , style);
+            structure.setTextStyle(
+                    getTextSize(),
+                    getCurrentTextColor(),
+                    AssistStructure.ViewNode.TEXT_COLOR_UNDEFINED,
+                    style);
         }
         structure.setHint(getHint());
     }
 
-    
     @Override
     public void onInitializeAccessibilityEventInternal(AccessibilityEvent event) {
         super.onInitializeAccessibilityEventInternal(event);
@@ -8623,7 +8347,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    
     @Override
     public void onInitializeAccessibilityNodeInfoInternal(AccessibilityNodeInfo info) {
         super.onInitializeAccessibilityNodeInfoInternal(info);
@@ -8651,11 +8374,12 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if (!TextUtils.isEmpty(mText)) {
             info.addAction(AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY);
             info.addAction(AccessibilityNodeInfo.ACTION_PREVIOUS_AT_MOVEMENT_GRANULARITY);
-            info.setMovementGranularities(AccessibilityNodeInfo.MOVEMENT_GRANULARITY_CHARACTER
-                    | AccessibilityNodeInfo.MOVEMENT_GRANULARITY_WORD
-                    | AccessibilityNodeInfo.MOVEMENT_GRANULARITY_LINE
-                    | AccessibilityNodeInfo.MOVEMENT_GRANULARITY_PARAGRAPH
-                    | AccessibilityNodeInfo.MOVEMENT_GRANULARITY_PAGE);
+            info.setMovementGranularities(
+                    AccessibilityNodeInfo.MOVEMENT_GRANULARITY_CHARACTER
+                            | AccessibilityNodeInfo.MOVEMENT_GRANULARITY_WORD
+                            | AccessibilityNodeInfo.MOVEMENT_GRANULARITY_LINE
+                            | AccessibilityNodeInfo.MOVEMENT_GRANULARITY_PARAGRAPH
+                            | AccessibilityNodeInfo.MOVEMENT_GRANULARITY_PAGE);
             info.addAction(AccessibilityNodeInfo.ACTION_SET_SELECTION);
         }
 
@@ -8670,16 +8394,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 info.addAction(AccessibilityNodeInfo.ACTION_CUT);
             }
             if (canShare()) {
-                info.addAction(new AccessibilityNodeInfo.AccessibilityAction(
-                        ACCESSIBILITY_ACTION_SHARE,
-                        getResources().getString(com.android.internal.R.string.share)));
+                info.addAction(
+                        new AccessibilityNodeInfo.AccessibilityAction(
+                                ACCESSIBILITY_ACTION_SHARE,
+                                getResources().getString(com.android.internal.R.string.share)));
             }
-            if (canProcessText()) {  
+            if (canProcessText()) {
                 mEditor.mProcessTextIntentActionsHandler.onInitializeAccessibilityNodeInfo(info);
             }
         }
 
-        
         final int numFilters = mFilters.length;
         for (int i = 0; i < numFilters; i++) {
             final InputFilter filter = mFilters[i];
@@ -8694,8 +8418,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Performs an accessibility action after it has been offered to the
-     * delegate.
+     * Performs an accessibility action after it has been offered to the delegate.
      *
      * @hide
      */
@@ -8706,108 +8429,127 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return true;
         }
         switch (action) {
-            case AccessibilityNodeInfo.ACTION_CLICK: {
-                boolean handled = false;
+            case AccessibilityNodeInfo.ACTION_CLICK:
+                {
+                    boolean handled = false;
 
-                
-                if (isClickable() || isLongClickable()) {
-                    if (isFocusable() && !isFocused()) {
-                        requestFocus();
-                    }
-
-                    performClick();
-                    handled = true;
-                }
-
-                
-                if ((mMovement != null || onCheckIsTextEditor()) && isEnabled()
-                        && mText instanceof Spannable && mLayout != null
-                        && (isTextEditable() || isTextSelectable()) && isFocused()) {
-                    
-                    final InputMethodManager imm = InputMethodManager.peekInstance();
-                    viewClicked(imm);
-                    if (!isTextSelectable() && mEditor.mShowSoftInputOnFocus && imm != null) {
-                        handled |= imm.showSoftInput(this, 0);
-                    }
-                }
-
-                return handled;
-            }
-            case AccessibilityNodeInfo.ACTION_COPY: {
-                if (isFocused() && canCopy()) {
-                    if (onTextContextMenuItem(ID_COPY)) {
-                        return true;
-                    }
-                }
-            } return false;
-            case AccessibilityNodeInfo.ACTION_PASTE: {
-                if (isFocused() && canPaste()) {
-                    if (onTextContextMenuItem(ID_PASTE)) {
-                        return true;
-                    }
-                }
-            } return false;
-            case AccessibilityNodeInfo.ACTION_CUT: {
-                if (isFocused() && canCut()) {
-                    if (onTextContextMenuItem(ID_CUT)) {
-                        return true;
-                    }
-                }
-            } return false;
-            case AccessibilityNodeInfo.ACTION_SET_SELECTION: {
-                ensureIterableTextForAccessibilitySelectable();
-                CharSequence text = getIterableTextForAccessibility();
-                if (text == null) {
-                    return false;
-                }
-                final int start = (arguments != null) ? arguments.getInt(
-                        AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_START_INT, -1) : -1;
-                final int end = (arguments != null) ? arguments.getInt(
-                        AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT, -1) : -1;
-                if ((getSelectionStart() != start || getSelectionEnd() != end)) {
-                    
-                    if (start == end && end == -1) {
-                        Selection.removeSelection((Spannable) text);
-                        return true;
-                    }
-                    if (start >= 0 && start <= end && end <= text.length()) {
-                        Selection.setSelection((Spannable) text, start, end);
-                        
-                        if (mEditor != null) {
-                            mEditor.startSelectionActionMode();
+                    if (isClickable() || isLongClickable()) {
+                        if (isFocusable() && !isFocused()) {
+                            requestFocus();
                         }
-                        return true;
+
+                        performClick();
+                        handled = true;
+                    }
+
+                    if ((mMovement != null || onCheckIsTextEditor())
+                            && isEnabled()
+                            && mText instanceof Spannable
+                            && mLayout != null
+                            && (isTextEditable() || isTextSelectable())
+                            && isFocused()) {
+
+                        final InputMethodManager imm = InputMethodManager.peekInstance();
+                        viewClicked(imm);
+                        if (!isTextSelectable() && mEditor.mShowSoftInputOnFocus && imm != null) {
+                            handled |= imm.showSoftInput(this, 0);
+                        }
+                    }
+
+                    return handled;
+                }
+            case AccessibilityNodeInfo.ACTION_COPY:
+                {
+                    if (isFocused() && canCopy()) {
+                        if (onTextContextMenuItem(ID_COPY)) {
+                            return true;
+                        }
                     }
                 }
-            } return false;
+                return false;
+            case AccessibilityNodeInfo.ACTION_PASTE:
+                {
+                    if (isFocused() && canPaste()) {
+                        if (onTextContextMenuItem(ID_PASTE)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            case AccessibilityNodeInfo.ACTION_CUT:
+                {
+                    if (isFocused() && canCut()) {
+                        if (onTextContextMenuItem(ID_CUT)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            case AccessibilityNodeInfo.ACTION_SET_SELECTION:
+                {
+                    ensureIterableTextForAccessibilitySelectable();
+                    CharSequence text = getIterableTextForAccessibility();
+                    if (text == null) {
+                        return false;
+                    }
+                    final int start =
+                            (arguments != null)
+                                    ? arguments.getInt(
+                                            AccessibilityNodeInfo
+                                                    .ACTION_ARGUMENT_SELECTION_START_INT,
+                                            -1)
+                                    : -1;
+                    final int end =
+                            (arguments != null)
+                                    ? arguments.getInt(
+                                            AccessibilityNodeInfo.ACTION_ARGUMENT_SELECTION_END_INT,
+                                            -1)
+                                    : -1;
+                    if ((getSelectionStart() != start || getSelectionEnd() != end)) {
+
+                        if (start == end && end == -1) {
+                            Selection.removeSelection((Spannable) text);
+                            return true;
+                        }
+                        if (start >= 0 && start <= end && end <= text.length()) {
+                            Selection.setSelection((Spannable) text, start, end);
+
+                            if (mEditor != null) {
+                                mEditor.startSelectionActionMode();
+                            }
+                            return true;
+                        }
+                    }
+                }
+                return false;
             case AccessibilityNodeInfo.ACTION_NEXT_AT_MOVEMENT_GRANULARITY:
-            case AccessibilityNodeInfo.ACTION_PREVIOUS_AT_MOVEMENT_GRANULARITY: {
-                ensureIterableTextForAccessibilitySelectable();
-                return super.performAccessibilityActionInternal(action, arguments);
-            }
-            case ACCESSIBILITY_ACTION_SHARE: {
-                if (isFocused() && canShare()) {
-                    if (onTextContextMenuItem(ID_SHARE)) {
-                        return true;
+            case AccessibilityNodeInfo.ACTION_PREVIOUS_AT_MOVEMENT_GRANULARITY:
+                {
+                    ensureIterableTextForAccessibilitySelectable();
+                    return super.performAccessibilityActionInternal(action, arguments);
+                }
+            case ACCESSIBILITY_ACTION_SHARE:
+                {
+                    if (isFocused() && canShare()) {
+                        if (onTextContextMenuItem(ID_SHARE)) {
+                            return true;
+                        }
                     }
                 }
-            } return false;
-            default: {
-                return super.performAccessibilityActionInternal(action, arguments);
-            }
+                return false;
+            default:
+                {
+                    return super.performAccessibilityActionInternal(action, arguments);
+                }
         }
     }
 
-    
     @Override
     public void sendAccessibilityEventInternal(int eventType) {
         if (eventType == AccessibilityEvent.TYPE_VIEW_ACCESSIBILITY_FOCUSED && mEditor != null) {
             mEditor.mProcessTextIntentActionsHandler.initializeAccessibilityActions();
         }
 
-        
-        
-        
         if (eventType == AccessibilityEvent.TYPE_VIEW_SCROLLED) {
             return;
         }
@@ -8818,7 +8560,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * Gets the text reported for accessibility purposes.
      *
      * @return The accessibility text.
-     *
      * @hide
      */
     public CharSequence getTextForAccessibility() {
@@ -8829,10 +8570,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         return text;
     }
 
-    void sendAccessibilityEventTypeViewTextChanged(CharSequence beforeText,
-            int fromIndex, int removedCount, int addedCount) {
+    void sendAccessibilityEventTypeViewTextChanged(
+            CharSequence beforeText, int fromIndex, int removedCount, int addedCount) {
         AccessibilityEvent event =
-            AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED);
+                AccessibilityEvent.obtain(AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED);
         event.setFromIndex(fromIndex);
         event.setRemovedCount(removedCount);
         event.setAddedCount(addedCount);
@@ -8841,8 +8582,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * Returns whether this text view is a current input method target.  The
-     * default implementation just checks with {@link InputMethodManager}.
+     * Returns whether this text view is a current input method target. The default implementation
+     * just checks with {@link InputMethodManager}.
      */
     public boolean isInputMethodTarget() {
         InputMethodManager imm = InputMethodManager.peekInstance();
@@ -8860,9 +8601,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     static final int ID_REPLACE = android.R.id.replaceText;
 
     /**
-     * Called when a context menu option for the text view is selected.  Currently
-     * this will be one of {@link android.R.id#selectAll}, {@link android.R.id#cut},
-     * {@link android.R.id#copy}, {@link android.R.id#paste} or {@link android.R.id#shareText}.
+     * Called when a context menu option for the text view is selected. Currently this will be one
+     * of {@link android.R.id#selectAll}, {@link android.R.id#cut}, {@link android.R.id#copy},
+     * {@link android.R.id#paste} or {@link android.R.id#shareText}.
      *
      * @return true if the context menu item action was performed.
      */
@@ -8880,9 +8621,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         switch (id) {
             case ID_SELECT_ALL:
-                
-                
-                
                 boolean shouldRestartActionMode =
                         mEditor != null && mEditor.mTextActionMode != null;
                 stopTextActionMode();
@@ -8896,20 +8634,20 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
                 if (mEditor != null) {
                     mEditor.undo();
                 }
-                return true;  
+                return true;
 
             case ID_REDO:
                 if (mEditor != null) {
                     mEditor.redo();
                 }
-                return true;  
+                return true;
 
             case ID_PASTE:
-                paste(min, max, true );
+                paste(min, max, true);
                 return true;
 
             case ID_PASTE_AS_PLAIN_TEXT:
-                paste(min, max, false );
+                paste(min, max, false);
                 return true;
 
             case ID_CUT:
@@ -8970,23 +8708,23 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * Return whether or not suggestions are enabled on this TextView. The suggestions are generated
-     * by the IME or by the spell checker as the user types. This is done by adding
-     * {@link SuggestionSpan}s to the text.
+     * by the IME or by the spell checker as the user types. This is done by adding {@link
+     * SuggestionSpan}s to the text.
      *
-     * When suggestions are enabled (default), this list of suggestions will be displayed when the
-     * user asks for them on these parts of the text. This value depends on the inputType of this
-     * TextView.
+     * <p>When suggestions are enabled (default), this list of suggestions will be displayed when
+     * the user asks for them on these parts of the text. This value depends on the inputType of
+     * this TextView.
      *
-     * The class of the input type must be {@link InputType#TYPE_CLASS_TEXT}.
+     * <p>The class of the input type must be {@link InputType#TYPE_CLASS_TEXT}.
      *
-     * In addition, the type variation must be one of
-     * {@link InputType#TYPE_TEXT_VARIATION_NORMAL},
-     * {@link InputType#TYPE_TEXT_VARIATION_EMAIL_SUBJECT},
-     * {@link InputType#TYPE_TEXT_VARIATION_LONG_MESSAGE},
-     * {@link InputType#TYPE_TEXT_VARIATION_SHORT_MESSAGE} or
-     * {@link InputType#TYPE_TEXT_VARIATION_WEB_EDIT_TEXT}.
+     * <p>In addition, the type variation must be one of {@link
+     * InputType#TYPE_TEXT_VARIATION_NORMAL}, {@link InputType#TYPE_TEXT_VARIATION_EMAIL_SUBJECT},
+     * {@link InputType#TYPE_TEXT_VARIATION_LONG_MESSAGE}, {@link
+     * InputType#TYPE_TEXT_VARIATION_SHORT_MESSAGE} or {@link
+     * InputType#TYPE_TEXT_VARIATION_WEB_EDIT_TEXT}.
      *
-     * And finally, the {@link InputType#TYPE_TEXT_FLAG_NO_SUGGESTIONS} flag must <i>not</i> be set.
+     * <p>And finally, the {@link InputType#TYPE_TEXT_FLAG_NO_SUGGESTIONS} flag must <i>not</i> be
+     * set.
      *
      * @return true if the suggestions popup window is enabled, based on the inputType.
      */
@@ -8998,11 +8736,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         if ((mEditor.mInputType & InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS) > 0) return false;
 
         final int variation = mEditor.mInputType & EditorInfo.TYPE_MASK_VARIATION;
-        return (variation == EditorInfo.TYPE_TEXT_VARIATION_NORMAL ||
-                variation == EditorInfo.TYPE_TEXT_VARIATION_EMAIL_SUBJECT ||
-                variation == EditorInfo.TYPE_TEXT_VARIATION_LONG_MESSAGE ||
-                variation == EditorInfo.TYPE_TEXT_VARIATION_SHORT_MESSAGE ||
-                variation == EditorInfo.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT);
+        return (variation == EditorInfo.TYPE_TEXT_VARIATION_NORMAL
+                || variation == EditorInfo.TYPE_TEXT_VARIATION_EMAIL_SUBJECT
+                || variation == EditorInfo.TYPE_TEXT_VARIATION_LONG_MESSAGE
+                || variation == EditorInfo.TYPE_TEXT_VARIATION_SHORT_MESSAGE
+                || variation == EditorInfo.TYPE_TEXT_VARIATION_WEB_EDIT_TEXT);
     }
 
     /**
@@ -9012,24 +8750,23 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * <p>The standard implementation populates the menu with a subset of Select All, Cut, Copy,
      * Paste, Replace and Share actions, depending on what this View supports.
      *
-     * <p>A custom implementation can add new entries in the default menu in its
-     * {@link android.view.ActionMode.Callback#onPrepareActionMode(ActionMode, android.view.Menu)}
-     * method. The default actions can also be removed from the menu using
-     * {@link android.view.Menu#removeItem(int)} and passing {@link android.R.id#selectAll},
-     * {@link android.R.id#cut}, {@link android.R.id#copy}, {@link android.R.id#paste},
-     * {@link android.R.id#replaceText} or {@link android.R.id#shareText} ids as parameters.
+     * <p>A custom implementation can add new entries in the default menu in its {@link
+     * android.view.ActionMode.Callback#onPrepareActionMode(ActionMode, android.view.Menu)} method.
+     * The default actions can also be removed from the menu using {@link
+     * android.view.Menu#removeItem(int)} and passing {@link android.R.id#selectAll}, {@link
+     * android.R.id#cut}, {@link android.R.id#copy}, {@link android.R.id#paste}, {@link
+     * android.R.id#replaceText} or {@link android.R.id#shareText} ids as parameters.
      *
-     * <p>Returning false from
-     * {@link android.view.ActionMode.Callback#onCreateActionMode(ActionMode, android.view.Menu)}
-     * will prevent the action mode from being started.
+     * <p>Returning false from {@link
+     * android.view.ActionMode.Callback#onCreateActionMode(ActionMode, android.view.Menu)} will
+     * prevent the action mode from being started.
      *
-     * <p>Action click events should be handled by the custom implementation of
-     * {@link android.view.ActionMode.Callback#onActionItemClicked(ActionMode,
-     * android.view.MenuItem)}.
+     * <p>Action click events should be handled by the custom implementation of {@link
+     * android.view.ActionMode.Callback#onActionItemClicked(ActionMode, android.view.MenuItem)}.
      *
-     * <p>Note that text selection mode is not started when a TextView receives focus and the
-     * {@link android.R.attr#selectAllOnFocus} flag has been set. The content is highlighted in
-     * that case, to allow for quick replacement.
+     * <p>Note that text selection mode is not started when a TextView receives focus and the {@link
+     * android.R.attr#selectAllOnFocus} flag has been set. The content is highlighted in that case,
+     * to allow for quick replacement.
      */
     public void setCustomSelectionActionModeCallback(ActionMode.Callback actionModeCallback) {
         createEditorIfNeeded();
@@ -9047,26 +8784,25 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * If provided, this ActionMode.Callback will be used to create the ActionMode when text
-     * insertion is initiated in this View.
-     * The standard implementation populates the menu with a subset of Select All,
-     * Paste and Replace actions, depending on what this View supports.
+     * insertion is initiated in this View. The standard implementation populates the menu with a
+     * subset of Select All, Paste and Replace actions, depending on what this View supports.
      *
-     * <p>A custom implementation can add new entries in the default menu in its
-     * {@link android.view.ActionMode.Callback#onPrepareActionMode(android.view.ActionMode,
+     * <p>A custom implementation can add new entries in the default menu in its {@link
+     * android.view.ActionMode.Callback#onPrepareActionMode(android.view.ActionMode,
      * android.view.Menu)} method. The default actions can also be removed from the menu using
-     * {@link android.view.Menu#removeItem(int)} and passing {@link android.R.id#selectAll},
-     * {@link android.R.id#paste} or {@link android.R.id#replaceText} ids as parameters.</p>
+     * {@link android.view.Menu#removeItem(int)} and passing {@link android.R.id#selectAll}, {@link
+     * android.R.id#paste} or {@link android.R.id#replaceText} ids as parameters.
      *
-     * <p>Returning false from
-     * {@link android.view.ActionMode.Callback#onCreateActionMode(android.view.ActionMode,
-     * android.view.Menu)} will prevent the action mode from being started.</p>
+     * <p>Returning false from {@link
+     * android.view.ActionMode.Callback#onCreateActionMode(android.view.ActionMode,
+     * android.view.Menu)} will prevent the action mode from being started.
      *
-     * <p>Action click events should be handled by the custom implementation of
-     * {@link android.view.ActionMode.Callback#onActionItemClicked(android.view.ActionMode,
-     * android.view.MenuItem)}.</p>
+     * <p>Action click events should be handled by the custom implementation of {@link
+     * android.view.ActionMode.Callback#onActionItemClicked(android.view.ActionMode,
+     * android.view.MenuItem)}.
      *
-     * <p>Note that text insertion mode is not started when a TextView receives focus and the
-     * {@link android.R.attr#selectAllOnFocus} flag has been set.</p>
+     * <p>Note that text insertion mode is not started when a TextView receives focus and the {@link
+     * android.R.attr#selectAllOnFocus} flag has been set.
      */
     public void setCustomInsertionActionModeCallback(ActionMode.Callback actionModeCallback) {
         createEditorIfNeeded();
@@ -9082,9 +8818,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         return mEditor == null ? null : mEditor.mCustomInsertionActionModeCallback;
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     protected void stopTextActionMode() {
         if (mEditor != null) {
             mEditor.stopTextActionMode();
@@ -9104,8 +8838,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return false;
         }
 
-        if (mText.length() > 0 && hasSelection() && mText instanceof Editable && mEditor != null &&
-                mEditor.mKeyListener != null) {
+        if (mText.length() > 0
+                && hasSelection()
+                && mText instanceof Editable
+                && mEditor != null
+                && mEditor.mKeyListener != null) {
             return true;
         }
 
@@ -9129,16 +8866,18 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     boolean canPaste() {
-        return (mText instanceof Editable &&
-                mEditor != null && mEditor.mKeyListener != null &&
-                getSelectionStart() >= 0 &&
-                getSelectionEnd() >= 0 &&
-                ((ClipboardManager)getContext().getSystemService(Context.CLIPBOARD_SERVICE)).
-                hasPrimaryClip());
+        return (mText instanceof Editable
+                && mEditor != null
+                && mEditor.mKeyListener != null
+                && getSelectionStart() >= 0
+                && getSelectionEnd() >= 0
+                && ((ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE))
+                        .hasPrimaryClip());
     }
 
     boolean canProcessText() {
-        if (!getContext().canStartActivityForResult() || getId() == View.NO_ID
+        if (!getContext().canStartActivityForResult()
+                || getId() == View.NO_ID
                 || hasPasswordTransformationMethod()) {
             return false;
         }
@@ -9151,14 +8890,13 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     boolean canSelectAllText() {
-        return canSelectText() && !hasPasswordTransformationMethod()
+        return canSelectText()
+                && !hasPasswordTransformationMethod()
                 && !(getSelectionStart() == 0 && getSelectionEnd() == mText.length());
     }
 
     boolean selectAllText() {
-        
-        
-        
+
         if (mEditor != null) {
             mEditor.hideInsertionPointCursorController();
         }
@@ -9171,21 +8909,19 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         ((Editable) mText).replace(getSelectionStart(), getSelectionEnd(), text);
     }
 
-    /**
-     * Paste clipboard content between min and max positions.
-     */
+    /** Paste clipboard content between min and max positions. */
     private void paste(int min, int max, boolean withFormatting) {
         ClipboardManager clipboard =
-            (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = clipboard.getPrimaryClip();
         if (clip != null) {
             boolean didFirst = false;
-            for (int i=0; i<clip.getItemCount(); i++) {
+            for (int i = 0; i < clip.getItemCount(); i++) {
                 final CharSequence paste;
                 if (withFormatting) {
                     paste = clip.getItemAt(i).coerceToStyledText(getContext());
                 } else {
-                    
+
                     final CharSequence text = clip.getItemAt(i).coerceToText(getContext());
                     paste = (text instanceof Spanned) ? text.toString() : text;
                 }
@@ -9218,8 +8954,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     private void setPrimaryClip(ClipData clip) {
-        ClipboardManager clipboard = (ClipboardManager) getContext().
-                getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipboardManager clipboard =
+                (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
         clipboard.setPrimaryClip(clip);
         sLastCutCopyOrTextChangedTime = SystemClock.uptimeMillis();
     }
@@ -9231,7 +8967,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @param x The horizontal absolute position of a point on screen
      * @param y The vertical absolute position of a point on screen
      * @return the character offset for the character whose position is closest to the specified
-     *  position. Returns -1 if there is no layout.
+     *     position. Returns -1 if there is no layout.
      */
     public int getOffsetForPosition(float x, float y) {
         if (getLayout() == null) return -1;
@@ -9242,7 +8978,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     float convertToLocalHorizontalCoordinate(float x) {
         x -= getTotalPaddingLeft();
-        
+
         x = Math.max(0.0f, x);
         x = Math.min(getWidth() - getTotalPaddingRight() - 1, x);
         x += getScrollX();
@@ -9251,7 +8987,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     int getLineAtCoordinate(float y) {
         y -= getTotalPaddingTop();
-        
+
         y = Math.max(0.0f, y);
         y = Math.min(getHeight() - getTotalPaddingBottom() - 1, y);
         y += getScrollY();
@@ -9281,7 +9017,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
             case DragEvent.ACTION_DRAG_LOCATION:
                 final int offset = getOffsetForPosition(event.getX(), event.getY());
-                Selection.setSelection((Spannable)mText, offset);
+                Selection.setSelection((Spannable) mText, offset);
                 return true;
 
             case DragEvent.ACTION_DROP:
@@ -9319,19 +9055,18 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     TextDirectionHeuristic getTextDirectionHeuristic() {
         if (hasPasswordTransformationMethod()) {
-            
+
             return TextDirectionHeuristics.LTR;
         }
 
-        
         final boolean defaultIsRtl = (getLayoutDirection() == LAYOUT_DIRECTION_RTL);
 
-        
         switch (getTextDirection()) {
             default:
             case TEXT_DIRECTION_FIRST_STRONG:
-                return (defaultIsRtl ? TextDirectionHeuristics.FIRSTSTRONG_RTL :
-                        TextDirectionHeuristics.FIRSTSTRONG_LTR);
+                return (defaultIsRtl
+                        ? TextDirectionHeuristics.FIRSTSTRONG_RTL
+                        : TextDirectionHeuristics.FIRSTSTRONG_LTR);
             case TEXT_DIRECTION_ANY_RTL:
                 return TextDirectionHeuristics.ANYRTL_LTR;
             case TEXT_DIRECTION_LTR:
@@ -9347,34 +9082,27 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     public void onResolveDrawables(int layoutDirection) {
-        
+
         if (mLastLayoutDirection == layoutDirection) {
             return;
         }
         mLastLayoutDirection = layoutDirection;
 
-        
         if (mDrawables != null) {
             mDrawables.resolveWithLayoutDirection(layoutDirection);
         }
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     protected void resetResolvedDrawables() {
         super.resetResolvedDrawables();
         mLastLayoutDirection = -1;
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     protected void viewClicked(InputMethodManager imm) {
         if (imm != null) {
             imm.viewClicked(this);
@@ -9383,6 +9111,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * Deletes the range of text [start, end[.
+     *
      * @hide
      */
     protected void deleteText_internal(int start, int end) {
@@ -9391,6 +9120,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * Replaces the range of text [start, end[ by replacement text
+     *
      * @hide
      */
     protected void replaceText_internal(int start, int end, CharSequence text) {
@@ -9399,6 +9129,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * Sets a span on the specified range of text
+     *
      * @hide
      */
     protected void setSpan_internal(Object span, int start, int end, int flags) {
@@ -9407,6 +9138,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
     /**
      * Moves the cursor to the specified offset position in text
+     *
      * @hide
      */
     protected void setCursorPosition_internal(int start, int end) {
@@ -9414,16 +9146,16 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * An Editor should be created as soon as any of the editable-specific fields (grouped
-     * inside the Editor object) is assigned to a non-default value.
-     * This method will create the Editor if needed.
+     * An Editor should be created as soon as any of the editable-specific fields (grouped inside
+     * the Editor object) is assigned to a non-default value. This method will create the Editor if
+     * needed.
      *
-     * A standard TextView (as well as buttons, checkboxes...) should not qualify and hence will
-     * have a null Editor, unlike an EditText. Inconsistent in-between states will have an
-     * Editor for backward compatibility, as soon as one of these fields is assigned.
+     * <p>A standard TextView (as well as buttons, checkboxes...) should not qualify and hence will
+     * have a null Editor, unlike an EditText. Inconsistent in-between states will have an Editor
+     * for backward compatibility, as soon as one of these fields is assigned.
      *
-     * Also note that for performance reasons, the mEditor is created when needed, but not
-     * reset when no more edit-specific fields are needed.
+     * <p>Also note that for performance reasons, the mEditor is created when needed, but not reset
+     * when no more edit-specific fields are needed.
      */
     private void createEditorIfNeeded() {
         if (mEditor == null) {
@@ -9431,9 +9163,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     public CharSequence getIterableTextForAccessibility() {
         return mText;
@@ -9445,69 +9175,60 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     public TextSegmentIterator getIteratorForGranularity(int granularity) {
         switch (granularity) {
-            case AccessibilityNodeInfo.MOVEMENT_GRANULARITY_LINE: {
-                Spannable text = (Spannable) getIterableTextForAccessibility();
-                if (!TextUtils.isEmpty(text) && getLayout() != null) {
-                    AccessibilityIterators.LineTextSegmentIterator iterator =
-                        AccessibilityIterators.LineTextSegmentIterator.getInstance();
-                    iterator.initialize(text, getLayout());
-                    return iterator;
+            case AccessibilityNodeInfo.MOVEMENT_GRANULARITY_LINE:
+                {
+                    Spannable text = (Spannable) getIterableTextForAccessibility();
+                    if (!TextUtils.isEmpty(text) && getLayout() != null) {
+                        AccessibilityIterators.LineTextSegmentIterator iterator =
+                                AccessibilityIterators.LineTextSegmentIterator.getInstance();
+                        iterator.initialize(text, getLayout());
+                        return iterator;
+                    }
                 }
-            } break;
-            case AccessibilityNodeInfo.MOVEMENT_GRANULARITY_PAGE: {
-                Spannable text = (Spannable) getIterableTextForAccessibility();
-                if (!TextUtils.isEmpty(text) && getLayout() != null) {
-                    AccessibilityIterators.PageTextSegmentIterator iterator =
-                        AccessibilityIterators.PageTextSegmentIterator.getInstance();
-                    iterator.initialize(this);
-                    return iterator;
+                break;
+            case AccessibilityNodeInfo.MOVEMENT_GRANULARITY_PAGE:
+                {
+                    Spannable text = (Spannable) getIterableTextForAccessibility();
+                    if (!TextUtils.isEmpty(text) && getLayout() != null) {
+                        AccessibilityIterators.PageTextSegmentIterator iterator =
+                                AccessibilityIterators.PageTextSegmentIterator.getInstance();
+                        iterator.initialize(this);
+                        return iterator;
+                    }
                 }
-            } break;
+                break;
         }
         return super.getIteratorForGranularity(granularity);
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     public int getAccessibilitySelectionStart() {
         return getSelectionStart();
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     public boolean isAccessibilitySelectionExtendable() {
         return true;
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     public int getAccessibilitySelectionEnd() {
         return getSelectionEnd();
     }
 
-    /**
-     * @hide
-     */
+    /** @hide */
     @Override
     public void setAccessibilitySelection(int start, int end) {
-        if (getAccessibilitySelectionStart() == start
-                && getAccessibilitySelectionEnd() == end) {
+        if (getAccessibilitySelectionStart() == start && getAccessibilitySelectionEnd() == end) {
             return;
         }
-        
-        
-        
+
         if (mEditor != null) {
             mEditor.hideCursorAndSpanControllers();
             mEditor.stopTextActionMode();
@@ -9520,7 +9241,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    
     @Override
     protected void encodeProperties(@NonNull ViewHierarchyEncoder stream) {
         super.encodeProperties(stream);
@@ -9538,8 +9258,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     /**
-     * User interface state that is stored by TextView for implementing
-     * {@link View#onSaveInstanceState}.
+     * User interface state that is stored by TextView for implementing {@link
+     * View#onSaveInstanceState}.
      */
     public static class SavedState extends BaseSavedState {
         int selStart;
@@ -9547,7 +9267,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         CharSequence text;
         boolean frozenWithFocus;
         CharSequence error;
-        ParcelableParcel editorState;  
+        ParcelableParcel editorState;
 
         SavedState(Parcelable superState) {
             super(superState);
@@ -9578,25 +9298,29 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         @Override
         public String toString() {
-            String str = "ConsoleView.SavedState{"
-                    + Integer.toHexString(System.identityHashCode(this))
-                    + " start=" + selStart + " end=" + selEnd;
+            String str =
+                    "ConsoleView.SavedState{"
+                            + Integer.toHexString(System.identityHashCode(this))
+                            + " start="
+                            + selStart
+                            + " end="
+                            + selEnd;
             if (text != null) {
                 str += " text=" + text;
             }
             return str + "}";
         }
 
-        public static final Parcelable.Creator<SavedState> CREATOR
-                = new Parcelable.Creator<SavedState>() {
-            public SavedState createFromParcel(Parcel in) {
-                return new SavedState(in);
-            }
+        public static final Parcelable.Creator<SavedState> CREATOR =
+                new Parcelable.Creator<SavedState>() {
+                    public SavedState createFromParcel(Parcel in) {
+                        return new SavedState(in);
+                    }
 
-            public SavedState[] newArray(int size) {
-                return new SavedState[size];
-            }
-        };
+                    public SavedState[] newArray(int size) {
+                        return new SavedState[size];
+                    }
+                };
 
         private SavedState(Parcel in) {
             super(in);
@@ -9625,7 +9349,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             mLength = len;
         }
 
-         void set(char[] chars, int start, int len) {
+        void set(char[] chars, int start, int len) {
             mChars = chars;
             mStart = start;
             mLength = len;
@@ -9660,17 +9384,32 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             System.arraycopy(mChars, start + mStart, buf, off, end - start);
         }
 
-        public void drawText(Canvas c, int start, int end,
-                             float x, float y, Paint p) {
+        public void drawText(Canvas c, int start, int end, float x, float y, Paint p) {
             c.drawText(mChars, start + mStart, end - start, x, y, p);
         }
 
-        public void drawTextRun(Canvas c, int start, int end,
-                int contextStart, int contextEnd, float x, float y, boolean isRtl, Paint p) {
+        public void drawTextRun(
+                Canvas c,
+                int start,
+                int end,
+                int contextStart,
+                int contextEnd,
+                float x,
+                float y,
+                boolean isRtl,
+                Paint p) {
             int count = end - start;
             int contextCount = contextEnd - contextStart;
-            c.drawTextRun(mChars, start + mStart, count, contextStart + mStart,
-                    contextCount, x, y, isRtl, p);
+            c.drawTextRun(
+                    mChars,
+                    start + mStart,
+                    count,
+                    contextStart + mStart,
+                    contextCount,
+                    x,
+                    y,
+                    isRtl,
+                    p);
         }
 
         public float measureText(int start, int end, Paint p) {
@@ -9681,26 +9420,38 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             return p.getTextWidths(mChars, start + mStart, end - start, widths);
         }
 
-        public float getTextRunAdvances(int start, int end, int contextStart,
-                int contextEnd, boolean isRtl, float[] advances, int advancesIndex,
+        public float getTextRunAdvances(
+                int start,
+                int end,
+                int contextStart,
+                int contextEnd,
+                boolean isRtl,
+                float[] advances,
+                int advancesIndex,
                 Paint p) {
             int count = end - start;
             int contextCount = contextEnd - contextStart;
-            return p.getTextRunAdvances(mChars, start + mStart, count,
-                    contextStart + mStart, contextCount, isRtl, advances,
+            return p.getTextRunAdvances(
+                    mChars,
+                    start + mStart,
+                    count,
+                    contextStart + mStart,
+                    contextCount,
+                    isRtl,
+                    advances,
                     advancesIndex);
         }
 
-        public int getTextRunCursor(int contextStart, int contextEnd, int dir,
-                int offset, int cursorOpt, Paint p) {
+        public int getTextRunCursor(
+                int contextStart, int contextEnd, int dir, int offset, int cursorOpt, Paint p) {
             int contextCount = contextEnd - contextStart;
-            return p.getTextRunCursor(mChars, contextStart + mStart,
-                    contextCount, dir, offset + mStart, cursorOpt);
+            return p.getTextRunCursor(
+                    mChars, contextStart + mStart, contextCount, dir, offset + mStart, cursorOpt);
         }
     }
 
     private static final class Marquee {
-        
+
         private static final float MARQUEE_DELTA_MAX = 0.07f;
         private static final int MARQUEE_DELAY = 1200;
         private static final int MARQUEE_DP_PER_SECOND = 30;
@@ -9731,33 +9482,36 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             mChoreographer = Choreographer.getInstance();
         }
 
-        private Choreographer.FrameCallback mTickCallback = new Choreographer.FrameCallback() {
-            @Override
-            public void doFrame(long frameTimeNanos) {
-                tick();
-            }
-        };
-
-        private Choreographer.FrameCallback mStartCallback = new Choreographer.FrameCallback() {
-            @Override
-            public void doFrame(long frameTimeNanos) {
-                mStatus = MARQUEE_RUNNING;
-                mLastAnimationMs = mChoreographer.getFrameTime();
-                tick();
-            }
-        };
-
-        private Choreographer.FrameCallback mRestartCallback = new Choreographer.FrameCallback() {
-            @Override
-            public void doFrame(long frameTimeNanos) {
-                if (mStatus == MARQUEE_RUNNING) {
-                    if (mRepeatLimit >= 0) {
-                        mRepeatLimit--;
+        private Choreographer.FrameCallback mTickCallback =
+                new Choreographer.FrameCallback() {
+                    @Override
+                    public void doFrame(long frameTimeNanos) {
+                        tick();
                     }
-                    start(mRepeatLimit);
-                }
-            }
-        };
+                };
+
+        private Choreographer.FrameCallback mStartCallback =
+                new Choreographer.FrameCallback() {
+                    @Override
+                    public void doFrame(long frameTimeNanos) {
+                        mStatus = MARQUEE_RUNNING;
+                        mLastAnimationMs = mChoreographer.getFrameTime();
+                        tick();
+                    }
+                };
+
+        private Choreographer.FrameCallback mRestartCallback =
+                new Choreographer.FrameCallback() {
+                    @Override
+                    public void doFrame(long frameTimeNanos) {
+                        if (mStatus == MARQUEE_RUNNING) {
+                            if (mRepeatLimit >= 0) {
+                                mRepeatLimit--;
+                            }
+                            start(mRepeatLimit);
+                        }
+                    }
+                };
 
         void tick() {
             if (mStatus != MARQUEE_RUNNING) {
@@ -9807,8 +9561,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
             if (textView != null && textView.mLayout != null) {
                 mStatus = MARQUEE_STARTING;
                 mScroll = 0.0f;
-                final int textWidth = textView.getWidth() - textView.getCompoundPaddingLeft() -
-                        textView.getCompoundPaddingRight();
+                final int textWidth =
+                        textView.getWidth()
+                                - textView.getCompoundPaddingLeft()
+                                - textView.getCompoundPaddingRight();
                 final float lineWidth = textView.mLayout.getLineWidth(0);
                 final float gap = textWidth / 3.0f;
                 mGhostStart = lineWidth - textWidth + gap;
@@ -9855,10 +9611,18 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
 
         private CharSequence mBeforeText;
 
-        public void beforeTextChanged(CharSequence buffer, int start,
-                                      int before, int after) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "beforeTextChanged start=" + start
-                    + " before=" + before + " after=" + after + ": " + buffer);
+        public void beforeTextChanged(CharSequence buffer, int start, int before, int after) {
+            if (DEBUG_EXTRACT)
+                Log.v(
+                        LOG_TAG,
+                        "beforeTextChanged start="
+                                + start
+                                + " before="
+                                + before
+                                + " after="
+                                + after
+                                + ": "
+                                + buffer);
 
             if (AccessibilityManager.getInstance(mContext).isEnabled()
                     && ((!isPasswordInputType(getInputType()) && !hasPasswordTransformationMethod())
@@ -9870,12 +9634,21 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         public void onTextChanged(CharSequence buffer, int start, int before, int after) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onTextChanged start=" + start
-                    + " before=" + before + " after=" + after + ": " + buffer);
+            if (DEBUG_EXTRACT)
+                Log.v(
+                        LOG_TAG,
+                        "onTextChanged start="
+                                + start
+                                + " before="
+                                + before
+                                + " after="
+                                + after
+                                + ": "
+                                + buffer);
             ConsoleView.this.handleTextChanged(buffer, start, before, after);
 
-            if (AccessibilityManager.getInstance(mContext).isEnabled() &&
-                    (isFocused() || isSelected() && isShown())) {
+            if (AccessibilityManager.getInstance(mContext).isEnabled()
+                    && (isFocused() || isSelected() && isShown())) {
                 sendAccessibilityEventTypeViewTextChanged(mBeforeText, start, before, after);
                 mBeforeText = null;
             }
@@ -9891,20 +9664,33 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
 
         public void onSpanChanged(Spannable buf, Object what, int s, int e, int st, int en) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onSpanChanged s=" + s + " e=" + e
-                    + " st=" + st + " en=" + en + " what=" + what + ": " + buf);
+            if (DEBUG_EXTRACT)
+                Log.v(
+                        LOG_TAG,
+                        "onSpanChanged s="
+                                + s
+                                + " e="
+                                + e
+                                + " st="
+                                + st
+                                + " en="
+                                + en
+                                + " what="
+                                + what
+                                + ": "
+                                + buf);
             ConsoleView.this.spanChange(buf, what, s, st, e, en);
         }
 
         public void onSpanAdded(Spannable buf, Object what, int s, int e) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onSpanAdded s=" + s + " e=" + e
-                    + " what=" + what + ": " + buf);
+            if (DEBUG_EXTRACT)
+                Log.v(LOG_TAG, "onSpanAdded s=" + s + " e=" + e + " what=" + what + ": " + buf);
             ConsoleView.this.spanChange(buf, what, -1, s, -1, e);
         }
 
         public void onSpanRemoved(Spannable buf, Object what, int s, int e) {
-            if (DEBUG_EXTRACT) Log.v(LOG_TAG, "onSpanRemoved s=" + s + " e=" + e
-                    + " what=" + what + ": " + buf);
+            if (DEBUG_EXTRACT)
+                Log.v(LOG_TAG, "onSpanRemoved s=" + s + " e=" + e + " what=" + what + ": " + buf);
             ConsoleView.this.spanChange(buf, what, s, -1, e, -1);
         }
     }

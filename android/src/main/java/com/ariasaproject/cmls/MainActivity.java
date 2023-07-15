@@ -182,8 +182,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 });
         // log Adapter
         final RecyclerView cv = (RecyclerView) findViewById(R.id.console_view);
-        cv.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        cv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adpt =
                 new RecyclerView.Adapter<ConsoleItemHolder>() {
                     final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
