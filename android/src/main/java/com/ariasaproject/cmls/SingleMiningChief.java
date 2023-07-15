@@ -27,7 +27,6 @@ public class SingleMiningChief implements Observer {
 
     private IMiningConnection mc;
     private IMiningWorker imw;
-    private long lastWorkTime;
     private final MessageSendListener MSL;
     public IMiningConnection _connection;
     public IMiningWorker _worker;
@@ -48,8 +47,9 @@ public class SingleMiningChief implements Observer {
         @Override
         public void onNewWork(MiningWork i_work) {
             try {
-                setChanged();
-                notifyObservers(IMiningWorker.Notification.NEW_WORK);
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE,0, String.format("Miner: %d Hashes then New work detected", _worker.getNumberOfHash()));
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
                 _worker.doWork(i_work);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -58,11 +58,7 @@ public class SingleMiningChief implements Observer {
 
         @Override
         public void onSubmitResult(MiningWork i_listener, int i_nonce, boolean i_result) {
-            this._number_of_accept += (i_result ? 1 : 0);
-            this._number_of_all++;
             if (i_result) {
-                MSL.sendMessage(
-                        MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: PROOF OF WORK RESULT: true");
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_ACCEPTED, 0, null);
             } else {
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_REJECTED, 0, null);
@@ -142,17 +138,6 @@ public class SingleMiningChief implements Observer {
             case COMMUNICATION_ERROR:
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Communication error");
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
-                break;
-            case NEW_WORK:
-                MSL.sendMessage(
-                        MSG_UPDATE,
-                        MSG_UPDATE_CONSOLE,
-                        0,
-                        String.format(
-                                "Miner: New work detected\n %d Hashes", _worker.getNumberOfHash()));
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
-                lastWorkTime = System.currentTimeMillis();
                 break;
             default:
                 break;

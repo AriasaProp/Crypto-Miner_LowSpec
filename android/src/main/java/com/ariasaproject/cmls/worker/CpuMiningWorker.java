@@ -43,6 +43,7 @@ public class CpuMiningWorker implements IMiningWorker {
         if (workers.activeCount() > 0) {
             workers.interrupt();
         }
+        System.gc();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
         hashes = 0;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
@@ -96,17 +97,20 @@ public class CpuMiningWorker implements IMiningWorker {
     public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
         this._as_listener.add(i_listener);
     }
-    static final int nonceStep = 5000;
-    volatile int lastNonce = 0;
+    static final int nonceStep = 10000;
+    private volatile int lastNonce = 0;
     synchronized void generate_worker(MiningWork work) {
         while ((Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
-            final int _start = lastNonce;
-            final int _end = (lastNonce+=nonceStep);
+            if (lastNonce == Integer.MAX_VALUE) return;
+            final int _start = (lastNonce == 0) ? lastNonce : lastNonce + 1;
+            if ((Integer.MAX_VALUE - lastNonce) >
+            final int _end = Math.max(lastNonce + nonceStep, Integer.MAX_VALUE);
+            lastNonce = _end;
             new Thread(workers, () -> {
                 try {
                     final Hasher hasher = new Hasher();
                     byte[] target = work.target.refHex();
-                    for (int nonce = _start; nonce < _end; nonce++) {
+                    for (int nonce = _start; nonce <= _end; nonce++) {
                         byte[] hash = hasher.hash(work.header.refHex(), nonce);
                         for (int i = hash.length - 1; i >= 0; i--) {
                             int a = hash[i] & 0xff, b = target[i] & 0xff;
@@ -119,16 +123,12 @@ public class CpuMiningWorker implements IMiningWorker {
                             }
                         }
                         calcSpeedPerThread();
-                        Thread.sleep(3L);
+                        Thread.sleep(1L);
                     }
                     Thread.sleep(1L);
                     generate_worker(work);
                 } catch (GeneralSecurityException e) {
-                    MSL.sendMessage(
-                            MSG_UPDATE,
-                            MSG_UPDATE_CONSOLE,
-                            0,
-                            "Worker: " + e.getMessage());
+                    MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: " + e.getMessage());
                     MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
                 } catch (InterruptedException e) {
                     // ignore

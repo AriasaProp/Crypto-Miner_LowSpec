@@ -343,8 +343,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             }
         }
         try {
-            setChanged();
-            notifyObservers(IMiningWorker.Notification.NEW_WORK);
             this._work_builder.setNotify(i_notify);
         } catch (RuntimeException e) {
         }

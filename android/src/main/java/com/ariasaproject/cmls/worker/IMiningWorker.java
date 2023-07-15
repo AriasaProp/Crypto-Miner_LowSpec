@@ -8,7 +8,6 @@ public interface IMiningWorker {
         AUTHENTICATION_ERROR,
         COMMUNICATION_ERROR,
         CONNECTING,
-        NEW_WORK,
         POW_TRUE,
         POW_FALSE,
         TERMINATED
