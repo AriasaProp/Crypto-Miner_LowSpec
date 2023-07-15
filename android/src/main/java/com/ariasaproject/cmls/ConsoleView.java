@@ -1990,11 +1990,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableRight
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    public void setCompoundDrawablesWithIntrinsicBounds(
-            int left,
-            int top,
-            int right,
-            int bottom) {
+    public void setCompoundDrawablesWithIntrinsicBounds(int left, int top, int right, int bottom) {
         final Context context = getContext();
         setCompoundDrawablesWithIntrinsicBounds(
                 left != 0 ? context.getDrawable(left) : null,
@@ -2190,10 +2186,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
     public void setCompoundDrawablesRelativeWithIntrinsicBounds(
-            int start,
-            int top,
-            int end,
-            int bottom) {
+            int start, int top, int end, int bottom) {
         final Context context = getContext();
         setCompoundDrawablesRelativeWithIntrinsicBounds(
                 start != 0 ? context.getDrawable(start) : null,
@@ -2241,7 +2234,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableRight
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    
     public Drawable[] getCompoundDrawables() {
         final Drawables dr = mDrawables;
         if (dr != null) {
@@ -2259,7 +2251,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableEnd
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    
     public Drawable[] getCompoundDrawablesRelative() {
         final Drawables dr = mDrawables;
         if (dr != null) {
@@ -9238,7 +9229,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     @Override
-    protected void encodeProperties( ViewHierarchyEncoder stream) {
+    protected void encodeProperties(ViewHierarchyEncoder stream) {
         super.encodeProperties(stream);
 
         TruncateAt ellipsize = getEllipsize();
