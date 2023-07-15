@@ -182,7 +182,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 });
         // log Adapter
         final RecyclerView cv = (RecyclerView) findViewById(R.id.console_view);
-        cv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        cv.setLayoutManager(
+                new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adpt =
                 new RecyclerView.Adapter<ConsoleItemHolder>() {
                     final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
@@ -338,12 +339,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     public void onServiceConnected(ComponentName name, IBinder service) {
         MinerService.LocalBinder mBinder = (MinerService.LocalBinder) service;
         mService = mBinder.getService();
-        if (!updateThread.isAlive()) updateThread.start();
+        //if (!updateThread.isAlive()) updateThread.start();
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
-        if (updateThread.isAlive()) updateThread.interrupt();
+        //if (updateThread.isAlive()) updateThread.interrupt();
     }
 
     private static final int REQUEST_BATTERY_OPTIMIZATIONS = 1001;
@@ -416,6 +417,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     @Override
     protected void onResume() {
         super.onResume();
+        if (!updateThread.isAlive()) updateThread.start();
     }
 
     @Override
@@ -459,6 +461,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     @Override
     protected void onPause() {
+        if (updateThread.isAlive()) updateThread.interrupt();
         super.onPause();
     }
 
