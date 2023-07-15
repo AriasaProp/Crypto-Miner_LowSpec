@@ -97,12 +97,16 @@ public class CpuMiningWorker implements IMiningWorker {
     public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
         this._as_listener.add(i_listener);
     }
-    private static final int nonceStep = 10000;
+    private static final int nonceStep = 2047;
     private volatile int lastNonce = 0;
     synchronized void generate_worker(MiningWork work) {
         while ((lastNonce >= 0) && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
             final int _start = lastNonce;
-            final int _end = Math.max(lastNonce + nonceStep, Integer.MAX_VALUE);
+            int e = lastNonce + nonceStep;
+            if (e < 0) {
+                e = Integer.MAX_VALUE;
+            }
+            final int _end = e;
             new Thread(workers, () -> {
                 try {
                     final Hasher hasher = new Hasher();
@@ -131,7 +135,7 @@ public class CpuMiningWorker implements IMiningWorker {
                     // ignore
                 }
             }).start();
-            lastNonce = _end + 1;
+            lastNonce = e++;
         }
     }
 }
