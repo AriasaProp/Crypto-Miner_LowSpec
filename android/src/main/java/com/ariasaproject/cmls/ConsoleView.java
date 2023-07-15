@@ -555,15 +555,15 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         this(context, null);
     }
 
-    public ConsoleView(Context context, @Nullable AttributeSet attrs) {
+    public ConsoleView(Context context, AttributeSet attrs) {
         this(context, attrs, com.android.internal.R.attr.textViewStyle);
     }
 
-    public ConsoleView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public ConsoleView(Context context, AttributeSet attrs, int defStyleAttr) {
         this(context, attrs, defStyleAttr, 0);
     }
 
-    public ConsoleView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public ConsoleView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
 
         mText = "";
@@ -1927,8 +1927,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableRight
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    public void setCompoundDrawables(@Nullable Drawable left, @Nullable Drawable top,
-            @Nullable Drawable right, @Nullable Drawable bottom) {
+    public void setCompoundDrawables(Drawable left, Drawable top,
+            Drawable right, Drawable bottom) {
         Drawables dr = mDrawables;
 
         
@@ -2066,7 +2066,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableRight
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    @android.view.RemotableViewMethod
+    
     public void setCompoundDrawablesWithIntrinsicBounds(@DrawableRes int left,
             @DrawableRes int top, @DrawableRes int right, @DrawableRes int bottom) {
         final Context context = getContext();
@@ -2090,9 +2090,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableRight
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    @android.view.RemotableViewMethod
-    public void setCompoundDrawablesWithIntrinsicBounds(@Nullable Drawable left,
-            @Nullable Drawable top, @Nullable Drawable right, @Nullable Drawable bottom) {
+    
+    public void setCompoundDrawablesWithIntrinsicBounds(Drawable left,
+            Drawable top, Drawable right, Drawable bottom) {
 
         if (left != null) {
             left.setBounds(0, 0, left.getIntrinsicWidth(), left.getIntrinsicHeight());
@@ -2123,9 +2123,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableEnd
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    @android.view.RemotableViewMethod
-    public void setCompoundDrawablesRelative(@Nullable Drawable start, @Nullable Drawable top,
-            @Nullable Drawable end, @Nullable Drawable bottom) {
+    
+    public void setCompoundDrawablesRelative(Drawable start, Drawable top,
+            Drawable end, Drawable bottom) {
         Drawables dr = mDrawables;
 
         
@@ -2270,7 +2270,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableEnd
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    @android.view.RemotableViewMethod
+    
     public void setCompoundDrawablesRelativeWithIntrinsicBounds(@DrawableRes int start,
             @DrawableRes int top, @DrawableRes int end, @DrawableRes int bottom) {
         final Context context = getContext();
@@ -2294,9 +2294,9 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableEnd
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    @android.view.RemotableViewMethod
-    public void setCompoundDrawablesRelativeWithIntrinsicBounds(@Nullable Drawable start,
-            @Nullable Drawable top, @Nullable Drawable end, @Nullable Drawable bottom) {
+    
+    public void setCompoundDrawablesRelativeWithIntrinsicBounds(Drawable start,
+            Drawable top, Drawable end, Drawable bottom) {
 
         if (start != null) {
             start.setBounds(0, 0, start.getIntrinsicWidth(), start.getIntrinsicHeight());
@@ -2358,7 +2358,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_drawablePadding
      */
-    @android.view.RemotableViewMethod
+    
     public void setCompoundDrawablePadding(int pad) {
         Drawables dr = mDrawables;
         if (pad == 0) {
@@ -2402,7 +2402,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @see #getCompoundDrawableTintList()
      * @see Drawable#setTintList(ColorStateList)
      */
-    public void setCompoundDrawableTintList(@Nullable ColorStateList tint) {
+    public void setCompoundDrawableTintList(ColorStateList tint) {
         if (mDrawables == null) {
             mDrawables = new Drawables(getContext());
         }
@@ -2432,7 +2432,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @see #setCompoundDrawableTintList(ColorStateList)
      * @see Drawable#setTintMode(PorterDuff.Mode)
      */
-    public void setCompoundDrawableTintMode(@Nullable PorterDuff.Mode tintMode) {
+    public void setCompoundDrawableTintMode(PorterDuff.Mode tintMode) {
         if (mDrawables == null) {
             mDrawables = new Drawables(getContext());
         }
@@ -2580,13 +2580,6 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         return mTextPaint.getTextSize() / mTextPaint.density;
     }
 
-    
-    
-            
-            
-            
-            
-    })
     public int getTypefaceStyle() {
         Typeface typeface = mTextPaint.getTypeface();
         return typeface != null ? typeface.getStyle() : Typeface.NORMAL;
@@ -2601,7 +2594,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_textSize
      */
-    @android.view.RemotableViewMethod
+    
     public void setTextSize(float size) {
         setTextSize(TypedValue.COMPLEX_UNIT_SP, size);
     }
@@ -2624,8 +2617,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         else
             r = c.getResources();
 
-        setRawTextSize(TypedValue.applyDimension(
-                unit, size, r.getDisplayMetrics()));
+        setRawTextSize(TypedValue.applyDimension(unit, size, r.getDisplayMetrics()));
     }
 
     private void setRawTextSize(float size) {
@@ -2653,7 +2645,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_textScaleX
      */
-    @android.view.RemotableViewMethod
+    
     public void setTextScaleX(float size) {
         if (size != mTextPaint.getTextScaleX()) {
             mUserSetTextScaleX = true;
@@ -2739,7 +2731,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_letterSpacing
      */
-    @android.view.RemotableViewMethod
+    
     public void setLetterSpacing(float letterSpacing) {
         if (letterSpacing != mTextPaint.getLetterSpacing()) {
             mTextPaint.setLetterSpacing(letterSpacing);
@@ -2758,7 +2750,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @see #setFontFeatureSettings(String)
      * @see Paint#setFontFeatureSettings
      */
-    @Nullable
+    
     public String getFontFeatureSettings() {
         return mTextPaint.getFontFeatureSettings();
     }
@@ -2772,7 +2764,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_breakStrategy
      * @see #getBreakStrategy()
      */
-    public void setBreakStrategy(@Layout.BreakStrategy int breakStrategy) {
+    public void setBreakStrategy(int breakStrategy) {
         mBreakStrategy = breakStrategy;
         if (mLayout != null) {
             nullLayouts();
@@ -2787,7 +2779,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_breakStrategy
      * @see #setBreakStrategy(int)
      */
-    @Layout.BreakStrategy
+    
     public int getBreakStrategy() {
         return mBreakStrategy;
     }
@@ -2830,8 +2822,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_fontFeatureSettings
      */
-    @android.view.RemotableViewMethod
-    public void setFontFeatureSettings(@Nullable String fontFeatureSettings) {
+    
+    public void setFontFeatureSettings(String fontFeatureSettings) {
         if (fontFeatureSettings != mTextPaint.getFontFeatureSettings()) {
             mTextPaint.setFontFeatureSettings(fontFeatureSettings);
 
@@ -2853,8 +2845,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_textColor
      */
-    @android.view.RemotableViewMethod
-    public void setTextColor(@ColorInt int color) {
+    
+    public void setTextColor( int color) {
         mTextColor = ColorStateList.valueOf(color);
         updateTextColors();
     }
@@ -2895,7 +2887,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @return Returns the current text color.
      */
-    @ColorInt
+    
     public final int getCurrentTextColor() {
         return mCurTextColor;
     }
@@ -2905,8 +2897,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_textColorHighlight
      */
-    @android.view.RemotableViewMethod
-    public void setHighlightColor(@ColorInt int color) {
+    
+    public void setHighlightColor( int color) {
         if (mHighlightColor != color) {
             mHighlightColor = color;
             invalidate();
@@ -2920,7 +2912,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_textColorHighlight
      */
-    @ColorInt
+    
     public int getHighlightColor() {
         return mHighlightColor;
     }
@@ -2929,7 +2921,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * Sets whether the soft input method will be made visible when this
      * TextView gets focused. The default is true.
      */
-    @android.view.RemotableViewMethod
+    
     public final void setShowSoftInputOnFocus(boolean show) {
         createEditorIfNeeded();
         mEditor.mShowSoftInputOnFocus = show;
@@ -3015,7 +3007,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_shadowColor
      */
-    @ColorInt
+    
     public int getShadowColor() {
         return mShadowColor;
     }
@@ -3035,7 +3027,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_autoLink
      */
-    @android.view.RemotableViewMethod
+    
     public final void setAutoLinkMask(int mask) {
         mAutoLinkMask = mask;
     }
@@ -3048,7 +3040,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_linksClickable
      */
-    @android.view.RemotableViewMethod
+    
     public final void setLinksClickable(boolean whether) {
         mLinksClickable = whether;
     }
@@ -3090,8 +3082,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_textColorHint
      */
-    @android.view.RemotableViewMethod
-    public final void setHintTextColor(@ColorInt int color) {
+    
+    public final void setHintTextColor( int color) {
         mHintTextColor = ColorStateList.valueOf(color);
         updateTextColors();
     }
@@ -3130,7 +3122,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @return Returns the current hint text color.
      */
-    @ColorInt
+    
     public final int getCurrentHintTextColor() {
         return mHintTextColor != null ? mCurHintTextColor : mCurTextColor;
     }
@@ -3143,8 +3135,8 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_textColorLink
      */
-    @android.view.RemotableViewMethod
-    public final void setLinkTextColor(@ColorInt int color) {
+    
+    public final void setLinkTextColor( int color) {
         mLinkTextColor = ColorStateList.valueOf(color);
         updateTextColors();
     }
@@ -3240,7 +3232,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * reflows the text if they are different from the old flags.
      * @see Paint#setFlags
      */
-    @android.view.RemotableViewMethod
+    
     public void setPaintFlags(int flags) {
         if (mTextPaint.getFlags() != flags) {
             mTextPaint.setFlags(flags);
@@ -3292,7 +3284,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_minLines
      */
-    @android.view.RemotableViewMethod
+    
     public void setMinLines(int minlines) {
         mMinimum = minlines;
         mMinMode = LINES;
@@ -3320,7 +3312,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_minHeight
      */
-    @android.view.RemotableViewMethod
+    
     public void setMinHeight(int minHeight) {
         mMinimum = minHeight;
         mMinMode = PIXELS;
@@ -3348,7 +3340,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_maxLines
      */
-    @android.view.RemotableViewMethod
+    
     public void setMaxLines(int maxlines) {
         mMaximum = maxlines;
         mMaxMode = LINES;
@@ -3377,7 +3369,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_maxHeight
      */
-    @android.view.RemotableViewMethod
+    
     public void setMaxHeight(int maxHeight) {
         mMaximum = maxHeight;
         mMaxMode = PIXELS;
@@ -3406,7 +3398,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_lines
      */
-    @android.view.RemotableViewMethod
+    
     public void setLines(int lines) {
         mMaximum = mMinimum = lines;
         mMaxMode = mMinMode = LINES;
@@ -3425,7 +3417,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_height
      */
-    @android.view.RemotableViewMethod
+    
     public void setHeight(int pixels) {
         mMaximum = mMinimum = pixels;
         mMaxMode = mMinMode = PIXELS;
@@ -3439,7 +3431,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_minEms
      */
-    @android.view.RemotableViewMethod
+    
     public void setMinEms(int minems) {
         mMinWidth = minems;
         mMinWidthMode = EMS;
@@ -3466,7 +3458,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_minWidth
      */
-    @android.view.RemotableViewMethod
+    
     public void setMinWidth(int minpixels) {
         mMinWidth = minpixels;
         mMinWidthMode = PIXELS;
@@ -3493,7 +3485,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_maxEms
      */
-    @android.view.RemotableViewMethod
+    
     public void setMaxEms(int maxems) {
         mMaxWidth = maxems;
         mMaxWidthMode = EMS;
@@ -3520,7 +3512,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_maxWidth
      */
-    @android.view.RemotableViewMethod
+    
     public void setMaxWidth(int maxpixels) {
         mMaxWidth = maxpixels;
         mMaxWidthMode = PIXELS;
@@ -3552,7 +3544,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_ems
      */
-    @android.view.RemotableViewMethod
+    
     public void setEms(int ems) {
         mMaxWidth = mMinWidth = ems;
         mMaxWidthMode = mMinWidthMode = EMS;
@@ -3573,7 +3565,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_width
      */
-    @android.view.RemotableViewMethod
+    
     public void setWidth(int pixels) {
         mMaxWidth = mMinWidth = pixels;
         mMaxWidthMode = mMinWidthMode = PIXELS;
@@ -3850,7 +3842,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_freezesText
      */
-    @android.view.RemotableViewMethod
+    
     public void setFreezesText(boolean freezesText) {
         mFreezesText = freezesText;
     }
@@ -3896,7 +3888,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_text
      */
-    @android.view.RemotableViewMethod
+    
     public final void setText(CharSequence text) {
         setText(text, mBufferType);
     }
@@ -3909,7 +3901,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @see #setText(CharSequence)
      */
-    @android.view.RemotableViewMethod
+    
     public final void setTextKeepState(CharSequence text) {
         setTextKeepState(text, mBufferType);
     }
@@ -4139,7 +4131,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    @android.view.RemotableViewMethod
+    
     public final void setText(@StringRes int resid) {
         setText(getContext().getResources().getText(resid));
     }
@@ -4155,7 +4147,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_hint
      */
-    @android.view.RemotableViewMethod
+    
     public final void setHint(CharSequence hint) {
         mHint = TextUtils.stringOrSpannedString(hint);
 
@@ -4179,7 +4171,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_hint
      */
-    @android.view.RemotableViewMethod
+    
     public final void setHint(@StringRes int resid) {
         setHint(getContext().getResources().getText(resid));
     }
@@ -4633,7 +4625,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * <code>error</code> is <code>null</code>, the error message and icon
      * will be cleared.
      */
-    @android.view.RemotableViewMethod
+    
     public void setError(CharSequence error) {
         if (error == null) {
             setError(null, null);
@@ -7382,7 +7374,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_singleLine
      */
-    @android.view.RemotableViewMethod
+    
     public void setSingleLine(boolean singleLine) {
         
         
@@ -7494,7 +7486,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_selectAllOnFocus
      */
-    @android.view.RemotableViewMethod
+    
     public void setSelectAllOnFocus(boolean selectAllOnFocus) {
         createEditorIfNeeded();
         mEditor.mSelectAllOnFocus = selectAllOnFocus;
@@ -7512,7 +7504,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_cursorVisible
      */
-    @android.view.RemotableViewMethod
+    
     public void setCursorVisible(boolean visible) {
         if (visible && mEditor == null) return; 
         createEditorIfNeeded();
