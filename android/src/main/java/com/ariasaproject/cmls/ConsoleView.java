@@ -3,10 +3,6 @@ package com.ariasaproject.cmls;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 
 import android.R;
-import android.annotation.DrawableRes;
-import android.annotation.NonNull;
-import android.annotation.StringRes;
-import android.annotation.XmlRes;
 import android.app.Activity;
 import android.app.assist.AssistStructure;
 import android.content.ClipData;
@@ -1995,10 +1991,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
     public void setCompoundDrawablesWithIntrinsicBounds(
-            @DrawableRes int left,
-            @DrawableRes int top,
-            @DrawableRes int right,
-            @DrawableRes int bottom) {
+            int left,
+            int top,
+            int right,
+            int bottom) {
         final Context context = getContext();
         setCompoundDrawablesWithIntrinsicBounds(
                 left != 0 ? context.getDrawable(left) : null,
@@ -2194,10 +2190,10 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
     public void setCompoundDrawablesRelativeWithIntrinsicBounds(
-            @DrawableRes int start,
-            @DrawableRes int top,
-            @DrawableRes int end,
-            @DrawableRes int bottom) {
+            int start,
+            int top,
+            int end,
+            int bottom) {
         final Context context = getContext();
         setCompoundDrawablesRelativeWithIntrinsicBounds(
                 start != 0 ? context.getDrawable(start) : null,
@@ -2245,7 +2241,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableRight
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    @NonNull
+    
     public Drawable[] getCompoundDrawables() {
         final Drawables dr = mDrawables;
         if (dr != null) {
@@ -2263,7 +2259,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @attr ref android.R.styleable#TextView_drawableEnd
      * @attr ref android.R.styleable#TextView_drawableBottom
      */
-    @NonNull
+    
     public Drawable[] getCompoundDrawablesRelative() {
         final Drawables dr = mDrawables;
         if (dr != null) {
@@ -3923,11 +3919,11 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
         }
     }
 
-    public final void setText(@StringRes int resid) {
+    public final void setText(int resid) {
         setText(getContext().getResources().getText(resid));
     }
 
-    public final void setText(@StringRes int resid, BufferType type) {
+    public final void setText(int resid, BufferType type) {
         setText(getContext().getResources().getText(resid), type);
     }
 
@@ -3959,7 +3955,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      *
      * @attr ref android.R.styleable#TextView_hint
      */
-    public final void setHint(@StringRes int resid) {
+    public final void setHint(int resid) {
         setHint(getContext().getResources().getText(resid));
     }
 
@@ -4362,7 +4358,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
      * @see EditorInfo#extras
      * @attr ref android.R.styleable#TextView_editorExtras
      */
-    public void setInputExtras(@XmlRes int xmlResId) throws XmlPullParserException, IOException {
+    public void setInputExtras(int xmlResId) throws XmlPullParserException, IOException {
         createEditorIfNeeded();
         XmlResourceParser parser = getResources().getXml(xmlResId);
         mEditor.createInputContentTypeIfNeeded();
@@ -9242,7 +9238,7 @@ public class ConsoleView extends View implements ViewTreeObserver.OnPreDrawListe
     }
 
     @Override
-    protected void encodeProperties(@NonNull ViewHierarchyEncoder stream) {
+    protected void encodeProperties( ViewHierarchyEncoder stream) {
         super.encodeProperties(stream);
 
         TruncateAt ellipsize = getEllipsize();
