@@ -182,7 +182,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 });
         // log Adapter
         final RecyclerView cv = (RecyclerView) findViewById(R.id.console_view);
-        cv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        cv.setLayoutManager(
+                new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adpt =
                 new RecyclerView.Adapter<ConsoleItemHolder>() {
                     final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
@@ -391,7 +392,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         sb.setLength(0);
         tv_showInput.setText(
                 String.format(
-                        "server -> %s:%d \nauth -> %s:%s\nuse %d threads",
+                        "server = %s:%d \nauth = %s:%s\nuse %d threads",
                         url, port, user, pass, sb_thread.getProgress()));
         SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(PREF_URL, url);
