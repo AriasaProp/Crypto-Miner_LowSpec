@@ -47,7 +47,13 @@ public class SingleMiningChief implements Observer {
         @Override
         public void onNewWork(MiningWork i_work) {
             try {
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE,0, String.format("Miner: %d Hashes then New work detected", _worker.getNumberOfHash()));
+                MSL.sendMessage(
+                        MSG_UPDATE,
+                        MSG_UPDATE_CONSOLE,
+                        0,
+                        String.format(
+                                "Miner: %d Hashes then New work detected",
+                                _worker.getNumberOfHash()));
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
                 _worker.doWork(i_work);

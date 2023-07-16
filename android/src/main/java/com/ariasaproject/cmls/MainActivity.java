@@ -6,19 +6,13 @@ import static com.ariasaproject.cmls.Constants.DEFAULT_PASS;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PORT;
 import static com.ariasaproject.cmls.Constants.DEFAULT_URL;
 import static com.ariasaproject.cmls.Constants.DEFAULT_USER;
-import static com.ariasaproject.cmls.Constants.MSG_STATE;
 import static com.ariasaproject.cmls.Constants.MSG_STATE_NONE;
 import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTART;
 import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
 import static com.ariasaproject.cmls.Constants.MSG_STATE_RUNNING;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTED;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
+import static com.ariasaproject.cmls.Constants.PREF_CPU_USAGE;
 import static com.ariasaproject.cmls.Constants.PREF_PASS;
 import static com.ariasaproject.cmls.Constants.PREF_PORT;
-import static com.ariasaproject.cmls.Constants.PREF_CPU_USAGE;
 import static com.ariasaproject.cmls.Constants.PREF_URL;
 import static com.ariasaproject.cmls.Constants.PREF_USER;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_ACCEPTED;
@@ -129,7 +123,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         et_user = (AppCompatEditText) findViewById(R.id.user_et);
         et_pass = (AppCompatEditText) findViewById(R.id.password_et);
         sb_cpu = (AppCompatSeekBar) findViewById(R.id.cpuSeek);
-        final AppCompatTextView cpu_usage_view = (AppCompatTextView) findViewById(R.id.cpu_usage_view);
+        final AppCompatTextView cpu_usage_view =
+                (AppCompatTextView) findViewById(R.id.cpu_usage_view);
         sb_cpu.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
@@ -179,8 +174,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 });
         // log Adapter
         final RecyclerView cv = (RecyclerView) findViewById(R.id.console_view);
-        cv.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        cv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adpt =
                 new RecyclerView.Adapter<ConsoleItemHolder>() {
                     final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
@@ -270,15 +264,34 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 mService.console.clear();
                             }
                             if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
-                                statusHandler.post(() -> tv_speed.setText(df.format((float) mService.minerStatus[STATUS_TYPE_SPEED]) + unit));
+                                statusHandler.post(
+                                        () ->
+                                                tv_speed.setText(
+                                                        df.format(
+                                                                        (float)
+                                                                                mService.minerStatus[
+                                                                                        STATUS_TYPE_SPEED])
+                                                                + unit));
                                 mService.minerStatus[STATUS_TYPE_SPEED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
-                                statusHandler.post(() -> tv_accepted.setText(String.valueOf((long) mService.minerStatus[STATUS_TYPE_ACCEPTED])));
+                                statusHandler.post(
+                                        () ->
+                                                tv_accepted.setText(
+                                                        String.valueOf(
+                                                                (long)
+                                                                        mService.minerStatus[
+                                                                                STATUS_TYPE_ACCEPTED])));
                                 mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
-                                statusHandler.post(() -> tv_rejected.setText(String.valueOf((long) mService.minerStatus[STATUS_TYPE_REJECTED])));
+                                statusHandler.post(
+                                        () ->
+                                                tv_rejected.setText(
+                                                        String.valueOf(
+                                                                (long)
+                                                                        mService.minerStatus[
+                                                                                STATUS_TYPE_REJECTED])));
                                 mService.minerStatus[STATUS_TYPE_REJECTED] = null;
                             }
                             mService.wait();

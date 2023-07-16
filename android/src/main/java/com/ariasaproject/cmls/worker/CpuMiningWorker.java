@@ -97,41 +97,51 @@ public class CpuMiningWorker implements IMiningWorker {
     public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
         this._as_listener.add(i_listener);
     }
+
     private static final int nonceStep = 2047;
     private volatile int lastNonce = 0;
+
     synchronized void generate_worker(MiningWork work) {
-        while ((lastNonce >= 0) && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
+        while ((lastNonce >= 0)
+                && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
             final int _start = lastNonce;
             int en = lastNonce + nonceStep;
             final int _end = (en < 0) ? Integer.MAX_VALUE : en;
-            new Thread(workers, () -> {
-                try {
-                    final Hasher hasher = new Hasher();
-                    byte[] target = work.target.refHex();
-                    for (int nonce = _start; nonce <= _end; nonce++) {
-                        byte[] hash = hasher.hash(work.header.refHex(), nonce);
-                        for (int i = hash.length - 1; i >= 0; i--) {
-                            int a = hash[i] & 0xff, b = target[i] & 0xff;
-                            if (a != b) {
-                                if (a < b) {
-                                    invokeNonceFound(work, nonce);
-                                    return;
+            new Thread(
+                            workers,
+                            () -> {
+                                try {
+                                    final Hasher hasher = new Hasher();
+                                    byte[] target = work.target.refHex();
+                                    for (int nonce = _start; nonce <= _end; nonce++) {
+                                        byte[] hash = hasher.hash(work.header.refHex(), nonce);
+                                        for (int i = hash.length - 1; i >= 0; i--) {
+                                            int a = hash[i] & 0xff, b = target[i] & 0xff;
+                                            if (a != b) {
+                                                if (a < b) {
+                                                    invokeNonceFound(work, nonce);
+                                                    return;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                        calcSpeedPerThread();
+                                        Thread.sleep(1L);
+                                    }
+                                    Thread.sleep(1L);
+                                    generate_worker(work);
+                                } catch (GeneralSecurityException e) {
+                                    MSL.sendMessage(
+                                            MSG_UPDATE,
+                                            MSG_UPDATE_CONSOLE,
+                                            0,
+                                            "Worker: " + e.getMessage());
+                                    MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
+                                } catch (InterruptedException e) {
+                                    // ignore
                                 }
-                                break;
-                            }
-                        }
-                        calcSpeedPerThread();
-                        Thread.sleep(1L);
-                    }
-                    Thread.sleep(1L);
-                    generate_worker(work);
-                } catch (GeneralSecurityException e) {
-                    MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: " + e.getMessage());
-                    MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }).start();
+                            })
+                    .start();
             lastNonce = _end + 1;
         }
     }
