@@ -103,10 +103,7 @@ public class CpuMiningWorker implements IMiningWorker {
         while ((lastNonce >= 0) && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
             final int _start = lastNonce;
             int en = lastNonce + nonceStep;
-            if (en < 0) {
-                en = Integer.MAX_VALUE;
-            }
-            final int _end = en;
+            final int _end = (en < 0) ? Integer.MAX_VALUE : en;
             new Thread(workers, () -> {
                 try {
                     final Hasher hasher = new Hasher();
@@ -135,7 +132,7 @@ public class CpuMiningWorker implements IMiningWorker {
                     // ignore
                 }
             }).start();
-            lastNonce = en++;
+            lastNonce = _end + 1;
         }
     }
 }
