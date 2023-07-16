@@ -18,7 +18,7 @@ import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
 import static com.ariasaproject.cmls.Constants.PREF_PASS;
 import static com.ariasaproject.cmls.Constants.PREF_PORT;
-import static com.ariasaproject.cmls.Constants.PREF_THREAD;
+import static com.ariasaproject.cmls.Constants.PREF_CPU_USAGE;
 import static com.ariasaproject.cmls.Constants.PREF_URL;
 import static com.ariasaproject.cmls.Constants.PREF_USER;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_ACCEPTED;
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     AppCompatTextView tv_showInput;
     AppCompatEditText et_serv, et_port, et_user, et_pass;
     AppCompatButton btn_startmine, btn_stopmine;
-    AppCompatSeekBar sb_thread;
+    AppCompatSeekBar sb_cpu;
     AppCompatCheckBox cb_screen_awake;
 
     MinerService mService = null;
@@ -128,13 +128,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         et_port = (AppCompatEditText) findViewById(R.id.port_et);
         et_user = (AppCompatEditText) findViewById(R.id.user_et);
         et_pass = (AppCompatEditText) findViewById(R.id.password_et);
-        sb_thread = (AppCompatSeekBar) findViewById(R.id.threadSeek);
-        final AppCompatTextView thread_view = (AppCompatTextView) findViewById(R.id.thread_view);
-        sb_thread.setOnSeekBarChangeListener(
+        sb_cpu = (AppCompatSeekBar) findViewById(R.id.cpuSeek);
+        final AppCompatTextView cpu_usage_view = (AppCompatTextView) findViewById(R.id.cpu_usage_view);
+        sb_cpu.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        thread_view.setText(String.format("%02d", progress));
+                        cpu_usage_view.setText(String.format("%03d %", progress));
                     }
 
                     @Override
@@ -143,9 +143,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {}
                 });
-        int t = Runtime.getRuntime().availableProcessors();
-        if (t < 1) t = 1;
-        sb_thread.setMax(t);
         // checkbox
         cb_screen_awake = (AppCompatCheckBox) findViewById(R.id.settings_checkBox_keepscreenawake);
         if (savedInstanceState != null) {
@@ -160,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             et_user.setText(texts[6]);
             et_pass.setText(texts[7]);
             int[] ints = savedInstanceState.getIntArray(KEYBUNDLE_INTS);
-            sb_thread.setProgress(ints[0]); // old
+            sb_cpu.setProgress(ints[0]); // old
         } else {
             logList = new ArrayList<ConsoleItem>(MAX_LOG_COUNT);
             SharedPreferences settings = getPreferences(Context.MODE_PRIVATE);
@@ -168,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             et_port.setText(String.valueOf(settings.getInt(PREF_PORT, DEFAULT_PORT)));
             et_user.setText(settings.getString(PREF_USER, DEFAULT_USER));
             et_pass.setText(settings.getString(PREF_PASS, DEFAULT_PASS));
-            sb_thread.setProgress(settings.getInt(PREF_THREAD, 1)); // old
+            sb_cpu.setProgress(settings.getInt(PREF_CPU_USAGE, 1)); // old
         }
         final Window window = getWindow();
         cb_screen_awake.setChecked((window.getAttributes().flags & FLAG_KEEP_SCREEN_ON) != 0);
@@ -217,66 +214,42 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 switch (msg.what) {
                     default:
                         break;
-                    case MSG_UPDATE: // status update
-                        switch (msg.arg1) {
-                            default:
-                                break;
-                            case MSG_UPDATE_SPEED:
-                                tv_speed.setText(df.format((float) msg.obj) + unit);
-                                break;
-                            case MSG_UPDATE_ACCEPTED:
-                                tv_accepted.setText(String.valueOf((long) msg.obj));
-                                break;
-                            case MSG_UPDATE_REJECTED:
-                                tv_rejected.setText(String.valueOf((long) msg.obj));
-                                break;
-                            case MSG_UPDATE_CONSOLE: // console update
-                                adpt.notifyDataSetChanged();
-                                break;
-                        }
+                    case MSG_STATE_NONE:
+                        btn_stopmine.setVisibility(View.GONE);
+                        btn_stopmine.setEnabled(false);
+                        btn_startmine.setVisibility(View.VISIBLE);
+                        btn_startmine.setEnabled(true);
+                        tv_speed.setText("0 hash/sec");
+                        // enable all user Input
+                        input_container.setVisibility(View.VISIBLE);
+                        status_container.setVisibility(View.GONE);
                         break;
-                    case MSG_STATE: // button mining update
-                        switch (msg.arg1) {
-                            default:
-                                break;
-                            case MSG_STATE_NONE:
-                                btn_stopmine.setVisibility(View.GONE);
-                                btn_stopmine.setEnabled(false);
-                                btn_startmine.setVisibility(View.VISIBLE);
-                                btn_startmine.setEnabled(true);
-                                tv_speed.setText("0 hash/sec");
-                                // enable all user Input
-                                input_container.setVisibility(View.VISIBLE);
-                                status_container.setVisibility(View.GONE);
-                                break;
-                            case MSG_STATE_ONSTART:
-                                btn_stopmine.setVisibility(View.GONE);
-                                btn_stopmine.setEnabled(false);
-                                btn_startmine.setVisibility(View.VISIBLE);
-                                btn_startmine.setEnabled(false);
-                                // disable all user Input
-                                input_container.setVisibility(View.GONE);
-                                status_container.setVisibility(View.VISIBLE);
-                                break;
-                            case MSG_STATE_RUNNING:
-                                btn_stopmine.setVisibility(View.VISIBLE);
-                                btn_stopmine.setEnabled(true);
-                                btn_startmine.setVisibility(View.GONE);
-                                btn_startmine.setEnabled(false);
-                                // disable all user Input
-                                input_container.setVisibility(View.GONE);
-                                status_container.setVisibility(View.VISIBLE);
-                                break;
-                            case MSG_STATE_ONSTOP:
-                                btn_stopmine.setVisibility(View.VISIBLE);
-                                btn_stopmine.setEnabled(false);
-                                btn_startmine.setVisibility(View.GONE);
-                                btn_startmine.setEnabled(false);
-                                // disable all user Input
-                                input_container.setVisibility(View.GONE);
-                                status_container.setVisibility(View.VISIBLE);
-                                break;
-                        }
+                    case MSG_STATE_ONSTART:
+                        btn_stopmine.setVisibility(View.GONE);
+                        btn_stopmine.setEnabled(false);
+                        btn_startmine.setVisibility(View.VISIBLE);
+                        btn_startmine.setEnabled(false);
+                        // disable all user Input
+                        input_container.setVisibility(View.GONE);
+                        status_container.setVisibility(View.VISIBLE);
+                        break;
+                    case MSG_STATE_RUNNING:
+                        btn_stopmine.setVisibility(View.VISIBLE);
+                        btn_stopmine.setEnabled(true);
+                        btn_startmine.setVisibility(View.GONE);
+                        btn_startmine.setEnabled(false);
+                        // disable all user Input
+                        input_container.setVisibility(View.GONE);
+                        status_container.setVisibility(View.VISIBLE);
+                        break;
+                    case MSG_STATE_ONSTOP:
+                        btn_stopmine.setVisibility(View.VISIBLE);
+                        btn_stopmine.setEnabled(false);
+                        btn_startmine.setVisibility(View.GONE);
+                        btn_startmine.setEnabled(false);
+                        // disable all user Input
+                        input_container.setVisibility(View.GONE);
+                        status_container.setVisibility(View.VISIBLE);
                         break;
                 }
                 return true;
@@ -288,43 +261,24 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     for (; ; ) {
                         synchronized (mService) {
                             if (stateMiningUpdate != mService.state)
-                                statusHandler.sendMessage(
-                                        statusHandler.obtainMessage(
-                                                MSG_STATE, stateMiningUpdate = mService.state, 0));
+                                statusHandler.sendEmptyMessage(stateMiningUpdate = mService.state);
                             if (!mService.console.isEmpty()) {
                                 for (ConsoleItem ci : mService.console) logList.add(0, ci);
                                 while (logList.size() > MAX_LOG_COUNT)
                                     logList.remove(logList.size() - 1);
+                                statusHandler.post(() -> adpt.notifyDataSetChanged());
                                 mService.console.clear();
-                                statusHandler.sendMessage(
-                                        statusHandler.obtainMessage(
-                                                MSG_UPDATE, MSG_UPDATE_CONSOLE, 0));
                             }
                             if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
-                                statusHandler.sendMessage(
-                                        statusHandler.obtainMessage(
-                                                MSG_UPDATE,
-                                                MSG_UPDATE_SPEED,
-                                                0,
-                                                mService.minerStatus[STATUS_TYPE_SPEED]));
+                                statusHandler.post(() -> tv_speed.setText(df.format((float) mService.minerStatus[STATUS_TYPE_SPEED]) + unit));
                                 mService.minerStatus[STATUS_TYPE_SPEED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
-                                statusHandler.sendMessage(
-                                        statusHandler.obtainMessage(
-                                                MSG_UPDATE,
-                                                MSG_UPDATE_ACCEPTED,
-                                                0,
-                                                mService.minerStatus[STATUS_TYPE_ACCEPTED]));
+                                statusHandler.post(() -> tv_accepted.setText(String.valueOf((long) mService.minerStatus[STATUS_TYPE_ACCEPTED])));
                                 mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
-                                statusHandler.sendMessage(
-                                        statusHandler.obtainMessage(
-                                                MSG_UPDATE,
-                                                MSG_UPDATE_REJECTED,
-                                                0,
-                                                mService.minerStatus[STATUS_TYPE_REJECTED]));
+                                statusHandler.post(() -> tv_rejected.setText(String.valueOf((long) mService.minerStatus[STATUS_TYPE_REJECTED])));
                                 mService.minerStatus[STATUS_TYPE_REJECTED] = null;
                             }
                             mService.wait();
@@ -393,16 +347,16 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         tv_showInput.setText(
                 String.format(
                         "server = %s:%d \nauth = %s:%s\nuse %d threads",
-                        url, port, user, pass, sb_thread.getProgress()));
+                        url, port, user, pass, sb_cpu.getProgress()));
         SharedPreferences.Editor editor = getPreferences(Context.MODE_PRIVATE).edit();
         editor.putString(PREF_URL, url);
         editor.putInt(PREF_PORT, port);
         editor.putString(PREF_USER, user);
         editor.putString(PREF_PASS, pass);
-        editor.putInt(PREF_THREAD, sb_thread.getProgress());
+        editor.putInt(PREF_CPU_USAGE, sb_cpu.getProgress());
         editor.commit();
 
-        mService.startMining(url, port, user, pass, sb_thread.getProgress());
+        mService.startMining(url, port, user, pass, sb_cpu.getProgress());
     }
 
     public void toStopMining(View v) {
@@ -434,7 +388,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         texts[7] = et_pass.getText();
         outState.putCharSequenceArray(KEYBUNDLE_TEXTS, texts);
         int[] ints = new int[1];
-        ints[0] = sb_thread.getProgress();
+        ints[0] = sb_cpu.getProgress();
         outState.putIntArray(KEYBUNDLE_INTS, ints);
     }
 
@@ -454,7 +408,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             et_user.setText(texts[6]);
             et_pass.setText(texts[7]);
             int[] ints = savedInstanceState.getIntArray(KEYBUNDLE_INTS);
-            sb_thread.setProgress(ints[0]); // old
+            sb_cpu.setProgress(ints[0]); // old
         }
     }
 

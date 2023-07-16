@@ -6,7 +6,7 @@ public class Constants {
     public static final String PREF_PORT = "PORT";
     public static final String PREF_USER = "USER";
     public static final String PREF_PASS = "PASS";
-    public static final String PREF_THREAD = "THREAD";
+    public static final String PREF_CPU_USAGE = "CPU_USAGE";
     public static final String PREF_CONSOLE = "CONSOLE";
 
     // default value
