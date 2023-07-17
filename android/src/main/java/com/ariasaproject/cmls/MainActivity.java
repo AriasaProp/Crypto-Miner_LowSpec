@@ -123,13 +123,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         et_user = (AppCompatEditText) findViewById(R.id.user_et);
         et_pass = (AppCompatEditText) findViewById(R.id.password_et);
         sb_cpu = (AppCompatSeekBar) findViewById(R.id.cpuSeek);
-        final AppCompatTextView cpu_usage_view =
+        final AppCompatTextView cuv =
                 (AppCompatTextView) findViewById(R.id.cpu_usage_view);
         sb_cpu.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        cpu_usage_view.setText(String.format("%03d %", progress));
+                        cuv.setText(String.format("%03d %", progress));
                     }
 
                     @Override
@@ -263,39 +263,37 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 statusHandler.post(() -> adpt.notifyDataSetChanged());
                                 mService.console.clear();
                             }
-                            Object[] mStatus = mService.minerStatus;
-                            if (mStatus[STATUS_TYPE_SPEED] != null) {
+                            if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
                                 statusHandler.post(
                                         () ->
                                                 tv_speed.setText(
                                                         df.format(
                                                                         (float)
-                                                                                mStatus[
+                                                                                mService.minerStatus[
                                                                                         STATUS_TYPE_SPEED])
                                                                 + unit));
-                                mStatus[STATUS_TYPE_SPEED] = null;
+                                mService.minerStatus[STATUS_TYPE_SPEED] = null;
                             }
-                            if (mStatus[STATUS_TYPE_ACCEPTED] != null) {
+                            if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
                                 statusHandler.post(
                                         () ->
                                                 tv_accepted.setText(
                                                         String.valueOf(
                                                                 (long)
-                                                                        mStatus[
+                                                                        mService.minerStatus[
                                                                                 STATUS_TYPE_ACCEPTED])));
-                                mStatus[STATUS_TYPE_ACCEPTED] = null;
+                                mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
                             }
-                            if (mStatus[STATUS_TYPE_REJECTED] != null) {
+                            if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
                                 statusHandler.post(
                                         () ->
                                                 tv_rejected.setText(
                                                         String.valueOf(
                                                                 (long)
-                                                                        mStatus[
+                                                                        mService.minerStatus[
                                                                                 STATUS_TYPE_REJECTED])));
-                                mStatus[STATUS_TYPE_REJECTED] = null;
+                                mService.minerStatus[STATUS_TYPE_REJECTED] = null;
                             }
-                            mService.minerStatus = mStatus;
                             mService.wait();
                         }
                     }
