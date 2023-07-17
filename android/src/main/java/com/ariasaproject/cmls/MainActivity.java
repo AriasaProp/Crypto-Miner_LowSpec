@@ -49,6 +49,7 @@ import androidx.appcompat.widget.AppCompatSeekBar;
 import androidx.appcompat.widget.AppCompatTextView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView.Adapter;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -67,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
 
     ViewGroup input_container, status_container;
-    AppCompatTextView tv_speed, tv_accepted, tv_rejected;
+    AppCompatTextView tv_s, tv_a, tv_r;
     AppCompatTextView tv_showInput;
     AppCompatEditText et_serv, et_port, et_user, et_pass;
     AppCompatButton btn_startmine, btn_stopmine;
@@ -79,8 +80,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     private final StringBuilder sb = new StringBuilder();
     private static final int MAX_LOG_COUNT = 50;
     private ArrayList<ConsoleItem> logList;
-    RecyclerView.Adapter adpt;
-    int stateMiningUpdate;
+    Adapter adpt;
+    int stateMiningUpdate = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,9 +112,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         // define showInput
         tv_showInput = (AppCompatTextView) findViewById(R.id.show_userInput);
         // text status
-        tv_speed = (AppCompatTextView) findViewById(R.id.speed_tv);
-        tv_accepted = (AppCompatTextView) findViewById(R.id.accepted_tv);
-        tv_rejected = (AppCompatTextView) findViewById(R.id.rejected_tv);
+        tv_s = (AppCompatTextView) findViewById(R.id.speed_tv);
+        tv_a = (AppCompatTextView) findViewById(R.id.accepted_tv);
+        tv_r = (AppCompatTextView) findViewById(R.id.rejected_tv);
         // button
         btn_startmine = (AppCompatButton) findViewById(R.id.button_startmine);
         btn_stopmine = (AppCompatButton) findViewById(R.id.button_stopmine);
@@ -128,9 +129,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        cuv.setText(String.format("%03d", progress));
+                        cuv.setText(String.format("%03d \%", progress));
                     }
-
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {}
 
@@ -142,9 +142,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         if (savedInstanceState != null) {
             logList = savedInstanceState.getParcelableArrayList(KEYBUNDLE_CONSOLE);
             CharSequence[] texts = savedInstanceState.getCharSequenceArray(KEYBUNDLE_TEXTS);
-            tv_speed.setText(texts[0]);
-            tv_accepted.setText(texts[1]);
-            tv_rejected.setText(texts[2]);
+            tv_s.setText(texts[0]);
+            tv_a.setText(texts[1]);
+            tv_r.setText(texts[2]);
             tv_showInput.setText(texts[3]);
             et_serv.setText(texts[4]);
             et_port.setText(texts[5]);
@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         final RecyclerView cv = (RecyclerView) findViewById(R.id.console_view);
         cv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adpt =
-                new RecyclerView.Adapter<ConsoleItemHolder>() {
+                new Adapter<ConsoleItemHolder>() {
                     final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
 
                     @Override
@@ -202,17 +202,29 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
-    final Handler.Callback statusHandlerCallback =
+    final Handler.Callback sHCallback =
             (msg) -> {
                 switch (msg.what) {
                     default:
+                        break;
+                    case MSG_UPDATE_SPEED:
+                        tv_s.setText(df.format(speedC) + unit);
+                        break;
+                    case MSG_UPDATE_ACCEPTED:
+                        tv_a.setText(String.valueOf(AccC));
+                        break;
+                    case MSG_UPDATE_REJECTED:
+                        tv_r.setText(String.valueOf(rejectC));
+                        break;
+                    case MSG_UPDATE_CONSOLE:
+                        adpt.notifyDataSetChanged();
                         break;
                     case MSG_STATE_NONE:
                         btn_stopmine.setVisibility(View.GONE);
                         btn_stopmine.setEnabled(false);
                         btn_startmine.setVisibility(View.VISIBLE);
                         btn_startmine.setEnabled(true);
-                        tv_speed.setText("0 hash/sec");
+                        tv_s.setText("0 hash/sec");
                         // enable all user Input
                         input_container.setVisibility(View.VISIBLE);
                         status_container.setVisibility(View.GONE);
@@ -247,50 +259,38 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 }
                 return true;
             };
-    final Handler statusHandler = new Handler(Looper.getMainLooper(), statusHandlerCallback);
+    final Handler sH = new Handler(Looper.getMainLooper(), sHCallback);
+    float speedC;
+    long AccC, rejectC;
     final Runnable updateThreadRunnable =
             () -> {
                 try {
                     for (; ; ) {
                         synchronized (mService) {
-                            if (stateMiningUpdate != mService.state)
-                                statusHandler.sendEmptyMessage(stateMiningUpdate = mService.state);
+                            if (stateMiningUpdate != mService.state) {
+                                sH.sendEmptyMessage(mService.state);
+                                stateMiningUpdate = mService.state;
+                            }
                             if (!mService.console.isEmpty()) {
                                 for (ConsoleItem ci : mService.console) logList.add(0, ci);
                                 while (logList.size() > MAX_LOG_COUNT)
                                     logList.remove(logList.size() - 1);
-                                statusHandler.post(() -> adpt.notifyDataSetChanged());
+                                sH.sendEmptyMessage(MSG_UPDATE_CONSOLE);
                                 mService.console.clear();
                             }
                             if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
-                                statusHandler.post(
-                                        () ->
-                                                tv_speed.setText(
-                                                        df.format(
-                                                                        (float)
-                                                                                mService.minerStatus[
-                                                                                        STATUS_TYPE_SPEED])
-                                                                + unit));
+                                speedC = mService.minerStatus[STATUS_TYPE_SPEED];
+                                sH.sendEmptyMessage(MSG_UPDATE_SPEED);
                                 mService.minerStatus[STATUS_TYPE_SPEED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
-                                statusHandler.post(
-                                        () ->
-                                                tv_accepted.setText(
-                                                        String.valueOf(
-                                                                (long)
-                                                                        mService.minerStatus[
-                                                                                STATUS_TYPE_ACCEPTED])));
+                                AccC = mService.minerStatus[STATUS_TYPE_ACCEPTED]
+                                sH.sendEmptyMessage(MSG_UPDATE_ACCEPTED);
                                 mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
-                                statusHandler.post(
-                                        () ->
-                                                tv_rejected.setText(
-                                                        String.valueOf(
-                                                                (long)
-                                                                        mService.minerStatus[
-                                                                                STATUS_TYPE_REJECTED])));
+                                rejectC = mService.minerStatus[STATUS_TYPE_REJECTED]
+                                sH.sendEmptyMessage(MSG_UPDATE_REJECTED);
                                 mService.minerStatus[STATUS_TYPE_REJECTED] = null;
                             }
                             mService.wait();
@@ -390,9 +390,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList(KEYBUNDLE_CONSOLE, logList);
         CharSequence[] texts = new CharSequence[8];
-        texts[0] = tv_speed.getText();
-        texts[1] = tv_accepted.getText();
-        texts[2] = tv_rejected.getText();
+        texts[0] = tv_s.getText();
+        texts[1] = tv_a.getText();
+        texts[2] = tv_r.getText();
         texts[3] = tv_showInput.getText();
         texts[4] = et_serv.getText();
         texts[5] = et_port.getText();
@@ -411,9 +411,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             logList = savedInstanceState.getParcelableArrayList(KEYBUNDLE_CONSOLE);
             adpt.notifyDataSetChanged();
             CharSequence[] texts = savedInstanceState.getCharSequenceArray(KEYBUNDLE_TEXTS);
-            tv_speed.setText(texts[0]);
-            tv_accepted.setText(texts[1]);
-            tv_rejected.setText(texts[2]);
+            tv_s.setText(texts[0]);
+            tv_a.setText(texts[1]);
+            tv_r.setText(texts[2]);
             tv_showInput.setText(texts[3]);
             et_serv.setText(texts[4]);
             et_port.setText(texts[5]);

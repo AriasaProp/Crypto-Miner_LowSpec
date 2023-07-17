@@ -104,7 +104,7 @@
             app:layout_constraintStart_toEndOf="@id/cpuSeek"
             app:layout_constraintEnd_toEndOf="parent"
             android:gravity="center"
-            android:text="001" />
+            android:text="001 \%" />
         <androidx.appcompat.widget.AppCompatSeekBar
             style="@style/OwnSeekBar"
             android:id="@+id/cpuSeek"
