@@ -214,10 +214,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     final Handler.Callback sHCallback =
             (msg) -> {
                 switch (msg.what) {
-                    default: break;
+                    default:
+                        break;
                     case UPDATE_DATA:
-                        switch(msg.arg1) {
-                            default: break;
+                        switch (msg.arg1) {
+                            default:
+                                break;
                             case MSG_UPDATE_SPEED:
                                 tv_s.setText(df.format(speedC) + unit);
                                 break;
