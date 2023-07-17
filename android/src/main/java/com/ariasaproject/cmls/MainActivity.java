@@ -123,8 +123,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         et_user = (AppCompatEditText) findViewById(R.id.user_et);
         et_pass = (AppCompatEditText) findViewById(R.id.password_et);
         sb_cpu = (AppCompatSeekBar) findViewById(R.id.cpuSeek);
-        final AppCompatTextView cuv =
-                (AppCompatTextView) findViewById(R.id.cpu_usage_view);
+        final AppCompatTextView cuv = (AppCompatTextView) findViewById(R.id.cpu_usage_view);
         sb_cpu.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
