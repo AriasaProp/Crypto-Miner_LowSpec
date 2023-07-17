@@ -10,10 +10,10 @@ import static com.ariasaproject.cmls.Constants.MSG_STATE_NONE;
 import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTART;
 import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
 import static com.ariasaproject.cmls.Constants.MSG_STATE_RUNNING;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTED;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
-import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 import static com.ariasaproject.cmls.Constants.PREF_CPU_USAGE;
 import static com.ariasaproject.cmls.Constants.PREF_PASS;
 import static com.ariasaproject.cmls.Constants.PREF_PORT;
@@ -179,8 +179,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         // log Adapter
         final RecyclerView cv = (RecyclerView) findViewById(R.id.console_view);
         cv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        adpt =
-                new Adapter<ConsoleItemHolder>() {
+        adpt = new Adapter<ConsoleItemHolder>() {
                     final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
 
                     @Override
@@ -204,7 +203,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         // check feature
         checkBatteryOptimizations();
     }
-
+    float speedC;
+    long AccC, rejectC;
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
     final Handler.Callback sHCallback =
@@ -265,8 +265,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 return true;
             };
     final Handler sH = new Handler(Looper.getMainLooper(), sHCallback);
-    float speedC;
-    long AccC, rejectC;
+    
     final Runnable updateThreadRunnable =
             () -> {
                 try {
