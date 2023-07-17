@@ -88,15 +88,15 @@
                 android:text="123" />
         </com.google.android.material.textfield.TextInputLayout>
         <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/thread_label"
+            android:id="@+id/cpu_usage_label"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/user_container"
             app:layout_constraintStart_toStartOf="parent"
-            android:text="Threads: " />
+            android:text="CPU Usage: " />
         <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/thread_view"
+            android:id="@+id/cpu_usage_view"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -104,15 +104,15 @@
             app:layout_constraintStart_toEndOf="@id/cpuSeek"
             app:layout_constraintEnd_toEndOf="parent"
             android:gravity="center"
-            android:text="01" />
+            android:text="001 %" />
         <androidx.appcompat.widget.AppCompatSeekBar
             style="@style/OwnSeekBar"
             android:id="@+id/cpuSeek"
             android:min="1"
             android:max="100"
             app:layout_constraintTop_toBottomOf="@id/user_container"
-            app:layout_constraintStart_toEndOf="@id/thread_label"
-            app:layout_constraintEnd_toStartOf="@id/thread_view"
+            app:layout_constraintStart_toEndOf="@id/cpu_usage_label"
+            app:layout_constraintEnd_toStartOf="@id/cpu_usage_view"
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
             android:layout_height="wrap_content" />
