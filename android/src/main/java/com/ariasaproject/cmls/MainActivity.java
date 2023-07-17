@@ -129,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        cuv.setText(String.format("%03d \%", progress));
+                        cuv.setText(String.format("%03d", progress));
                     }
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {}

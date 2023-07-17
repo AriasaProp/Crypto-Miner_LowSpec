@@ -92,26 +92,25 @@
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/user_container"
-            app:layout_constraintStart_toStartOf="parent"
-            android:text="CPU Usage: " />
+            app:layout_constraintTop_toBottomOf="@id/pass_container"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:text=" % CPU Usage" />
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/cpu_usage_view"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/pass_container"
+            app:layout_constraintEnd_toStartOf="@id/cpu_usage_label"
             app:layout_constraintStart_toEndOf="@id/cpuSeek"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:gravity="center"
-            android:text="001 \%" />
+            android:text="001" />
         <androidx.appcompat.widget.AppCompatSeekBar
             style="@style/OwnSeekBar"
             android:id="@+id/cpuSeek"
             android:min="1"
             android:max="100"
             app:layout_constraintTop_toBottomOf="@id/user_container"
-            app:layout_constraintStart_toEndOf="@id/cpu_usage_label"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/cpu_usage_view"
             app:layout_constrainedWidth="true"
             android:layout_width="0dp"
