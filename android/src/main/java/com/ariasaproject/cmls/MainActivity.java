@@ -284,17 +284,17 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 mService.console.clear();
                             }
                             if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
-                                speedC = mService.minerStatus[STATUS_TYPE_SPEED];
+                                speedC = (float) mService.minerStatus[STATUS_TYPE_SPEED];
                                 sH.sendEmptyMessage(MSG_UPDATE_SPEED);
                                 mService.minerStatus[STATUS_TYPE_SPEED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
-                                AccC = mService.minerStatus[STATUS_TYPE_ACCEPTED];
+                                AccC = (long) mService.minerStatus[STATUS_TYPE_ACCEPTED];
                                 sH.sendEmptyMessage(MSG_UPDATE_ACCEPTED);
                                 mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
-                                rejectC = mService.minerStatus[STATUS_TYPE_REJECTED];
+                                rejectC = (long) mService.minerStatus[STATUS_TYPE_REJECTED];
                                 sH.sendEmptyMessage(MSG_UPDATE_REJECTED);
                                 mService.minerStatus[STATUS_TYPE_REJECTED] = null;
                             }
