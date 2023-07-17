@@ -263,37 +263,39 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 statusHandler.post(() -> adpt.notifyDataSetChanged());
                                 mService.console.clear();
                             }
-                            if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
+                            Object[] mStatus = mService.minerStatus;
+                            if (mStatus[STATUS_TYPE_SPEED] != null) {
                                 statusHandler.post(
                                         () ->
                                                 tv_speed.setText(
                                                         df.format(
                                                                         (float)
-                                                                                mService.minerStatus[
+                                                                                mStatus[
                                                                                         STATUS_TYPE_SPEED])
                                                                 + unit));
-                                mService.minerStatus[STATUS_TYPE_SPEED] = null;
+                                mStatus[STATUS_TYPE_SPEED] = null;
                             }
-                            if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
+                            if (mStatus[STATUS_TYPE_ACCEPTED] != null) {
                                 statusHandler.post(
                                         () ->
                                                 tv_accepted.setText(
                                                         String.valueOf(
                                                                 (long)
-                                                                        mService.minerStatus[
+                                                                        mStatus[
                                                                                 STATUS_TYPE_ACCEPTED])));
-                                mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
+                                mStatus[STATUS_TYPE_ACCEPTED] = null;
                             }
-                            if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
+                            if (mStatus[STATUS_TYPE_REJECTED] != null) {
                                 statusHandler.post(
                                         () ->
                                                 tv_rejected.setText(
                                                         String.valueOf(
                                                                 (long)
-                                                                        mService.minerStatus[
+                                                                        mStatus[
                                                                                 STATUS_TYPE_REJECTED])));
-                                mService.minerStatus[STATUS_TYPE_REJECTED] = null;
+                                mStatus[STATUS_TYPE_REJECTED] = null;
                             }
+                            mService.minerStatus = mStatus;
                             mService.wait();
                         }
                     }
