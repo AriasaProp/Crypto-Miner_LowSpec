@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 
 #ifndef __BYTE_ORDER__
-#define __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__
 #endif
 
 #define JNIF(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_MainActivity_##M
@@ -26,7 +26,6 @@ private:
   SHA256_HASH H;
   
   Sha256Context context;
-  
   
   inline uint32_t _rotl(uint32_t value, size_t shift) {
       return (value << shift) | (value >> (-shift&31));
