@@ -1,5 +1,5 @@
 package com.ariasaproject.cmls.hasher;
-
+/*
 import static java.lang.Integer.rotateLeft;
 import static java.lang.System.arraycopy;
 
@@ -7,30 +7,28 @@ import java.security.GeneralSecurityException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
+*/
 public class Hasher {
+  /*
     private Mac mac;
     private byte[] H = new byte[32];
     private int[] X = new int[32];
     private int[] V = new int[32768]; // 32 * 1024
     int[] xs = new int[16];
-
-    public Hasher() throws GeneralSecurityException {
-        mac = Mac.getInstance("HmacSHA256");
-    }
-
+*/
+    /*
     private byte[] B = new byte[132]; // 128 + 4
     private int i, j, k, l;
+    */
 
-    public byte[] hash(byte[] header) throws GeneralSecurityException {
-        return hash(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
+    public byte[] hash(byte[] header) {
+        return nativeHashing(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
     }
-
     public byte[] hash2(byte[] header) {
-        return nativeHashing(
-                header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
+        return nativeHashing(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
     }
 
+/*
     public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
         arraycopy(header, 0, B, 0, 76);
         B[76] = (byte) (nonce >> 24);
@@ -77,7 +75,6 @@ public class Hasher {
         mac.doFinal(H, 0);
         return H;
     }
-
     private final void xorSalsa82() {
         xs[0] = (X[0] ^= X[16]);
         xs[1] = (X[1] ^= X[17]);
@@ -213,6 +210,6 @@ public class Hasher {
         X[30] += xs[14];
         X[31] += xs[15];
     }
-
-    public static native byte[] nativeHashing(byte[] header, int nonce);
+    */
+    public native static byte[] nativeHashing(byte[] header, int nonce);
 }
