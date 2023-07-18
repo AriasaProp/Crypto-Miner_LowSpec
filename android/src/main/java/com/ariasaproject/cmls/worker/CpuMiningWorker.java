@@ -97,8 +97,9 @@ public class CpuMiningWorker implements IMiningWorker {
     public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
         this._as_listener.add(i_listener);
     }
-    private static final int nonceStep = 2047;
+    private static final int nonceStep = 4094;
     private volatile int lastNonce = 0;
+    
     synchronized void generate_worker(MiningWork work) {
         while ((lastNonce >= 0) && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
             final int _start = lastNonce;
@@ -106,10 +107,10 @@ public class CpuMiningWorker implements IMiningWorker {
             final int _end = (en <= 0) ? Integer.MAX_VALUE : en;
             new Thread(workers, () -> {
                 try {
-                    //final Hasher hasher = new Hasher();
+                    long hasher = Hasher.initialize();
                     byte[] target = work.target.refHex();
                     for (int nonce = _start; nonce <= _end; nonce++) {
-                        byte[] hash = Hasher.nativeHashing(work.header.refHex(), nonce);
+                        byte[] hash = Hasher.nativeHashing(hasher, work.header.refHex(), nonce);
                         for (int i = hash.length - 1; i >= 0; i--) {
                             int a = hash[i] & 0xff, b = target[i] & 0xff;
                             if (a != b) {
@@ -124,11 +125,9 @@ public class CpuMiningWorker implements IMiningWorker {
                         Thread.sleep(1L);
                     }
                     Thread.sleep(1L);
+                    Hasher.deinitialize(hasher);
                     generate_worker(work);
-                } /*catch (GeneralSecurityException e) {
-                    MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: " + e.getMessage());
-                    MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
-                }*/ catch (InterruptedException e) {
+                } catch (InterruptedException e) {
                     // ignore
                 }
             }).start();

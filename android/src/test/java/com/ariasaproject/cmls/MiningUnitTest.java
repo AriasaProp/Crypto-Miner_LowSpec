@@ -85,15 +85,10 @@ public class MiningUnitTest {
         for (int a = 0; a < MaxThreadTest * 2; a++) {
             final int b = a;
             // hashing 1
-            calls.add(
-                    Executors.callable(
-                            () -> {
-                                try {
-                                    Hasher h = new Hasher();
-                                    for (int nonce = b;
-                                            (nonce >= b) && fn1.get();
-                                            nonce += MaxThreadTest) {
-                                        byte[] hash = h.hash(header, nonce);
+            calls.add(Executors.callable(() -> {
+                                    long h = Hasher.initialize;
+                                    for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
+                                        byte[] hash = Hasher.nativeHashing(h, header, nonce);
                                         for (int i = hash.length - 1; i >= 0; i--) {
                                             int x = hash[i] & 0xff, y = target[i] & 0xff;
                                             if (x != y) {
@@ -106,27 +101,26 @@ public class MiningUnitTest {
                                             }
                                         }
                                     }
-                                } catch (GeneralSecurityException e) {
-                                }
+                                    Hasher.deinitialize(h);
                             }));
             // hashing 2
-            calls.add(
-                    Executors.callable(
-                            () -> {
-                                for (int nonce = b; (nonce >= b) && fn2.get(); nonce += MaxThreadTest) {
-                                    byte[] hash = Hasher.nativeHashing(header, nonce);
-                                    for (int i = hash.length - 1; i >= 0; i--) {
-                                        int x = hash[i] & 0xff, y = target[i] & 0xff;
-                                        if (x != y) {
-                                            if (x < y) {
-                                                fn2.set(false);
-                                                n2.set(i);
-                                                return;
+            calls.add(Executors.callable(() -> {
+                                    long h = Hasher.initialize;
+                                    for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
+                                        byte[] hash = Hasher.nativeHashing(h, header, nonce);
+                                        for (int i = hash.length - 1; i >= 0; i--) {
+                                            int x = hash[i] & 0xff, y = target[i] & 0xff;
+                                            if (x != y) {
+                                                if (x < y) {
+                                                    fn1.set(false);
+                                                    n1.set(i);
+                                                    return;
+                                                }
+                                                break;
                                             }
-                                            break;
                                         }
                                     }
-                                }
+                                    Hasher.deinitialize(h);
                             }));
         }
         es.invokeAll(calls);
