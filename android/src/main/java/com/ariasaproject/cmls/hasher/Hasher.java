@@ -25,8 +25,10 @@ public class Hasher {
     public byte[] hash(byte[] header) throws GeneralSecurityException {
         return hash(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
     }
+
     public byte[] hash2(byte[] header) {
-        return nativeHashing(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
+        return nativeHashing(
+                header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
     }
 
     public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
@@ -211,6 +213,6 @@ public class Hasher {
         X[30] += xs[14];
         X[31] += xs[15];
     }
-    
-    public native static byte[] nativeHashing(byte[] header, int nonce);
+
+    public static native byte[] nativeHashing(byte[] header, int nonce);
 }

@@ -28,7 +28,7 @@ public class MiningUnitTest {
                         "01000000f615f7ce3b4fc6b8f61e8f89aedb1d0852507650533a9e3b10b9bbcc30639f279fcaa86746e1ef52d3edb3c4ad8259920d509bd073605c9bf1d59983752a6b06b817bb4ea78e011d012d59d4");
         Hasher h = new Hasher();
         byte[] hash = h.hash(refHeader.refHex());
-        byte[] hash2= h.hash2(refHeader.refHex());
+        byte[] hash2 = h.hash2(refHeader.refHex());
         assertEquals(
                 "d9eb8663ffec241c2fb118adb7de97a82c803b6ff46d57667935c81001000000",
                 new HexArray(hash).getStr());
@@ -82,9 +82,9 @@ public class MiningUnitTest {
 
         ExecutorService es = Executors.newFixedThreadPool(MaxThreadTest);
         List<Callable<Object>> calls = new ArrayList<Callable<Object>>(MaxThreadTest);
-        for (int a = 0; a < MaxThreadTest*2; a++) {
+        for (int a = 0; a < MaxThreadTest * 2; a++) {
             final int b = a;
-            //hashing 1
+            // hashing 1
             calls.add(
                     Executors.callable(
                             () -> {
@@ -109,12 +109,13 @@ public class MiningUnitTest {
                                 } catch (GeneralSecurityException e) {
                                 }
                             }));
-            //hashing 2
+            // hashing 2
             calls.add(
                     Executors.callable(
                             () -> {
                                 try {
-                                    for (int nonce = b; (nonce >= b) && fn2.get();
+                                    for (int nonce = b;
+                                            (nonce >= b) && fn2.get();
                                             nonce += MaxThreadTest) {
                                         byte[] hash = Hasher.nativeHashing(header, nonce);
                                         for (int i = hash.length - 1; i >= 0; i--) {
