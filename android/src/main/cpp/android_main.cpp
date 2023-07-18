@@ -17,8 +17,6 @@ JNIF(jstring, callNative) (JNIEnv *env, jobject) {
 #define JNIH(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_hasher_Hasher_##M
 
 struct hashingPack {
-private:
-  size_t i, j, k, l;
   uint32_t xs[16];
   uint8_t B[132];
   uint32_t X[32];
@@ -47,6 +45,7 @@ private:
       xs[13] = (X[13] ^= X[29]);
       xs[14] = (X[14] ^= X[30]);
       xs[15] = (X[15] ^= X[31]);
+      size_t l;
       for (l = 0; l < 4; l++) { // 8/2
           xs[4] ^= _rotl(xs[0] + xs[12], 7);
           xs[8] ^= _rotl(xs[4] + xs[0], 9);
@@ -165,8 +164,8 @@ private:
       X[30] += xs[14];
       X[31] += xs[15];
   }
-public:
   void hash(const uint8_t* header, uint32_t nonce, uint8_t* result) {
+      size_t i, j, k;
       memcpy(B, header, 76);
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
       // Sistem menggunakan big-endian
@@ -224,7 +223,7 @@ public:
   
 };
 
-JNIH(jlong, initialize) (JNIEnv *env, jclass) {
+JNIH(jlong, initialize) (JNIEnv *, jclass) {
     return (jlong) (new hashingPack);
 }
 JNIH(jbyteArray, nativeHashing) (JNIEnv *env, jclass, jlong o, jbyteArray head, jint nonce) {
