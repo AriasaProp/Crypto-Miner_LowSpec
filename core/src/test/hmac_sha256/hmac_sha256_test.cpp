@@ -144,6 +144,6 @@ bool hmac_sha256_test2 () {
 bool hmac_sha256_test () {
   bool result = true;
   result = hmac_sha256_test1 ();
-      result = hmac_sha256_test2 ();
-      return result;
+  result = hmac_sha256_test2 ();
+  return result;
 }
