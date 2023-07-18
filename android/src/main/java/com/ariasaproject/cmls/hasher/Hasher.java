@@ -25,6 +25,9 @@ public class Hasher {
     public byte[] hash(byte[] header) throws GeneralSecurityException {
         return hash(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
     }
+    public byte[] hash2(byte[] header) {
+        return nativeHashing(header, header[76] | header[77] << 8 | header[78] << 16 | header[79] << 24);
+    }
 
     public byte[] hash(byte[] header, int nonce) throws GeneralSecurityException {
         arraycopy(header, 0, B, 0, 76);
