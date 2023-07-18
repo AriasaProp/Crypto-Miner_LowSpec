@@ -86,7 +86,7 @@ public class MiningUnitTest {
             final int b = a;
             // hashing 1
             calls.add(Executors.callable(() -> {
-                                    long h = Hasher.initialize;
+                                    long h = Hasher.initialize();
                                     for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
                                         byte[] hash = Hasher.nativeHashing(h, header, nonce);
                                         for (int i = hash.length - 1; i >= 0; i--) {
@@ -105,7 +105,7 @@ public class MiningUnitTest {
                             }));
             // hashing 2
             calls.add(Executors.callable(() -> {
-                                    long h = Hasher.initialize;
+                                    long h = Hasher.initialize();
                                     for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
                                         byte[] hash = Hasher.nativeHashing(h, header, nonce);
                                         for (int i = hash.length - 1; i >= 0; i--) {
