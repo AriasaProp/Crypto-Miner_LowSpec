@@ -1,6 +1,7 @@
 #include "hmac_sha256/sha256.hpp"
 #include <jni.h>
 #include <cstring>
+#include <cstdint>
 #include <endian.h>
 #include <netinet/in.h>
 
@@ -13,14 +14,12 @@
 JNIF(jstring, callNative) (JNIEnv *env, jobject) {
     return env->NewStringUTF("Hello World from Native!");
 }
-#define JNIF(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_hasher_Hasher_##M
+#define JNIH(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_hasher_Hasher_##M
 
-const size_t 32 = 32;
-const size_t 32768 = 32768;
 struct hashingPack {
 private:
-  size_t i, j, k;
-  uint32_t xs[15];
+  size_t i, j, k, l;
+  uint32_t xs[16];
   uint8_t B[132];
   uint32_t X[32];
   uint32_t V[32768];
@@ -28,10 +27,11 @@ private:
   
   Sha256Context context;
   
+  
   inline uint32_t _rotl(uint32_t value, size_t shift) {
       return (value << shift) | (value >> (-shift&31));
   }
-  void xorSalsa8(uint32_t X[32]) {
+  void xorSalsa8() {
       xs[0] = (X[0] ^= X[16]);
       xs[1] = (X[1] ^= X[17]);
       xs[2] = (X[2] ^= X[18]);
@@ -195,7 +195,7 @@ public:
   
       for (i = 0; i < 32768; i += 32) {
           memcpy(V + i, X, 32);
-          xorSalsa8(X);
+          xorSalsa8();
       }
   
       for (i = 0; i < 1024; i++) {
@@ -203,7 +203,7 @@ public:
           for (j = 0; j < 32; j++) {
               X[j] ^= V[k + j];
           }
-          xorSalsa8(X);
+          xorSalsa8();
       }
   
       for (i = 0; i < 32; i++) {
@@ -223,23 +223,26 @@ public:
   
       memcpy(result, H, SHA256_HASH_SIZE);
   }
+  
+  hashingPack() {}
+  ~hashingPack() {}
 };
 
-JNIF(jlong, initialize) (JNIEnv *env, jclass) {
+JNIH(jlong, initialize) (JNIEnv *env, jclass) {
     return (jlong) (new hashingPack);
 }
-JNIF(jbyteArray, nativeHashing) (JNIEnv *env, jclass, jlong o, jbyteArray head, jint nonce) {
-    uint8_t* header = static_cast<uint8_t*>(env->GetByteArrayElements(head, NULL));
+JNIH(jbyteArray, nativeHashing) (JNIEnv *env, jclass, jlong o, jbyteArray head, jint nonce) {
+    jbyte* header = env->GetByteArrayElements(head, NULL);
     hashingPack *hp = (hashingPack*)o;
-    uint8_t ret = new uint8_t[SHA256_HASH_SIZE];
-    hp->hash(header, (uint32_t)nonce, ret);
+    uint8_t *ret = new uint8_t[SHA256_HASH_SIZE];
+    hp->hash((uint8_t*)header, (uint32_t)nonce, ret);
     env->ReleaseByteArrayElements(head, header, JNI_ABORT);
-    jbyteArray result = env->NewByteArray(len);
-    env->SetByteArrayRegion(result, 0, len, (const jbyte*) ret);
+    jbyteArray result = env->NewByteArray(SHA256_HASH_SIZE);
+    env->SetByteArrayRegion(result, 0, SHA256_HASH_SIZE, reinterpret_cast<const jbyte*>(ret));
     delete[] ret;
     return result;
 }
-JNIF(void, deinitialize) (JNIEnv *env, jclass, jlong o) {
+JNIH(void, deinitialize) (JNIEnv *env, jclass, jlong o) {
     delete ((hashingPack*)o)
 }
 
