@@ -208,4 +208,6 @@ public class Hasher {
         X[30] += xs[14];
         X[31] += xs[15];
     }
+    
+    public native static byte[] nativeHashing(byte[] header, int nonce);
 }

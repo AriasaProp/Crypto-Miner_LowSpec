@@ -233,6 +233,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 adpt.notifyDataSetChanged();
                                 break;
                         }
+                        break;
                     case UPDATE_STATE:
                         switch (stateMiningUpdate) {
                             default:

@@ -1,0 +1,31 @@
+name: Auto-Test Core
+
+on:
+  workflow_dispatch:
+    inputs:
+      format_cpp:
+        default: true
+        required: false
+        type: boolean
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Format CPP
+        if:  ${{ inputs.format_cpp }}
+        run: |
+          git config --global user.email "ikomangwidiadaariasa12@gmail.com"
+          git config --global user.name "AriasaProp"
+          sudo apt-get install -y clang-format
+          find . -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
+          git add .
+          git commit -m "reformating cpp"
+          git push
+      - name: Gradle Test
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          gradle-version: 8.1.1
+          arguments: ":core:test"
+
