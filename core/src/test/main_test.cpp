@@ -1,15 +1,14 @@
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
-bool base_test();
-bool hmac_sha256_test();
+bool base_test ();
+bool hmac_sha256_test ();
 
+int main () {
+  bool testResult = true;
 
-int main() {
-    bool testResult = true;
-    
-    testResult = base_test();
-    testResult = hmac_sha256_test();
-    
-    return testResult ? EXIT_SUCCESS : EXIT_FAILURE;
+  testResult = base_test ();
+  testResult = hmac_sha256_test ();
+
+  return testResult ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -8,12 +8,12 @@
 #include <tuple>
 #include <vector>
 
-//256 bit, 32 byte
+// 256 bit, 32 byte
 #define SHA256_HASH_SIZE 32
 
 typedef std::vector<std::tuple<std::string, std::string, std::string>> TestData_t;
 
-bool hmac_sha256_test1() {
+bool hmac_sha256_test1 () {
   // Test vectors from RFC4231, https://tools.ietf.org/html/rfc4231#section-4
   const TestData_t test_vectors = {
       // Key      Data      HMAC
@@ -99,17 +99,17 @@ bool hmac_sha256_test1() {
       }};
   {
     for (auto tvec : test_vectors) {
-      std::vector<uint8_t> out(std::get<2>(tvec).size() / 2);
-      hmac_sha256(std::get<0>(tvec).data(), std::get<0>(tvec).size(), std::get<1>(tvec).data(), std::get<1>(tvec).size(), out.data(), out.size());
-      //verify
+      std::vector<uint8_t> out (std::get<2> (tvec).size () / 2);
+      hmac_sha256 (std::get<0> (tvec).data (), std::get<0> (tvec).size (), std::get<1> (tvec).data (), std::get<1> (tvec).size (), out.data (), out.size ());
+      // verify
       {
-        const std::string& expected = std::get<2>(tvec);
+        const std::string &expected = std::get<2> (tvec);
         std::stringstream ss;
         for (uint8_t i : out) {
-          ss << std::hex << std::setfill('0') << std::setw(2) << (int)i;
+          ss << std::hex << std::setfill ('0') << std::setw (2) << (int)i;
         }
-        if (expected != ss.str()) {
-          std::cout << "*** TEST FAILED ***: \n\t" << ss.str() << " != \n\t" << expected << std::endl;
+        if (expected != ss.str ()) {
+          std::cout << "*** TEST FAILED ***: \n\t" << ss.str () << " != \n\t" << expected << std::endl;
           return false;
         }
       }
@@ -121,29 +121,28 @@ bool hmac_sha256_test1() {
 
 static const std::string expectedHex = "4b393abced1c497f8048860ba1ede46a23f1ff5209b18e9c428bddfbb690aad8";
 
-bool hmac_sha256_test2() {
+bool hmac_sha256_test2 () {
   const std::string str_data = "Hello World!";
   const std::string str_key = "super-secret-key";
   std::stringstream ss_result;
   // Allocate memory for the HMAC
-  std::vector<uint8_t> out(SHA256_HASH_SIZE);
+  std::vector<uint8_t> out (SHA256_HASH_SIZE);
   // Call hmac-sha256 function
-  hmac_sha256(str_key.data(), str_key.size(), str_data.data(), str_data.size(), out.data(), out.size());
+  hmac_sha256 (str_key.data (), str_key.size (), str_data.data (), str_data.size (), out.data (), out.size ());
   // Convert `out` to string with std::hex
   for (uint8_t x : out) {
-    ss_result << std::hex << std::setfill('0') << std::setw(2) << (int)x;
+    ss_result << std::hex << std::setfill ('0') << std::setw (2) << (int)x;
   }
   // Print out the result
   std::cout << "Message: " << str_data << std::endl;
   std::cout << "Key: " << str_key << std::endl;
-  std::cout << "HMAC: " << ss_result.str() << std::endl;
+  std::cout << "HMAC: " << ss_result.str () << std::endl;
 
-  return (ss_result.str() == expectedHex);
+  return (ss_result.str () == expectedHex);
 }
 
-bool hmac_sha256_test() {
+bool hmac_sha256_test () {
   bool result = true;
-  result = hmac_sha256_test1()
-  result = hmac_sha256_test2()
-  return result;
+  result = hmac_sha256_test1 ()
+      result = hmac_sha256_test2 () return result;
 }
