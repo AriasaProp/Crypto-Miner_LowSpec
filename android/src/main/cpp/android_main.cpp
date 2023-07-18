@@ -177,7 +177,6 @@ public:
       memcpy(B + 76, &hnonce, 4);
 #endif
       
-      Sha256Context context;
       Sha256Initialise(&context);
       memset(B+80, 0, 3);
       
@@ -188,7 +187,7 @@ public:
           Sha256Finalise(&context, &H);
   
           for (j = 0; j < 8; j++) {
-              X[i * 8 + j] = (H[j * 4] & 0xFF) | (H[j * 4 + 1] & 0xFF) << 8 | (H[j * 4 + 2] & 0xFF) << 16 | (H[j * 4 + 3] & 0xFF) << 24;
+              X[i * 8 + j] = (H[j * 4] & 0xFF) | ((H[j * 4 + 1] & 0xFF) << 8) | ((H[j * 4 + 2] & 0xFF) << 16) | ((H[j * 4 + 3] & 0xFF) << 24);
           }
       }
   
@@ -209,10 +208,10 @@ public:
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
           // Sistem menggunakan big-endian
           uint32_t hX = htonl(X[i]);
-          memcpy(B * 4, &hX, 4);
+          memcpy(B + (i * 4), &hX, 4);
 #else
           // Sistem menggunakan little-endian atau tidak terdefinisi
-          memcpy(B * 4, &X[i], 4);
+          memcpy(B + (i * 4), &X[i], 4);
 #endif
       }
       B[131] = 1;
@@ -239,8 +238,8 @@ JNIH(jbyteArray, nativeHashing) (JNIEnv *env, jclass, jlong o, jbyteArray head, 
     delete[] ret;
     return result;
 }
-JNIH(void, deinitialize) (JNIEnv *env, jclass, jlong o) {
-    delete ((hashingPack*)o)
+JNIH(void, deinitialize) (JNIEnv *, jclass, jlong o) {
+    delete ((hashingPack*)o);
 }
 
 
