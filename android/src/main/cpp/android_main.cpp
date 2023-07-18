@@ -186,7 +186,7 @@ struct hashingPack {
           Sha256Finalise(&context, &H);
   
           for (j = 0; j < 8; j++) {
-              X[i * 8 + j] = (H[j * 4] & 0xFF) | ((H[j * 4 + 1] & 0xFF) << 8) | ((H[j * 4 + 2] & 0xFF) << 16) | ((H[j * 4 + 3] & 0xFF) << 24);
+              X[i * 8 + j] = (H.bytes[j * 4] & 0xFF) ((H.bytes[j * 4 + 1] & 0xFF) << 8) | ((H.bytes[j * 4 + 2] & 0xFF) << 16) | ((H.bytes[j * 4 + 3] & 0xFF) << 24);
           }
       }
   
@@ -218,7 +218,7 @@ struct hashingPack {
       Sha256Update(&context, B, 132);
       Sha256Finalise(&context, &H);
   
-      memcpy(result, H, SHA256_HASH_SIZE);
+      memcpy(result, H.bytes, SHA256_HASH_SIZE);
   }
   
 };
