@@ -223,8 +223,6 @@ public:
       memcpy(result, H, SHA256_HASH_SIZE);
   }
   
-  hashingPack() {}
-  ~hashingPack() {}
 };
 
 JNIH(jlong, initialize) (JNIEnv *env, jclass) {
