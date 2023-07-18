@@ -113,24 +113,19 @@ public class MiningUnitTest {
             calls.add(
                     Executors.callable(
                             () -> {
-                                try {
-                                    for (int nonce = b;
-                                            (nonce >= b) && fn2.get();
-                                            nonce += MaxThreadTest) {
-                                        byte[] hash = Hasher.nativeHashing(header, nonce);
-                                        for (int i = hash.length - 1; i >= 0; i--) {
-                                            int x = hash[i] & 0xff, y = target[i] & 0xff;
-                                            if (x != y) {
-                                                if (x < y) {
-                                                    fn2.set(false);
-                                                    n2.set(i);
-                                                    return;
-                                                }
-                                                break;
+                                for (int nonce = b; (nonce >= b) && fn2.get(); nonce += MaxThreadTest) {
+                                    byte[] hash = Hasher.nativeHashing(header, nonce);
+                                    for (int i = hash.length - 1; i >= 0; i--) {
+                                        int x = hash[i] & 0xff, y = target[i] & 0xff;
+                                        if (x != y) {
+                                            if (x < y) {
+                                                fn2.set(false);
+                                                n2.set(i);
+                                                return;
                                             }
+                                            break;
                                         }
                                     }
-                                } catch (GeneralSecurityException e) {
                                 }
                             }));
         }
