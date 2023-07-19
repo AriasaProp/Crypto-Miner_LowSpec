@@ -4,9 +4,9 @@ import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
 
+import com.ariasaproject.cmls.Constants;
 import com.ariasaproject.cmls.MessageSendListener;
 import com.ariasaproject.cmls.MiningWork;
-import com.ariasaproject.cmls.Constants;
 
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -105,32 +105,37 @@ public class CpuMiningWorker implements IMiningWorker {
             final int _start = lastNonce;
             int en = lastNonce + nonceStep;
             final int _end = (en <= 0) ? Integer.MAX_VALUE : en;
-            new Thread(workers, () -> {
-                try {
-                    long hasher = Constants.initHasher();
-                    byte[] target = work.target.refHex();
-                    for (int nonce = _start; nonce <= _end; nonce++) {
-                        byte[] hash = Constants.nativeHashing(hasher, work.header.refHex(), nonce);
-                        for (int i = hash.length - 1; i >= 0; i--) {
-                            int a = hash[i] & 0xff, b = target[i] & 0xff;
-                            if (a != b) {
-                                if (a < b) {
-                                    invokeNonceFound(work, nonce);
-                                    return;
+            new Thread(
+                            workers,
+                            () -> {
+                                try {
+                                    long hasher = Constants.initHasher();
+                                    byte[] target = work.target.refHex();
+                                    for (int nonce = _start; nonce <= _end; nonce++) {
+                                        byte[] hash =
+                                                Constants.nativeHashing(
+                                                        hasher, work.header.refHex(), nonce);
+                                        for (int i = hash.length - 1; i >= 0; i--) {
+                                            int a = hash[i] & 0xff, b = target[i] & 0xff;
+                                            if (a != b) {
+                                                if (a < b) {
+                                                    invokeNonceFound(work, nonce);
+                                                    return;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                        calcSpeedPerThread();
+                                        Thread.sleep(1L);
+                                    }
+                                    Thread.sleep(1L);
+                                    Constants.destroyHasher(hasher);
+                                    generate_worker(work);
+                                } catch (InterruptedException e) {
+                                    // ignore
                                 }
-                                break;
-                            }
-                        }
-                        calcSpeedPerThread();
-                        Thread.sleep(1L);
-                    }
-                    Thread.sleep(1L);
-                    Constants.destroyHasher(hasher);
-                    generate_worker(work);
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }).start();
+                            })
+                    .start();
             lastNonce = _end + 1;
         }
     }
