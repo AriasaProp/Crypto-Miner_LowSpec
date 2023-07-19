@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.ariasaproject.cmls.HexArray;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.connection.*;
-import com.ariasaproject.cmls.hasher.Hasher;
+import com.ariasaproject.cmls.Constants;
 import com.ariasaproject.cmls.stratum.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -22,13 +22,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MiningUnitTest {
     @Test
-    public void HasherTest() throws Exception {
+    public void ConstantsTest() throws Exception {
         HexArray refHeader =
                 new HexArray(
                         "01000000f615f7ce3b4fc6b8f61e8f89aedb1d0852507650533a9e3b10b9bbcc30639f279fcaa86746e1ef52d3edb3c4ad8259920d509bd073605c9bf1d59983752a6b06b817bb4ea78e011d012d59d4");
-        Hasher h = new Hasher();
-        byte[] hash = h.hash(refHeader.refHex());
-        byte[] hash2 = h.hash2(refHeader.refHex());
+        byte[] hash = Constants.hash(refHeader.refHex());
+        byte[] hash2 = Constants.hash2(refHeader.refHex());
         assertEquals(
                 "d9eb8663ffec241c2fb118adb7de97a82c803b6ff46d57667935c81001000000",
                 new HexArray(hash).getStr());
@@ -86,9 +85,9 @@ public class MiningUnitTest {
             final int b = a;
             // hashing 1
             calls.add(Executors.callable(() -> {
-                                    long h = Hasher.initialize();
+                                    long h = Constants.initHasher();
                                     for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
-                                        byte[] hash = Hasher.nativeHashing(h, header, nonce);
+                                        byte[] hash = Constants.nativeHashing(h, header, nonce);
                                         for (int i = hash.length - 1; i >= 0; i--) {
                                             int x = hash[i] & 0xff, y = target[i] & 0xff;
                                             if (x != y) {
@@ -101,13 +100,13 @@ public class MiningUnitTest {
                                             }
                                         }
                                     }
-                                    Hasher.deinitialize(h);
+                                    Constants.destroyHasher(h);
                             }));
             // hashing 2
             calls.add(Executors.callable(() -> {
-                                    long h = Hasher.initialize();
+                                    long h = Constants.initHasher();
                                     for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
-                                        byte[] hash = Hasher.nativeHashing(h, header, nonce);
+                                        byte[] hash = Constants.nativeHashing(h, header, nonce);
                                         for (int i = hash.length - 1; i >= 0; i--) {
                                             int x = hash[i] & 0xff, y = target[i] & 0xff;
                                             if (x != y) {
@@ -120,7 +119,7 @@ public class MiningUnitTest {
                                             }
                                         }
                                     }
-                                    Hasher.deinitialize(h);
+                                    Constants.destroyHasher(h);
                             }));
         }
         es.invokeAll(calls);

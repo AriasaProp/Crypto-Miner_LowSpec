@@ -465,8 +465,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         unbindService(this);
     }
 
-    public native String callNative();
-
     public static class ConsoleItemHolder extends RecyclerView.ViewHolder {
         private AppCompatTextView time;
         private AppCompatTextView msg;
