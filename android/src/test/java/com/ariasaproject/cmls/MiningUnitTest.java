@@ -2,16 +2,15 @@ package com.ariasaroject.cmls;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.ariasaproject.cmls.Constants;
 import com.ariasaproject.cmls.HexArray;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.connection.*;
-import com.ariasaproject.cmls.Constants;
 import com.ariasaproject.cmls.stratum.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
 
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -84,42 +83,50 @@ public class MiningUnitTest {
         for (int a = 0; a < MaxThreadTest * 2; a++) {
             final int b = a;
             // hashing 1
-            calls.add(Executors.callable(() -> {
-                                    long h = Constants.initHasher();
-                                    for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
-                                        byte[] hash = Constants.nativeHashing(h, header, nonce);
-                                        for (int i = hash.length - 1; i >= 0; i--) {
-                                            int x = hash[i] & 0xff, y = target[i] & 0xff;
-                                            if (x != y) {
-                                                if (x < y) {
-                                                    fn1.set(false);
-                                                    n1.set(i);
-                                                    return;
-                                                }
-                                                break;
+            calls.add(
+                    Executors.callable(
+                            () -> {
+                                long h = Constants.initHasher();
+                                for (int nonce = b;
+                                        (nonce >= b) && fn1.get();
+                                        nonce += MaxThreadTest) {
+                                    byte[] hash = Constants.nativeHashing(h, header, nonce);
+                                    for (int i = hash.length - 1; i >= 0; i--) {
+                                        int x = hash[i] & 0xff, y = target[i] & 0xff;
+                                        if (x != y) {
+                                            if (x < y) {
+                                                fn1.set(false);
+                                                n1.set(i);
+                                                return;
                                             }
+                                            break;
                                         }
                                     }
-                                    Constants.destroyHasher(h);
+                                }
+                                Constants.destroyHasher(h);
                             }));
             // hashing 2
-            calls.add(Executors.callable(() -> {
-                                    long h = Constants.initHasher();
-                                    for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
-                                        byte[] hash = Constants.nativeHashing(h, header, nonce);
-                                        for (int i = hash.length - 1; i >= 0; i--) {
-                                            int x = hash[i] & 0xff, y = target[i] & 0xff;
-                                            if (x != y) {
-                                                if (x < y) {
-                                                    fn1.set(false);
-                                                    n1.set(i);
-                                                    return;
-                                                }
-                                                break;
+            calls.add(
+                    Executors.callable(
+                            () -> {
+                                long h = Constants.initHasher();
+                                for (int nonce = b;
+                                        (nonce >= b) && fn1.get();
+                                        nonce += MaxThreadTest) {
+                                    byte[] hash = Constants.nativeHashing(h, header, nonce);
+                                    for (int i = hash.length - 1; i >= 0; i--) {
+                                        int x = hash[i] & 0xff, y = target[i] & 0xff;
+                                        if (x != y) {
+                                            if (x < y) {
+                                                fn1.set(false);
+                                                n1.set(i);
+                                                return;
                                             }
+                                            break;
                                         }
                                     }
-                                    Constants.destroyHasher(h);
+                                }
+                                Constants.destroyHasher(h);
                             }));
         }
         es.invokeAll(calls);
