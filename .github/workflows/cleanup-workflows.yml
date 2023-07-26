@@ -3,7 +3,7 @@ name: 'Cleanup Workflows'
 on: workflow_dispatch
 
 env:
-  GH_TOKEN: ${{ github.token }}
+  GH_TOKEN: ${{ secrets.GH_PAT }}
 
 permissions:
   actions: write
@@ -14,8 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3.5.2
       - run: |
-          OT=$(gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | .id')
-          IFS=$'\n'
-          for run_id in $OT; do
-            gh api repos/${{ github.repository }}/actions/runs/$run_id --method DELETE
+          while OT=$(gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | .id'); [ -n "$OT" ]; do
+            for run_id in $OT; do
+              gh api repos/${{ github.repository }}/actions/runs/$run_id --method DELETE
+            done
           done
