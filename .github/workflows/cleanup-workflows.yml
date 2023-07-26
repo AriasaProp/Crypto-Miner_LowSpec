@@ -10,8 +10,9 @@ jobs:
     permissions:
       actions: write
     steps:
+      - uses: actions/checkout@v3.5.2
       - run: |
-          OT=(gh api repos/:owner/:repo/actions/runs --jq '.workflow_runs[] | select(.updated_at | fromdateiso8601 < (now - 7*24*60*60)) | .id')
+          OT=$(gh api repos/:owner/:repo/actions/runs --jq '.workflow_runs[] | .id')
           IFS=$'\n'
           for run_id in $OT; do
             gh api repos/:owner/:repo/actions/runs/$run_id --method DELETE
