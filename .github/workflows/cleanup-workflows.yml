@@ -1,0 +1,16 @@
+name: 'Cleanup Workflows'
+
+on: workflow_dispatch
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - run: |
+          OT=(gh api repos/:owner/:repo/actions/runs --jq '.workflow_runs[] | select(.updated_at | fromdateiso8601 < (now - 7*24*60*60)) | .id')
+          IFS=$'\n'
+          for run_id in $OT; do
+            gh api repos/:owner/:repo/actions/runs/$run_id --method DELETE
+          done
