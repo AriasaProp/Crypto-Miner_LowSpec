@@ -12,8 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3.5.2
       - run: |
-          OT=$(gh api repos/:owner/:repo/actions/runs --jq '.workflow_runs[] | .id')
+          OT=$(gh api repos/${{github.base_ref_repository_owner}}/${{github.base_ref_repository}}/actions/runs --jq '.workflow_runs[] | .id')
           IFS=$'\n'
           for run_id in $OT; do
-            gh api repos/:owner/:repo/actions/runs/$run_id --method DELETE
+            gh api repos/${{github.base_ref_repository_owner}}/${{github.base_ref_repository}}/actions/runs/$run_id --method DELETE
           done
