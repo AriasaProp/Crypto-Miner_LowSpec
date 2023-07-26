@@ -16,8 +16,8 @@ struct Sha256Context {
 struct SHA256_HASH {
   uint8_t bytes[SHA256_HASH_SIZE];
 };
-void Sha256Initialise(Sha256Context* Context);
-void Sha256Update(Sha256Context* Context, void const* Buffer, uint32_t BufferSize);
-void Sha256Finalise(Sha256Context* Context, SHA256_HASH* Digest);
-void Sha256Calculate(void const* Buffer, uint32_t BufferSize, SHA256_HASH* Digest);
-#endif //SHA256_H_
+void Sha256Initialise (Sha256Context *Context);
+void Sha256Update (Sha256Context *Context, void const *Buffer, uint32_t BufferSize);
+void Sha256Finalise (Sha256Context *Context, SHA256_HASH *Digest);
+void Sha256Calculate (void const *Buffer, uint32_t BufferSize, SHA256_HASH *Digest);
+#endif // SHA256_H_
