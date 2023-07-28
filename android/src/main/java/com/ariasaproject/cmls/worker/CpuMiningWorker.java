@@ -36,7 +36,7 @@ public class CpuMiningWorker implements IMiningWorker {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
         hashes_per_sec = 0;
     }
-    
+
     volatile MiningWork current_work;
 
     @Override
@@ -84,8 +84,7 @@ public class CpuMiningWorker implements IMiningWorker {
     private synchronized void invokeNonceFound(int i_nonce) {
         stopWork();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce);
-        for (IWorkerEvent i : _as_listener)
-            i.onNonceFound(current_work, i_nonce);
+        for (IWorkerEvent i : _as_listener) i.onNonceFound(current_work, i_nonce);
     }
 
     public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
@@ -101,15 +100,19 @@ public class CpuMiningWorker implements IMiningWorker {
             target = current_work.target.refHex();
             header = current_work.header.refHex();
         }
-        while ((lastNonce >= 0) && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
+        while ((lastNonce >= 0)
+                && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
             final int _start = lastNonce;
             int en = lastNonce + nonceStep;
             final int _end = (en <= 0) ? Integer.MAX_VALUE : en;
-            new Thread(workers, () -> {
+            new Thread(
+                            workers,
+                            () -> {
                                 try {
                                     long hasher = Constants.initHasher();
                                     for (int nonce = _start; nonce <= _end; nonce++) {
-                                        byte[] hash = Constants.nativeHashing(hasher, header, nonce);
+                                        byte[] hash =
+                                                Constants.nativeHashing(hasher, header, nonce);
                                         for (int i = hash.length - 1; i >= 0; i--) {
                                             int a = hash[i] & 0xff, b = target[i] & 0xff;
                                             if (a != b) {
