@@ -22,19 +22,22 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     private volatile long hashes = 0;
+    private volatile long hashes_per_sec = 0;
     private volatile long worker_saved_time = 0;
 
-    public synchronized void calcSpeedPerThread() {
+    private synchronized void calcSpeedPerThread() {
         hashes++;
+        hashes_per_sec++;
         long curr_time = System.currentTimeMillis();
         long delta = curr_time - worker_saved_time;
         if (delta < 1000) return;
-        if (hashes < 0)
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: hashes acumulator error");
-        float _speed = (hashes * 1000.0f) / (float) delta;
+        float _speed = (hashes_per_sec * 1000.0f) / (float) delta;
         worker_saved_time = curr_time;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
+        hashes_per_sec = 0;
     }
+    
+    volatile MiningWork current_work;
 
     @Override
     public synchronized boolean doWork(MiningWork i_work) throws Exception {
@@ -43,11 +46,13 @@ public class CpuMiningWorker implements IMiningWorker {
         }
         System.gc();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
+        current_work = i_work;
         hashes = 0;
+        hashes_per_sec = 0;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         worker_saved_time = System.currentTimeMillis();
         lastNonce = 0;
-        generate_worker(i_work);
+        generate_worker();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started");
         return true;
     }
@@ -76,20 +81,11 @@ public class CpuMiningWorker implements IMiningWorker {
 
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
 
-    public synchronized void invokeNonceFound(MiningWork i_work, int i_nonce) {
-        if (workers.activeCount() > 0) {
-            workers.interrupt();
-        }
-        MSL.sendMessage(
-                MSG_UPDATE,
-                MSG_UPDATE_CONSOLE,
-                0,
-                "Mining: Nonce found! +" + ((0xffffffffffffffffL) & i_nonce));
-        if (i_nonce < _number_of_thread)
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Weired Nonce");
-        for (IWorkerEvent i : _as_listener) {
-            i.onNonceFound(i_work, i_nonce);
-        }
+    private synchronized void invokeNonceFound(int i_nonce) {
+        stopWork();
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce);
+        for (IWorkerEvent i : _as_listener)
+            i.onNonceFound(current_work, i_nonce);
     }
 
     public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
@@ -99,27 +95,26 @@ public class CpuMiningWorker implements IMiningWorker {
     private static final int nonceStep = 4094;
     private volatile int lastNonce = 0;
 
-    synchronized void generate_worker(MiningWork work) {
-        while ((lastNonce >= 0)
-                && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
+    synchronized void generate_worker() {
+        byte[] target, header;
+        synchronized (CPUMiningWorker.this) {
+            target = current_work.target.refHex();
+            header = current_work.header.refHex();
+        }
+        while ((lastNonce >= 0) && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
             final int _start = lastNonce;
             int en = lastNonce + nonceStep;
             final int _end = (en <= 0) ? Integer.MAX_VALUE : en;
-            new Thread(
-                            workers,
-                            () -> {
+            new Thread(workers, () -> {
                                 try {
                                     long hasher = Constants.initHasher();
-                                    byte[] target = work.target.refHex();
                                     for (int nonce = _start; nonce <= _end; nonce++) {
-                                        byte[] hash =
-                                                Constants.nativeHashing(
-                                                        hasher, work.header.refHex(), nonce);
+                                        byte[] hash = Constants.nativeHashing(hasher, header, nonce);
                                         for (int i = hash.length - 1; i >= 0; i--) {
                                             int a = hash[i] & 0xff, b = target[i] & 0xff;
                                             if (a != b) {
                                                 if (a < b) {
-                                                    invokeNonceFound(work, nonce);
+                                                    invokeNonceFound(nonce);
                                                     return;
                                                 }
                                                 break;
@@ -130,7 +125,7 @@ public class CpuMiningWorker implements IMiningWorker {
                                     }
                                     Thread.sleep(1L);
                                     Constants.destroyHasher(hasher);
-                                    generate_worker(work);
+                                    generate_worker();
                                 } catch (InterruptedException e) {
                                     // ignore
                                 }
