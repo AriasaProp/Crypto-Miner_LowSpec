@@ -3,7 +3,6 @@
 #include <cstring>
 #include <cstdint>
 #include <endian.h>
-#include <netinet/in.h>
 
 #ifndef __BYTE_ORDER__
 #define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__

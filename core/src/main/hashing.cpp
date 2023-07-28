@@ -1,5 +1,6 @@
 #include "hashing.hpp"
 #include <cstring>
+#include <netinet/in.h>
 
 static inline uint32_t _rotl(uint32_t value, size_t shift) {
     return (value << shift) | (value >> (-shift&31));
@@ -139,7 +140,7 @@ void hashing::xorSalsa8() {
   X[30] += xs[14];
   X[31] += xs[15];
 }
-void hashing::hash(const uint8_t* header, uint32_t nonce, uint8_t* result) {
+void hashing::hash(uint8_t* header, uint32_t nonce, uint8_t* result) {
   memcpy(B, header, 76);
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
   // Sistem menggunakan big-endian
@@ -195,7 +196,7 @@ void hashing::hash(const uint8_t* header, uint32_t nonce, uint8_t* result) {
   memcpy(result, H.bytes, SHA256_HASH_SIZE);
 }
 
-void hashN(const uint8_t* header, uint8_t* result) {
+void hashN(uint8_t* header, uint8_t* result) {
     uint8_t B[132];
     uint32_t X[32];
     uint32_t V[32768];
