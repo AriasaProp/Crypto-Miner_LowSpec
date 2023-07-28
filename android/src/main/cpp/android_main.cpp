@@ -24,7 +24,7 @@ JNIH(jbyteArray, hash) (JNIEnv *env, jclass, jbyteArray head) {
 JNIH(jbyteArray, hash2) (JNIEnv *env, jclass, jbyteArray head) {
     jbyte* header = env->GetByteArrayElements(head, NULL);
     uint8_t *ret = new uint8_t[SHA256_HASH_SIZE];
-    hashN((uint8_t*)header, (uint32_t)nonce, ret);
+    hashN((uint8_t*)header, ret);
     env->ReleaseByteArrayElements(head, header, JNI_ABORT);
     jbyteArray result = env->NewByteArray(SHA256_HASH_SIZE);
     env->SetByteArrayRegion(result, 0, SHA256_HASH_SIZE, reinterpret_cast<const jbyte*>(ret));
