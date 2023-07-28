@@ -11,7 +11,7 @@
 
 #define JNIH(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_Constants_##M
 
-JNIH(jbyteArray, hash) (JNIEnv *, jclass, jbyteArray head) {
+JNIH(jbyteArray, hash) (JNIEnv *env, jclass, jbyteArray head) {
     jbyte* header = env->GetByteArrayElements(head, NULL);
     uint8_t *ret = new uint8_t[SHA256_HASH_SIZE];
     hashN((uint8_t*)header, ret);
@@ -21,7 +21,7 @@ JNIH(jbyteArray, hash) (JNIEnv *, jclass, jbyteArray head) {
     delete[] ret;
     return result;
 }
-JNIH(jbyteArray, hash2) (JNIEnv *, jclass, jbyteArray head) {
+JNIH(jbyteArray, hash2) (JNIEnv *env, jclass, jbyteArray head) {
     jbyte* header = env->GetByteArrayElements(head, NULL);
     uint8_t *ret = new uint8_t[SHA256_HASH_SIZE];
     hashN((uint8_t*)header, (uint32_t)nonce, ret);
