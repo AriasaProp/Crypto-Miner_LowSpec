@@ -11,6 +11,7 @@
     
     <color name="opositeTransparent">#50FFFFFF</color>
     <color name="oposite">#FFFFFF</color>
+    <color name="base">#000000</color>
     
     
 </resources>
