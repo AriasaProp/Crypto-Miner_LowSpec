@@ -5,6 +5,8 @@
 static inline uint32_t _rotl(uint32_t value, size_t shift) {
     return (value << shift) | (value >> (-shift&31));
 }
+hashing::hashing(){}
+hashing::~hashing(){}
 void hashing::xorSalsa8() {
   xs[0] = (X[0] ^= X[16]);
   xs[1] = (X[1] ^= X[17]);
