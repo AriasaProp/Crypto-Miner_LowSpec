@@ -1,4 +1,5 @@
 #include "hashing.hpp"
+#include <cstring>
 
 static inline uint32_t _rotl(uint32_t value, size_t shift) {
     return (value << shift) | (value >> (-shift&31));
@@ -203,9 +204,9 @@ void hashN(const uint8_t* header, uint8_t* result) {
     
     Sha256Context context;
     size_t i, j, k, l;
+    memcpy(B, header, 76);
     /*
     uint32_t nonce = (header[76] & 0xFF) | (header[77]&0xFF) << 8 | (header[78]&0xFF) << 16 | header[79] << 24;
-    memcpy(B, header, 76);
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     // Sistem menggunakan little-endian atau tidak terdefinisi
     uint32_t hnonce = htonl(nonce);
@@ -215,7 +216,6 @@ void hashN(const uint8_t* header, uint8_t* result) {
     Sha256Initialise(&context);
     memset(B+80, 0, 3);
     
-
     for (i = 0; i < 4; i++) {
         B[83] = i + 1;
         Sha256Update(&context, B, 84);
