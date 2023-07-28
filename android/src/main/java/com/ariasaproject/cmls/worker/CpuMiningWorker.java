@@ -95,11 +95,8 @@ public class CpuMiningWorker implements IMiningWorker {
     private volatile int lastNonce = 0;
 
     synchronized void generate_worker() {
-        byte[] target, header;
-        synchronized (CPUMiningWorker.this) {
-            target = current_work.target.refHex();
-            header = current_work.header.refHex();
-        }
+        byte[] target = current_work.target.refHex();
+        byte[] header = current_work.header.refHex();
         while ((lastNonce >= 0)
                 && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
             final int _start = lastNonce;
