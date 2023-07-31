@@ -62,7 +62,7 @@ public class CpuMiningWorker implements IMiningWorker {
         if (workers.activeCount() > 0) {
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killing threads");
             workers.interrupt();
-            Thread all = new Thread[workers.activeCount()];
+            Thread[] all = new Thread[workers.activeCount()];
             workers.enumerate(all);
             try {
                 for (Thread a : all) {
@@ -117,7 +117,7 @@ public class CpuMiningWorker implements IMiningWorker {
                                 try {
                                     long hasher = Constants.initHasher();
                                     for (int nonce = _start; nonce <= _end; nonce++) {
-                                        if (Constants.nativeHashing(hasher, header, nonce))
+                                        if (Constants.nativeHashing(hasher, header, nonce, target))
                                             invokeNonceFound(nonce);
                                         calcSpeedPerThread();
                                         Thread.sleep(1L);
