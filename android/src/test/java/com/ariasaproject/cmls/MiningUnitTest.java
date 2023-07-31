@@ -90,7 +90,7 @@ public class MiningUnitTest {
                                 for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
                                     if(Constants.nativeHashing(h, header, nonce, target)) {
                                         fn1.set(false);
-                                        n1.set(i);
+                                        n1.set(nonce);
                                         break;
                                     }
                                 }
@@ -104,7 +104,7 @@ public class MiningUnitTest {
                                 for (int nonce = b; (nonce >= b) && fn2.get(); nonce += MaxThreadTest) {
                                     if(Constants.nativeHashing(h, header, nonce,target)) {
                                         fn2.set(false);
-                                        n2.set(i);
+                                        n2.set(nonce);
                                         break;
                                     }
                                 }
