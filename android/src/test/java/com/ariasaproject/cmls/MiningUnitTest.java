@@ -87,20 +87,11 @@ public class MiningUnitTest {
                     Executors.callable(
                             () -> {
                                 long h = Constants.initHasher();
-                                for (int nonce = b;
-                                        (nonce >= b) && fn1.get();
-                                        nonce += MaxThreadTest) {
-                                    byte[] hash = Constants.nativeHashing(h, header, nonce);
-                                    for (int i = hash.length - 1; i >= 0; i--) {
-                                        int x = hash[i] & 0xff, y = target[i] & 0xff;
-                                        if (x != y) {
-                                            if (x < y) {
-                                                fn1.set(false);
-                                                n1.set(i);
-                                                return;
-                                            }
-                                            break;
-                                        }
+                                for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
+                                    if(Constants.nativeHashing(h, header, nonce)) {
+                                        fn1.set(false);
+                                        n1.set(i);
+                                        break;
                                     }
                                 }
                                 Constants.destroyHasher(h);
@@ -110,20 +101,11 @@ public class MiningUnitTest {
                     Executors.callable(
                             () -> {
                                 long h = Constants.initHasher();
-                                for (int nonce = b;
-                                        (nonce >= b) && fn1.get();
-                                        nonce += MaxThreadTest) {
-                                    byte[] hash = Constants.nativeHashing(h, header, nonce);
-                                    for (int i = hash.length - 1; i >= 0; i--) {
-                                        int x = hash[i] & 0xff, y = target[i] & 0xff;
-                                        if (x != y) {
-                                            if (x < y) {
-                                                fn1.set(false);
-                                                n1.set(i);
-                                                return;
-                                            }
-                                            break;
-                                        }
+                                for (int nonce = b; (nonce >= b) && fn2.get(); nonce += MaxThreadTest) {
+                                    if(Constants.nativeHashing(h, header, nonce)) {
+                                        fn2.set(false);
+                                        n2.set(i);
+                                        break;
                                     }
                                 }
                                 Constants.destroyHasher(h);

@@ -59,11 +59,20 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public synchronized void stopWork() {
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killing threads");
         if (workers.activeCount() > 0) {
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killing threads");
             workers.interrupt();
+            Thread all = new Thread[workers.activeCount()];
+            workers.enumerate(all);
+            try {
+                for (Thread a : all) {
+                    if (a.isAlive()) a.join();
+                }
+            } catch (InterruptedException e) {
+                //ignore
+            }
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killed threads");
         }
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killed threads");
     }
 
     @Override
@@ -108,18 +117,8 @@ public class CpuMiningWorker implements IMiningWorker {
                                 try {
                                     long hasher = Constants.initHasher();
                                     for (int nonce = _start; nonce <= _end; nonce++) {
-                                        byte[] hash =
-                                                Constants.nativeHashing(hasher, header, nonce);
-                                        for (int i = hash.length - 1; i >= 0; i--) {
-                                            int a = hash[i] & 0xff, b = target[i] & 0xff;
-                                            if (a != b) {
-                                                if (a < b) {
-                                                    invokeNonceFound(nonce);
-                                                    return;
-                                                }
-                                                break;
-                                            }
-                                        }
+                                        if (Constants.nativeHashing(hasher, header, nonce))
+                                            invokeNonceFound(nonce);
                                         calcSpeedPerThread();
                                         Thread.sleep(1L);
                                     }

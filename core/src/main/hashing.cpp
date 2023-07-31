@@ -155,7 +155,6 @@ void hashing::hash(uint8_t* header, uint32_t nonce, uint8_t* result) {
   
   Sha256Initialise(&context);
   memset(B+80, 0, 3);
-  
 
   for (i = 0; i < 4; i++) {
       B[83] = i + 1;

@@ -52,7 +52,7 @@ public class Constants {
 
     public static native long initHasher();
 
-    public static native byte[] nativeHashing(long o, byte[] header, int nonce);
+    public static native boolean nativeHashing(long o, byte[] header, int nonce  byte[] target);
 
     public static native void destroyHasher(long o);
 }
