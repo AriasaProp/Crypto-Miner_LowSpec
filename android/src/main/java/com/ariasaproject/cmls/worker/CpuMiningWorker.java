@@ -114,20 +114,19 @@ public class CpuMiningWorker implements IMiningWorker {
             new Thread(
                             workers,
                             () -> {
+                                long hasher = Constants.initHasher();
                                 try {
-                                    long hasher = Constants.initHasher();
-                                    for (int nonce = _start; nonce <= _end; nonce++) {
+                                    Thread tt = Thread.currentThread();
+                                    for (int nonce = _start; (nonce <= _end) && !tt.isInterrupted(); nonce++) {
                                         if (Constants.nativeHashing(hasher, header, nonce, target))
                                             invokeNonceFound(nonce);
-                                        calcSpeedPerThread();
                                         Thread.sleep(1L);
+                                        calcSpeedPerThread();
                                     }
                                     Thread.sleep(1L);
-                                    Constants.destroyHasher(hasher);
                                     generate_worker();
-                                } catch (InterruptedException e) {
-                                    // ignore
-                                }
+                                } catch (InterruptedException e) {}
+                                Constants.destroyHasher(hasher);
                             })
                     .start();
             lastNonce = _end + 1;
