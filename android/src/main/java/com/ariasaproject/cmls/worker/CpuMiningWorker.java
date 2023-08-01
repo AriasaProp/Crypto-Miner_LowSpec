@@ -41,17 +41,14 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public synchronized boolean doWork(MiningWork i_work) throws Exception {
-        if (workers.activeCount() > 0) {
-            workers.interrupt();
-        }
-        System.gc();
+        stopWork();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
         current_work = i_work;
         hashes = 0;
         hashes_per_sec = 0;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         worker_saved_time = System.currentTimeMillis();
-        lastNonce = 0;
+        lastStart = 0;
         generate_worker();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started");
         return true;
@@ -65,12 +62,9 @@ public class CpuMiningWorker implements IMiningWorker {
             Thread[] all = new Thread[workers.activeCount()];
             workers.enumerate(all);
             try {
-                for (Thread a : all) {
-                    if (a.isAlive()) a.join();
-                }
-            } catch (InterruptedException e) {
-                //ignore
-            }
+                for (Thread a : all) if (a.isAlive()) a.join();
+            } catch (InterruptedException e) {}
+            System.gc();
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killed threads");
         }
     }
@@ -91,45 +85,42 @@ public class CpuMiningWorker implements IMiningWorker {
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
 
     private synchronized void invokeNonceFound(int i_nonce) {
-        stopWork();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce);
         for (IWorkerEvent i : _as_listener) i.onNonceFound(current_work, i_nonce);
+        stopWork();
     }
 
     public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
         this._as_listener.add(i_listener);
     }
 
-    private static final int nonceStep = 4094;
-    private volatile int lastNonce = 0;
+    private static final int maxCore = Runtime.getRuntime().availableProcessors();
+    private static final int maxStart = 0xffff;
+    private volatile int lastStart = 0;
 
     synchronized void generate_worker() {
         byte[] target = current_work.target.refHex();
         byte[] header = current_work.header.refHex();
-        while ((lastNonce >= 0)
-                && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
-            final int _start = lastNonce;
-            int en = lastNonce + nonceStep;
-            final int _end = (en <= 0) ? Integer.MAX_VALUE : en;
+        while ((lastStart < maxStart) && (maxCore > workers.activeCount())) {
+            final int _start = lastStart << 16;
             new Thread(
-                            workers,
-                            () -> {
-                                long hasher = Constants.initHasher();
-                                try {
-                                    Thread tt = Thread.currentThread();
-                                    for (int nonce = _start; (nonce <= _end) && !tt.isInterrupted(); nonce++) {
-                                        if (Constants.nativeHashing(hasher, header, nonce, target))
-                                            invokeNonceFound(nonce);
-                                        Thread.sleep(1L);
-                                        calcSpeedPerThread();
-                                    }
-                                    Thread.sleep(1L);
-                                    generate_worker();
-                                } catch (InterruptedException e) {}
-                                Constants.destroyHasher(hasher);
-                            })
-                    .start();
-            lastNonce = _end + 1;
+                    workers,
+                    () -> {
+                        Thread tt = Thread.currentThread();
+                        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Started Thread number from" + _start + " -> " + (_start|0xffff));
+                        long hasher = Constants.initHasher();
+                        int nonce = _start;
+                        do {
+                            if (Constants.nativeHashing(hasher, header, nonce, target))
+                                invokeNonceFound(nonce);
+                            calcSpeedPerThread();
+                        } while (!tt.isInterrupted() && ((++nonce & 0xffff) > 0));
+                        Constants.destroyHasher(hasher);
+                        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Ended Thread number from" + _start + " -> " + (_start|0xffff));
+                        if (!Thread.interrupted()) generate_worker();
+                    })
+            .start();
+            lastStart++;
         }
     }
 }
