@@ -91,68 +91,37 @@ public class MinerService extends Service implements Handler.Callback {
                         minerStatus[STATUS_TYPE_REJECTED] = (Long) (status_rejected = 0);
                         break;
                     case MSG_STATE_ONSTART:
-                        if (state == MSG_STATE_NONE) {
-                            new Thread(
-                                            () -> {
-                                                console.add(
-                                                        new ConsoleItem("Service: Start mining"));
-                                                try {
-                                                    mc =
-                                                            new StratumMiningConnection(
-                                                                    String.format(
-                                                                            "%s:%d", url, port),
-                                                                    user,
-                                                                    pass);
-                                                    imw = new CpuMiningWorker(nThread, workerMsg);
-                                                    smc = new SingleMiningChief(mc, imw, workerMsg);
-                                                    smc.startMining();
-                                                    console.add(
-                                                            new ConsoleItem(
-                                                                    "Service: Started mining"));
-                                                    serviceHandler.sendMessage(
-                                                            serviceHandler.obtainMessage(
-                                                                    MSG_STATE,
-                                                                    MSG_STATE_RUNNING,
-                                                                    0));
-                                                } catch (Exception e) {
-                                                    e.printStackTrace();
-                                                    smc = null;
-                                                    console.add(
-                                                            new ConsoleItem(
-                                                                    "Service: Error "
-                                                                            + e.getMessage()
-                                                                            + "\n"
-                                                                            + " Started mining is"
-                                                                            + " failed"));
-                                                    serviceHandler.sendMessage(
-                                                            serviceHandler.obtainMessage(
-                                                                    MSG_STATE, MSG_STATE_NONE, 0));
-                                                }
-                                            })
-                                    .start();
+                        if ((state == MSG_STATE_NONE) && (smc == null)) {
+                            console.add(new ConsoleItem("Service: Start mining"));
+                            try {
+                                mc = new StratumMiningConnection(String.format("%s:%d", url, port), user, pass);
+                                imw = new CpuMiningWorker(nThread, workerMsg);
+                                smc = new SingleMiningChief(mc, imw, workerMsg);
+                                smc.startMining();
+                                console.add(new ConsoleItem("Service: Started mining"));
+                                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE, MSG_STATE_RUNNING, 0));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                smc = null;
+                                console.add(new ConsoleItem("Service Error: " + e.getMessage()+ "\nStarted mining is failed"));
+                                serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE, MSG_STATE_NONE, 0));
+                            }
                         }
                         break;
                     case MSG_STATE_RUNNING:
                         break;
                     case MSG_STATE_ONSTOP:
-                        if (state == MSG_STATE_RUNNING) {
-                            new Thread(
-                                            () -> {
-                                                console.add(
-                                                        new ConsoleItem("Service: Stop mining"));
-                                                try {
-                                                    smc.stopMining();
-                                                    smc = null;
-                                                } catch (Exception e) {
-                                                    e.printStackTrace();
-                                                }
-                                                console.add(
-                                                        new ConsoleItem("Service: Stopped mining"));
-                                                serviceHandler.sendMessage(
-                                                        serviceHandler.obtainMessage(
-                                                                MSG_STATE, MSG_STATE_NONE, 0));
-                                            })
-                                    .start();
+                        if ((state == MSG_STATE_RUNNING) && (smc != null)) {
+                            console.add(
+                                    new ConsoleItem("Service: Stop mining"));
+                            try {
+                                smc.stopMining();
+                                smc = null;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            console.add(new ConsoleItem("Service: Stopped mining"));
+                            serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE, MSG_STATE_NONE, 0));
                         }
                         break;
                 }
