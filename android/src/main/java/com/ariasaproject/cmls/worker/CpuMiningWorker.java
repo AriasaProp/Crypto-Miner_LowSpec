@@ -40,7 +40,7 @@ public class CpuMiningWorker implements IMiningWorker {
     volatile MiningWork current_work;
 
     @Override
-    public synchronized boolean doWork(MiningWork i_work) throws Exception {
+    public synchronized boolean doWork(MiningWork i_work) {
         stopWork();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
         current_work = i_work;
@@ -59,11 +59,6 @@ public class CpuMiningWorker implements IMiningWorker {
         if (workers.activeCount() > 0) {
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killing threads");
             workers.interrupt();
-            Thread[] all = new Thread[workers.activeCount()];
-            workers.enumerate(all);
-            try {
-                for (Thread a : all) if (a.isAlive()) a.join();
-            } catch (InterruptedException e) {}
             System.gc();
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killed threads");
         }
@@ -99,9 +94,7 @@ public class CpuMiningWorker implements IMiningWorker {
     private volatile int lastStart = 0;
 
     synchronized void generate_worker() {
-        byte[] target = current_work.target.refHex();
-        byte[] header = current_work.header.refHex();
-        while ((lastStart < maxStart) && (maxCore > workers.activeCount())) {
+        while ((lastStart <= maxStart) && (maxCore > workers.activeCount())) {
             final int _start = lastStart << 16;
             new Thread(
                     workers,
@@ -111,7 +104,7 @@ public class CpuMiningWorker implements IMiningWorker {
                         long hasher = Constants.initHasher();
                         int nonce = _start;
                         do {
-                            if (Constants.nativeHashing(hasher, header, nonce, target))
+                            if (Constants.nativeHashing(hasher, current_work.header.refHex(), nonce, current_work.target.refHex()))
                                 invokeNonceFound(nonce);
                             calcSpeedPerThread();
                         } while (!tt.isInterrupted() && ((++nonce & 0xffff) > 0));
