@@ -62,7 +62,7 @@ public class CpuMiningWorker implements IMiningWorker {
                 workers.interrupt();
                 try {
                     while (ThreadCount.get() > 0) wait();
-                } catch (InterruptedExceotion e) {}
+                } catch (InterruptedException e) {}
             }
             
             System.gc();
@@ -91,7 +91,7 @@ public class CpuMiningWorker implements IMiningWorker {
         stopWork();
     }
 
-    public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
+    public synchronized void addListener(IWorkerEvent i_listener) {
         this._as_listener.add(i_listener);
     }
 
