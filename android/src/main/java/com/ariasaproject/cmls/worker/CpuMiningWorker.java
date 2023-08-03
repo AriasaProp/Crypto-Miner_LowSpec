@@ -8,8 +8,8 @@ import com.ariasaproject.cmls.Constants;
 import com.ariasaproject.cmls.MessageSendListener;
 import com.ariasaproject.cmls.MiningWork;
 
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger
 
 public class CpuMiningWorker implements IMiningWorker {
     private final int _number_of_thread;
