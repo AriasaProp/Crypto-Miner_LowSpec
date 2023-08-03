@@ -40,14 +40,16 @@ public class CpuMiningWorker implements IMiningWorker {
     volatile MiningWork current_work;
 
     @Override
-    public synchronized boolean doWork(MiningWork i_work) {
+    public boolean doWork(MiningWork i_work) {
         stopWork();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
-        current_work = i_work;
-        hashes = 0;
-        hashes_per_sec = 0;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
-        worker_saved_time = System.currentTimeMillis();
+        synchronized(this) {
+            current_work = i_work;
+            hashes = 0;
+            hashes_per_sec = 0;
+            worker_saved_time = System.currentTimeMillis();
+        }
         lastStart.set(0);
         generate_worker();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started");
@@ -55,7 +57,7 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     @Override
-    public synchronized void stopWork() {
+    public void stopWork() {
         if (ThreadCount.get() > 0) {
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killing threads");
             synchronized (this) {
@@ -64,7 +66,6 @@ public class CpuMiningWorker implements IMiningWorker {
                     while (ThreadCount.get() > 0) wait();
                 } catch (InterruptedException e) {}
             }
-            
             System.gc();
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killed threads");
         }
@@ -110,8 +111,11 @@ public class CpuMiningWorker implements IMiningWorker {
                         int nonce = _start;
                         boolean isInterrupt = false;
                         while(!(isInterrupt = Thread.interrupted())) {
-                            if (Constants.nativeHashing(hasher, current_work.header.refHex(), nonce, current_work.target.refHex()))
+                            if (Constants.nativeHashing(hasher, current_work.header.refHex(), nonce, current_work.target.refHex())) {
                                 invokeNonceFound(nonce);
+                                isInterrupt = true;
+                                break;
+                            }
                             calcSpeedPerThread();
                             if((++nonce & 0xffff) == 0) break;
                         }
