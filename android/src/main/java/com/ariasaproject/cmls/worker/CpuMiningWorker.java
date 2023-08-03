@@ -48,7 +48,7 @@ public class CpuMiningWorker implements IMiningWorker {
         hashes_per_sec = 0;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         worker_saved_time = System.currentTimeMillis();
-        lastStart = 0;
+        lastStart.set(0);
         generate_worker();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started");
         return true;
@@ -56,9 +56,15 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public synchronized void stopWork() {
-        if (workers.activeCount() > 0) {
+        if (ThreadCount.get() > 0) {
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killing threads");
-            workers.interrupt();
+            synchronized (this) {
+                workers.interrupt();
+                try {
+                    while (ThreadCount.get() > 0) wait();
+                } catch (InterruptedExceotion e) {}
+            }
+            
             System.gc();
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killed threads");
         }
@@ -70,7 +76,7 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     public boolean getThreadsStatus() {
-        return workers.activeCount() > 0;
+        return ThreadCount.get() > 0;
     }
 
     public void ConsoleWrite(String c) {
@@ -91,29 +97,29 @@ public class CpuMiningWorker implements IMiningWorker {
 
     private static final int maxCore = Runtime.getRuntime().availableProcessors();
     private static final int maxStart = 0xffff;
-    private volatile int lastStart = 0;
+    private AtomicInteger lastStart = new AtomicInteger(0), ThreadCount = new AtomicInteger(0);
 
-    synchronized void generate_worker() {
-        while ((lastStart <= maxStart) && (maxCore > workers.activeCount())) {
-            final int _start = lastStart << 16;
+    void generate_worker() {
+        while ((lastStart.get() <= maxStart) && (maxCore > ThreadCount.get())) {
+            final int _start = lastStart.getAndIncrement() << 16;
+            ThreadCount.incrementAndGet();
             new Thread(
                     workers,
                     () -> {
-                        Thread tt = Thread.currentThread();
-                        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Started Thread number from" + _start + " -> " + (_start|0xffff));
                         long hasher = Constants.initHasher();
                         int nonce = _start;
-                        do {
+                        boolean isInterrupt = false;
+                        while(!(isInterrupt = Thread.interrupted())) {
                             if (Constants.nativeHashing(hasher, current_work.header.refHex(), nonce, current_work.target.refHex()))
                                 invokeNonceFound(nonce);
                             calcSpeedPerThread();
-                        } while (!tt.isInterrupted() && ((++nonce & 0xffff) > 0));
+                            if((++nonce & 0xffff) == 0) break;
+                        }
                         Constants.destroyHasher(hasher);
-                        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Ended Thread number from" + _start + " -> " + (_start|0xffff));
-                        if (!Thread.interrupted()) generate_worker();
+                        ThreadCount.decrementAndGet();
+                        if (!isInterrupt) generate_worker();
                     })
             .start();
-            lastStart++;
         }
     }
 
