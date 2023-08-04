@@ -9,10 +9,10 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-      - env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v3.5.2
       - name: Run Cleaning
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           while OT=$(gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | .id'); [ -n "$OT" ]; do
             for run_id in $OT; do
