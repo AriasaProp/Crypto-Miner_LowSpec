@@ -1,17 +1,16 @@
 package com.ariasaproject.cmls.worker;
 
-import static com.ariasaproject.cmls.Constants.MSG_STATE;
-import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
 
+import com.ariasaproject.cmls.Constants;
 import com.ariasaproject.cmls.MessageSendListener;
 import com.ariasaproject.cmls.MiningWork;
-import com.ariasaproject.cmls.hasher.Hasher;
 
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CpuMiningWorker implements IMiningWorker {
     private final int _number_of_thread;
@@ -24,43 +23,54 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     private volatile long hashes = 0;
+    private volatile long hashes_per_sec = 0;
     private volatile long worker_saved_time = 0;
 
-    public synchronized void calcSpeedPerThread() {
+    private synchronized void calcSpeedPerThread() {
         hashes++;
+        hashes_per_sec++;
         long curr_time = System.currentTimeMillis();
         long delta = curr_time - worker_saved_time;
         if (delta < 1000) return;
-        if (hashes < 0)
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: hashes acumulator error");
-        float _speed = (hashes * 1000.0f) / (float) delta;
+        float _speed = (hashes_per_sec * 1000.0f) / (float) delta;
         worker_saved_time = curr_time;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
+        hashes_per_sec = 0;
     }
 
+    volatile MiningWork current_work;
+    AtomicBoolean onMine = new AtomicBoolean(false);
+
     @Override
-    public synchronized boolean doWork(MiningWork i_work) throws Exception {
-        if (workers.activeCount() > 0) {
-            workers.interrupt();
+    public boolean doWork(MiningWork i_work) {
+        stopWork();
+        if (ThreadCount.get() > 0) {
+            synchronized (this) {
+                try {
+                    while (ThreadCount.get() > 0) wait();
+                } catch (InterruptedException e) {}
+            }
         }
         System.gc();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
-        hashes = 0;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
-        worker_saved_time = System.currentTimeMillis();
-        lastNonce = 0;
-        generate_worker(i_work);
+        synchronized(this) {
+            current_work = i_work;
+            hashes = 0;
+            hashes_per_sec = 0;
+            worker_saved_time = System.currentTimeMillis();
+        }
+        lastStart.set(0);
+        onMine.set(true);
+        generate_worker();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started");
         return true;
     }
 
     @Override
-    public synchronized void stopWork() {
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killing threads");
-        if (workers.activeCount() > 0) {
-            workers.interrupt();
-        }
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killed threads");
+    public void stopWork() {
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
+        onMine.set(false);
     }
 
     @Override
@@ -69,7 +79,7 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     public boolean getThreadsStatus() {
-        return workers.activeCount() > 0;
+        return ThreadCount.get() > 0;
     }
 
     public void ConsoleWrite(String c) {
@@ -78,71 +88,46 @@ public class CpuMiningWorker implements IMiningWorker {
 
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
 
-    public synchronized void invokeNonceFound(MiningWork i_work, int i_nonce) {
-        if (workers.activeCount() > 0) {
-            workers.interrupt();
-        }
-        MSL.sendMessage(
-                MSG_UPDATE,
-                MSG_UPDATE_CONSOLE,
-                0,
-                "Mining: Nonce found! +" + ((0xffffffffffffffffL) & i_nonce));
-        if (i_nonce < _number_of_thread)
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Weired Nonce");
-        for (IWorkerEvent i : _as_listener) {
-            i.onNonceFound(i_work, i_nonce);
-        }
+    private synchronized void invokeNonceFound(int i_nonce) {
+        stopWork();
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce);
+        for (IWorkerEvent i : _as_listener) i.onNonceFound(current_work, i_nonce);
     }
 
-    public synchronized void addListener(IWorkerEvent i_listener) throws GeneralSecurityException {
+    public synchronized void addListener(IWorkerEvent i_listener) {
         this._as_listener.add(i_listener);
     }
 
-    private static final int nonceStep = 2047;
-    private volatile int lastNonce = 0;
+    private static final int maxCore = Runtime.getRuntime().availableProcessors();
+    private static final int maxStart = 0xffff;
+    private AtomicInteger lastStart = new AtomicInteger(0), ThreadCount = new AtomicInteger(0);
 
-    synchronized void generate_worker(MiningWork work) {
-        while ((lastNonce >= 0)
-                && (Runtime.getRuntime().availableProcessors() - workers.activeCount()) > 0) {
-            final int _start = lastNonce;
-            int en = lastNonce + nonceStep;
-            final int _end = (en <= 0) ? Integer.MAX_VALUE : en;
+    void generate_worker() {
+        while (onMine.get() && (lastStart.get() <= maxStart) && (maxCore > ThreadCount.get())) {
+            final int _start = lastStart.getAndIncrement() << 16;
+            ThreadCount.incrementAndGet();
             new Thread(
-                            workers,
-                            () -> {
-                                try {
-                                    final Hasher hasher = new Hasher();
-                                    byte[] target = work.target.refHex();
-                                    for (int nonce = _start; nonce <= _end; nonce++) {
-                                        byte[] hash = hasher.hash(work.header.refHex(), nonce);
-                                        for (int i = hash.length - 1; i >= 0; i--) {
-                                            int a = hash[i] & 0xff, b = target[i] & 0xff;
-                                            if (a != b) {
-                                                if (a < b) {
-                                                    invokeNonceFound(work, nonce);
-                                                    return;
-                                                }
-                                                break;
-                                            }
-                                        }
-                                        calcSpeedPerThread();
-                                        Thread.sleep(1L);
-                                    }
-                                    Thread.sleep(1L);
-                                    generate_worker(work);
-                                } catch (GeneralSecurityException e) {
-                                    MSL.sendMessage(
-                                            MSG_UPDATE,
-                                            MSG_UPDATE_CONSOLE,
-                                            0,
-                                            "Worker: " + e.getMessage());
-                                    MSL.sendMessage(MSG_STATE, MSG_STATE_ONSTOP, 0, null);
-                                } catch (InterruptedException e) {
-                                    // ignore
-                                }
-                            })
-                    .start();
-            lastNonce = _end + 1;
+                    workers,
+                    () -> {
+                        long hasher = Constants.initHasher();
+                        int nonce = _start;
+                        while(onMine.get()) {
+                            if (Constants.nativeHashing(hasher, current_work.header.refHex(), nonce, current_work.target.refHex())) {
+                                invokeNonceFound(nonce);
+                                break;
+                            }
+                            calcSpeedPerThread();
+                            if((++nonce & 0xffff) == 0) break;
+                        }
+                        Constants.destroyHasher(hasher);
+                        ThreadCount.decrementAndGet();
+                        synchronized(CpuMiningWorker.this) {
+                            CpuMiningWorker.this.notify();
+                        }
+                        if(!onMine.get()) generate_worker();
+                    })
+            .start();
         }
     }
+
 }

@@ -44,4 +44,15 @@ public class Constants {
     public static final int STATUS_TYPE_ACCEPTED = 1;
     public static final int STATUS_TYPE_REJECTED = 2;
     public static final int STATUS_TYPE_CONSOLE = 3;
+
+    // native hasher
+    public static native byte[] hash(byte[] header);
+
+    public static native byte[] hash2(byte[] header);
+
+    public static native long initHasher();
+
+    public static native boolean nativeHashing(long o, byte[] header, int nonce, byte[] target);
+
+    public static native void destroyHasher(long o);
 }

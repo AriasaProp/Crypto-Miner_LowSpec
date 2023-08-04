@@ -56,7 +56,7 @@ static void *H (const void *x, const size_t xlen, const void *y, const size_t yl
   memcpy (buf + xlen, y, ylen);
   result = sha256 (buf, buflen, out, outlen);
 
-  delete buf;
+  delete[] buf;
   return result;
 }
 

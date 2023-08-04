@@ -13,9 +13,9 @@ public interface IMiningWorker {
         TERMINATED
     };
 
-    public boolean doWork(MiningWork i_work) throws Exception;
+    public boolean doWork(MiningWork i_work);
 
-    public void stopWork() throws Exception;
+    public void stopWork();
 
     public long getNumberOfHash();
 

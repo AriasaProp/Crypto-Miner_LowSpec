@@ -8,6 +8,7 @@
     <style name="OwnSeekBar" parent="Widget.AppCompat.SeekBar">
         <item name="android:progressDrawable">@drawable/seekbar_progress_style</item>
         <item name="android:thumb">@drawable/seekbar_thumb</item>
+        <item name="android:splitTrack">false</item>
     </style>
     
     

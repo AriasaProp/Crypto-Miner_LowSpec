@@ -2,16 +2,15 @@ package com.ariasaroject.cmls;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.ariasaproject.cmls.Constants;
 import com.ariasaproject.cmls.HexArray;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.connection.*;
-import com.ariasaproject.cmls.hasher.Hasher;
 import com.ariasaproject.cmls.stratum.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
 
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -21,27 +20,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MiningUnitTest {
+    final String TestHeader = "01000000f615f7ce3b4fc6b8f61e8f89aedb1d0852507650533a9e3b10b9bbcc30639f279fcaa86746e1ef52d3edb3c4ad8259920d509bd073605c9bf1d59983752a6b06b817bb4ea78e011d012d59d4";
+    final String TestResult = "d9eb8663ffec241c2fb118adb7de97a82c803b6ff46d57667935c81001000000";
     @Test
-    public void HasherTest() throws Exception {
-        HexArray refHeader =
-                new HexArray(
-                        "01000000f615f7ce3b4fc6b8f61e8f89aedb1d0852507650533a9e3b10b9bbcc30639f279fcaa86746e1ef52d3edb3c4ad8259920d509bd073605c9bf1d59983752a6b06b817bb4ea78e011d012d59d4");
-        Hasher h = new Hasher();
-        byte[] hash = h.hash(refHeader.refHex());
-        byte[] hash2 = h.hash2(refHeader.refHex());
-        assertEquals(
-                "d9eb8663ffec241c2fb118adb7de97a82c803b6ff46d57667935c81001000000",
-                new HexArray(hash).getStr());
-        assertEquals(
-                "d9eb8663ffec241c2fb118adb7de97a82c803b6ff46d57667935c81001000000",
-                new HexArray(hash).getStr());
+    public void ConstantsTest() throws Exception {
+        HexArray refHeader = new HexArray(TestHeader);
+        byte[] hash = Constants.hash(refHeader.refHex());
+        byte[] hash2 = Constants.hash2(refHeader.refHex());
+        assertEquals(TestResult, new HexArray(hash).getStr());
+        assertEquals(TestResult, new HexArray(hash2).getStr());
     }
 
     final String SR =
-            "{\"error\": null, \"id\": 1, \"result\": [[\"mining.notify\","
-                    + " \"ae6812eb4cd7735a302a8a9dd95cf71f\"], \"f801d02f\", 4]}";
-    final String NT =
-            "{\"params\": [\"8bf\","
+            "{\"error\": null, \"id\": 1, \"result\": [[\"mining.notify\", \"ae6812eb4cd7735a302a8a9dd95cf71f\"], \"f801d02f\", 4]}";
+    final String NT = "{\"params\": [\"8bf\","
                 + " \"8e50f956acdabb3f8e981a4797466043021388791bfa70b1c1a1ba54a8fbdf50\","
                 + " \"01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff26022d53062f503253482f042e4cb55208\","
                 + " \"0d2f7374726174756d506f6f6c2f0000000001310cb3fca45500001976a91446a9148895dfa88b9e1596c14afda26b9071861488ac00000000\","
@@ -57,10 +49,9 @@ public class MiningUnitTest {
                 + " \"00000001\", \"1c00adb7\", \"52b54c29\", true], \"id\": null, \"method\":"
                 + " \"mining.notify\"}";
     final String ST = "{\"params\": [128], \"id\": null, \"method\": \"mining.set_difficulty\"}";
-    final String WORK_DATA =
-            "000000018e50f956acdabb3f8e981a4797466043021388791bfa70b1c1a1ba54a8fbdf5093b73998a3b9d1ad9ee12578b6ffb49088bb9321fcb159e15f10b397cb514e4952b54c291c00adb700000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000";
+    final String WORK_DATA = "000000018e50f956acdabb3f8e981a4797466043021388791bfa70b1c1a1ba54a8fbdf5093b73998a3b9d1ad9ee12578b6ffb49088bb9321fcb159e15f10b397cb514e4952b54c291c00adb700000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000080020000";
     final String WORK_TARGET = "000000000000000000000000000000000000000000000000000000feff010000";
-    final int MaxThreadTest = 3;
+    final int MaxThreadTest = 4;
 
     @Test
     public void HashingTest() throws Exception {
@@ -88,47 +79,27 @@ public class MiningUnitTest {
             calls.add(
                     Executors.callable(
                             () -> {
-                                try {
-                                    Hasher h = new Hasher();
-                                    for (int nonce = b;
-                                            (nonce >= b) && fn1.get();
-                                            nonce += MaxThreadTest) {
-                                        byte[] hash = h.hash(header, nonce);
-                                        for (int i = hash.length - 1; i >= 0; i--) {
-                                            int x = hash[i] & 0xff, y = target[i] & 0xff;
-                                            if (x != y) {
-                                                if (x < y) {
-                                                    fn1.set(false);
-                                                    n1.set(i);
-                                                    return;
-                                                }
-                                                break;
-                                            }
-                                        }
+                                long h = Constants.initHasher();
+                                for (int nonce = b; (nonce >= b) && fn1.get(); nonce += MaxThreadTest) {
+                                    if(Constants.nativeHashing(h, header, nonce, target)) {
+                                        fn1.set(false);
+                                        n1.set(nonce);
                                     }
-                                } catch (GeneralSecurityException e) {
                                 }
+                                Constants.destroyHasher(h);
                             }));
             // hashing 2
             calls.add(
                     Executors.callable(
                             () -> {
-                                for (int nonce = b;
-                                        (nonce >= b) && fn2.get();
-                                        nonce += MaxThreadTest) {
-                                    byte[] hash = Hasher.nativeHashing(header, nonce);
-                                    for (int i = hash.length - 1; i >= 0; i--) {
-                                        int x = hash[i] & 0xff, y = target[i] & 0xff;
-                                        if (x != y) {
-                                            if (x < y) {
-                                                fn2.set(false);
-                                                n2.set(i);
-                                                return;
-                                            }
-                                            break;
-                                        }
+                                long h = Constants.initHasher();
+                                for (int nonce = b; (nonce >= b) && fn2.get(); nonce += MaxThreadTest) {
+                                    if(Constants.nativeHashing(h, header, nonce, target)) {
+                                        fn2.set(false);
+                                        n2.set(nonce);
                                     }
                                 }
+                                Constants.destroyHasher(h);
                             }));
         }
         es.invokeAll(calls);

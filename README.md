@@ -1,6 +1,6 @@
 # Crypto-Miner_LowSpec
 
-![Project Image](project.svg)
+![Project Image](ic_launcher.svg)
 
 ## Table of Contents
 - [Introduction](#introduction)

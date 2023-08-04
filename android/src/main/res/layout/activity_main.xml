@@ -108,7 +108,6 @@
             style="@style/OwnSeekBar"
             android:id="@+id/cpuSeek"
             android:min="1"
-            android:max="100"
             app:layout_constraintTop_toBottomOf="@id/user_container"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/cpu_usage_view"
