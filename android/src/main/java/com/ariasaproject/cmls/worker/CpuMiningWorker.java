@@ -121,8 +121,9 @@ public class CpuMiningWorker implements IMiningWorker {
                         }
                         Constants.destroyHasher(hasher);
                         ThreadCount.decrementAndGet();
-                        synchronized(CpuMiningWorker.this)
+                        synchronized(CpuMiningWorker.this) {
                             CpuMiningWorker.this.notify();
+                        }
                         if(!onMine.get()) generate_worker();
                     })
             .start();
