@@ -44,6 +44,14 @@ public class CpuMiningWorker implements IMiningWorker {
     @Override
     public boolean doWork(MiningWork i_work) {
         stopWork();
+        if (ThreadCount.get() > 0) {
+            synchronized (this) {
+                try {
+                    while (ThreadCount.get() > 0) wait();
+                } catch (InterruptedException e) {}
+            }
+        }
+        System.gc();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         synchronized(this) {
@@ -61,19 +69,8 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public void stopWork() {
-        if (onMine.get()) {
-            onMine.set(false);
-        }
-        if (ThreadCount.get() > 0) {
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killing threads");
-            synchronized (this) {
-                try {
-                    while (ThreadCount.get() > 0) wait();
-                } catch (InterruptedException e) {}
-            }
-            System.gc();
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Killed threads");
-        }
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
+        onMine.set(false);
     }
 
     @Override
@@ -92,7 +89,7 @@ public class CpuMiningWorker implements IMiningWorker {
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
 
     private synchronized void invokeNonceFound(int i_nonce) {
-        onMine.set(false);
+        stopWork();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce);
         for (IWorkerEvent i : _as_listener) i.onNonceFound(current_work, i_nonce);
     }
@@ -124,8 +121,9 @@ public class CpuMiningWorker implements IMiningWorker {
                         }
                         Constants.destroyHasher(hasher);
                         ThreadCount.decrementAndGet();
-                        CpuMiningWorker.this.notify();
-                        generate_worker();
+                        synchronized(CpuMiningWorker.this)
+                            CpuMiningWorker.this.notify();
+                        if(!onMine.get()) generate_worker();
                     })
             .start();
         }
