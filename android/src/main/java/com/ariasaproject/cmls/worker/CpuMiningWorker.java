@@ -42,12 +42,13 @@ public class CpuMiningWorker implements IMiningWorker {
         if (workers.activeCount() > 0) {
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
             workers.interrupt();
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
-            try {
+            /*try {
                 do {
                     wait();
                 } while (workers.activeCount() > 0);
             } catch (InterruptedException e) {}
+            */
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
         }
         System.gc();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
@@ -118,10 +119,10 @@ public class CpuMiningWorker implements IMiningWorker {
                             if((++nonce & 0xffff) == 0) break;
                         }
                         Constants.destroyHasher(hasher);
+                        if(!isInterrupt) generate_worker();
                         synchronized(CpuMiningWorker.this) {
                             CpuMiningWorker.this.notify();
                         }
-                        if(!isInterrupt) generate_worker();
                     })
             .start();
         }
