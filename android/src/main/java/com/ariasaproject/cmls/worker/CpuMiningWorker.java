@@ -39,15 +39,14 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public synchronized boolean doWork(MiningWork i_work) {
-        if (workers.activeCount() > 0) {
+        if (threadCount > 0) {
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
             workers.interrupt();
-            /*try {
+            try {
                 do {
                     wait();
-                } while (workers.activeCount() > 0);
+                } while (threadCount > 0);
             } catch (InterruptedException e) {}
-            */
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
         }
         System.gc();
@@ -65,7 +64,7 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public synchronized void stopWork() {
-        if (workers.activeCount() > 0) {
+        if (threadCount > 0) {
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
             workers.interrupt();
             MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
@@ -77,8 +76,8 @@ public class CpuMiningWorker implements IMiningWorker {
         return hashes;
     }
 
-    public boolean getThreadsStatus() {
-        return workers.activeCount() > 0;
+    public synchronized boolean getThreadsStatus() {
+        return threadCount > 0;
     }
 
     public void ConsoleWrite(String c) {
@@ -99,11 +98,12 @@ public class CpuMiningWorker implements IMiningWorker {
 
     private static final int maxCore = Runtime.getRuntime().availableProcessors();
     private static final int maxStart = 0xffff;
-    private volatile int lastStart = 0;
+    private volatile int lastStart = 0, threadCount = 0;
 
     synchronized void generate_worker() {
-        while ((lastStart <= maxStart) && (maxCore > workers.activeCount())) {
+        while ((lastStart <= maxStart) && (maxCore > threadCount)) {
             final int _start = (lastStart++) << 16;
+            threadCount++;
             new Thread(
                     workers,
                     () -> {
@@ -121,6 +121,7 @@ public class CpuMiningWorker implements IMiningWorker {
                         Constants.destroyHasher(hasher);
                         if(!isInterrupt) generate_worker();
                         synchronized(CpuMiningWorker.this) {
+                            threadCount--;
                             CpuMiningWorker.this.notify();
                         }
                     })
