@@ -110,7 +110,7 @@ public class CpuMiningWorker implements IMiningWorker {
                         long hasher = Constants.initHasher();
                         int nonce = _start;
                         boolean isInterrupt;
-                        while(isInterrupt = Thread.interrupted()) {
+                        while(!(isInterrupt = Thread.interrupted())) {
                             if (Constants.nativeHashing(hasher, current_work.header.refHex(), nonce, current_work.target.refHex())) {
                                 invokeNonceFound(nonce);
                                 break;
