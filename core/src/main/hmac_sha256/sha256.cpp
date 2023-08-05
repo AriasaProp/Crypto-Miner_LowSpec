@@ -137,7 +137,7 @@ void Sha256Update (Sha256Context *Context, void const *Buffer, uint32_t BufferSi
   }
 }
 
-void Sha256Finalise (Sha256Context *Context, SHA256_HASH *Digest) {
+void Sha256Finalise (Sha256Context *Context, uint8_t Digest[SHA256_HASH_SIZE]) {
   int i;
 
   if (Context->curlen >= sizeof (Context->buf)) {
@@ -172,11 +172,11 @@ void Sha256Finalise (Sha256Context *Context, SHA256_HASH *Digest) {
 
   // Copy output
   for (i = 0; i < 8; i++) {
-    STORE32H (Context->state[i], Digest->bytes + (4 * i));
+    STORE32H (Context->state[i], Digest + (4 * i));
   }
 }
 
-void Sha256Calculate (void const *Buffer, uint32_t BufferSize, SHA256_HASH *Digest) {
+void Sha256Calculate (void const *Buffer, uint32_t BufferSize, uint8_t Digest[SHA256_HASH_SIZE]) {
   Sha256Context context;
   Sha256Initialise (&context);
   Sha256Update (&context, Buffer, BufferSize);

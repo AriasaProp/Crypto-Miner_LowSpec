@@ -36,17 +36,16 @@ JNIH(jlong, initHasher) (JNIEnv *, jclass) {
 JNIH(jboolean, nativeHashing) (JNIEnv *env, jclass, jlong o, jbyteArray head, jint nonce, jbyteArray target) {
     jbyte* header = env->GetByteArrayElements(head, NULL);
     hashing *hp = (hashing*)o;
-    uint8_t ret[SHA256_HASH_SIZE];
-    hp->hash((uint8_t*)header, (uint32_t)nonce, ret);
+    hp->hash((uint8_t*)header, (uint32_t)nonce);
     env->ReleaseByteArrayElements(head, header, JNI_ABORT);
     jbyte* t = env->GetByteArrayElements(target, NULL);
     uint8_t *tar = (uint8_t*)t;
     size_t i = SHA256_HASH_SIZE;
     jboolean result = false;
     while (--i) {
-        uint8_t &a = ret[i], &b = tar[i];
+        uint8_t &a = hp->H[i], &b = tar[i];
         if (a != b) {
-            if (a < b) result = true;
+            result = (a < b);
             break;
         }
     }

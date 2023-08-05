@@ -142,7 +142,7 @@ void hashing::xorSalsa8() {
   X[30] += xs[14];
   X[31] += xs[15];
 }
-void hashing::hash(uint8_t* header, uint32_t nonce, uint8_t* result) {
+void hashing::hash(uint8_t* header, uint32_t nonce) {
   memcpy(B, header, 76);
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
   // Sistem menggunakan big-endian
@@ -192,29 +192,18 @@ void hashing::hash(uint8_t* header, uint32_t nonce, uint8_t* result) {
   B[131] = 1;
 
   Sha256Update(&context, B, 132);
-  Sha256Finalise(&context, &H);
-
-  memcpy(result, H.bytes, SHA256_HASH_SIZE);
+  Sha256Finalise(&context, H);
 }
 
-void hashN(uint8_t* header, uint8_t* result) {
+void hashN(uint8_t* header, uint8_t H[SHA256_HASH_SIZE]) {
     uint8_t B[132];
     uint32_t X[32];
     uint32_t V[32768];
     uint32_t xs[16];
-    SHA256_HASH H;
     
     Sha256Context context;
     size_t i, j, k, l;
     memcpy(B, header, 76);
-    /*
-    uint32_t nonce = (header[76] & 0xFF) | (header[77]&0xFF) << 8 | (header[78]&0xFF) << 16 | header[79] << 24;
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    // Sistem menggunakan little-endian atau tidak terdefinisi
-    uint32_t hnonce = htonl(nonce);
-    memcpy(B + 76, &hnonce, 4);
-#endif
-    */
     Sha256Initialise(&context);
     memset(B+80, 0, 3);
     
@@ -524,7 +513,5 @@ void hashN(uint8_t* header, uint8_t* result) {
     B[131] = 1;
 
     Sha256Update(&context, B, 132);
-    Sha256Finalise(&context, &H);
-
-    memcpy(result, H.bytes, SHA256_HASH_SIZE);
+    Sha256Finalise(&context, H);
 }

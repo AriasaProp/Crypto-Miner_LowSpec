@@ -63,12 +63,12 @@ static void *H (const void *x, const size_t xlen, const void *y, const size_t yl
 static void *sha256 (const void *data, const size_t datalen, void *out, const size_t outlen) {
   size_t sz;
   Sha256Context ctx;
-  SHA256_HASH hash;
+  uint8_t hash[SHA256_HASH_SIZE];
 
   Sha256Initialise (&ctx);
   Sha256Update (&ctx, data, datalen);
-  Sha256Finalise (&ctx, &hash);
+  Sha256Finalise (&ctx, hash);
 
   sz = (outlen > SHA256_HASH_SIZE) ? SHA256_HASH_SIZE : outlen;
-  return memcpy (out, hash.bytes, sz);
+  return memcpy (out, hash, sz);
 }

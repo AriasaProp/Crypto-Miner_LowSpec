@@ -11,7 +11,7 @@ struct Sha256Context {
   uint8_t buf[64];
 };
 
-#define SHA256_HASH_SIZE (256 / 8)
+const size_t SHA256_HASH_SIZE = 32;
 
 struct SHA256_HASH {
   uint8_t bytes[SHA256_HASH_SIZE];

@@ -10,14 +10,14 @@ private:
   uint8_t B[132];
   uint32_t X[32];
   uint32_t V[32768];
-  SHA256_HASH H;
   Sha256Context context;
 public:
+  uint8_t H[SHA256_HASH_SIZE]; //cache of hashing
   hashing();
   ~hashing();
   void xorSalsa8();
-  void hash(uint8_t*, uint32_t, uint8_t*);
+  void hash(uint8_t*, uint32_t);
 };
-void hashN(uint8_t*, uint8_t*);
+void hashN(uint8_t*, uint8_t[SHA256_HASH_SIZE]);
 
 #endif //HASHING_H_

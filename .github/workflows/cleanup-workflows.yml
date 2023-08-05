@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3.5.2
       - name: Run Cleaning
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           while OT=$(gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | .id'); [ -n "$OT" ]; do
             for run_id in $OT; do
