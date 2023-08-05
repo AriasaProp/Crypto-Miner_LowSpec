@@ -9,14 +9,15 @@
 // Wrapper for sha256
 static void *sha256 (const void *data, const size_t datalen, void *out, const size_t outlen) {
   size_t sz;
+  uint8_t H[SHA256_HASH_SIZE];
   Sha256Context ctx;
 
   Sha256Initialise (&ctx);
   Sha256Update (&ctx, data, datalen);
-  Sha256Finalise (&ctx);
+  Sha256Finalise (&ctx, H);
 
   sz = (outlen > SHA256_HASH_SIZE) ? SHA256_HASH_SIZE : outlen;
-  return memcpy(out, ctx.H, sz);
+  return memcpy(out, H, sz);
 }
 
 // Concatenate X & Y, return hash.
