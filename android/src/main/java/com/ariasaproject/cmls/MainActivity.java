@@ -2,6 +2,7 @@ package com.ariasaproject.cmls;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
+import static com.ariasaproject.cmls.worker.CpuMiningWorker;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PASS;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PORT;
 import static com.ariasaproject.cmls.Constants.DEFAULT_URL;
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
 
     ViewGroup input_container, status_container;
-    AppCompatTextView tv_s, tv_a, tv_r;
+    AppCompatTextView tv_s, tv_a, tv_r, tv_info;
     AppCompatTextView tv_showInput;
     AppCompatEditText et_serv, et_port, et_user, et_pass;
     AppCompatButton btn_startmine, btn_stopmine;
@@ -222,12 +223,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 break;
                             case MSG_UPDATE_SPEED:
                                 tv_s.setText(df.format(speedC) + unit);
+                                tv_info.setText(String.valueOf(CpuMiningWorker.CountingOnYou));
                                 break;
                             case MSG_UPDATE_ACCEPTED:
-                                tv_a.setText(String.valueOf(AccC));
+                                tv_a.setText(String.format("%03d",AccC));
                                 break;
                             case MSG_UPDATE_REJECTED:
-                                tv_r.setText(String.valueOf(rejectC));
+                                tv_r.setText(String.format("%03d",rejectC));
                                 break;
                             case MSG_UPDATE_CONSOLE:
                                 adpt.notifyDataSetChanged();

@@ -122,6 +122,7 @@ public class CpuMiningWorker implements IMiningWorker {
                         Constants.destroyHasher(hasher);
                         ThreadCount.decrementAndGet();
                         synchronized(CpuMiningWorker.this) {
+                            CountingOnYou = CpuMiningWorker.this.workers.activeCount();
                             CpuMiningWorker.this.notify();
                         }
                         if(!onMine.get()) generate_worker();
@@ -129,5 +130,5 @@ public class CpuMiningWorker implements IMiningWorker {
             .start();
         }
     }
-
+    public static int CountingOnYou = 0;
 }
