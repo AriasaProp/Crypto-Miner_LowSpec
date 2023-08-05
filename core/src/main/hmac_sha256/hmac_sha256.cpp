@@ -6,13 +6,31 @@
 
 #define SHA256_BLOCK_SIZE 64
 
-/* LOCAL FUNCTIONS */
+// Wrapper for sha256
+static void *sha256 (const void *data, const size_t datalen, void *out, const size_t outlen) {
+  size_t sz;
+  Sha256Context ctx;
+
+  Sha256Initialise (&ctx);
+  Sha256Update (&ctx, data, datalen);
+  Sha256Finalise (&ctx);
+
+  sz = (outlen > SHA256_HASH_SIZE) ? SHA256_HASH_SIZE : outlen;
+  return memcpy(out, ctx.H, sz);
+}
 
 // Concatenate X & Y, return hash.
-static void *H (const void *x, const size_t xlen, const void *y, const size_t ylen, void *out, const size_t outlen);
+static void *H (const void *x, const size_t xlen, const void *y, const size_t ylen, void *out, const size_t outlen) {
+  size_t buflen = (xlen + ylen);
+  uint8_t *buf = new uint8_t[buflen];
 
-// Wrapper for sha256
-static void *sha256 (const void *data, const size_t datalen, void *out, const size_t outlen);
+  memcpy (buf, x, xlen);
+  memcpy (buf + xlen, y, ylen);
+  void *result = sha256(buf, buflen, out, outlen);
+
+  delete[] buf;
+  return result;
+}
 
 // Declared in hmac_sha256.h
 size_t hmac_sha256 (const void *key, const size_t keylen, const void *data, const size_t datalen, void *out, const size_t outlen) {
@@ -47,28 +65,3 @@ size_t hmac_sha256 (const void *key, const size_t keylen, const void *data, cons
   return sz;
 }
 
-static void *H (const void *x, const size_t xlen, const void *y, const size_t ylen, void *out, const size_t outlen) {
-  void *result;
-  size_t buflen = (xlen + ylen);
-  uint8_t *buf = new uint8_t[buflen];
-
-  memcpy (buf, x, xlen);
-  memcpy (buf + xlen, y, ylen);
-  result = sha256 (buf, buflen, out, outlen);
-
-  delete[] buf;
-  return result;
-}
-
-static void *sha256 (const void *data, const size_t datalen, void *out, const size_t outlen) {
-  size_t sz;
-  Sha256Context ctx;
-  uint8_t hash[SHA256_HASH_SIZE];
-
-  Sha256Initialise (&ctx);
-  Sha256Update (&ctx, data, datalen);
-  Sha256Finalise (&ctx, hash);
-
-  sz = (outlen > SHA256_HASH_SIZE) ? SHA256_HASH_SIZE : outlen;
-  return memcpy (out, hash, sz);
-}

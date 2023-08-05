@@ -152,7 +152,7 @@ void hashing::hash(uint8_t* header, uint32_t nonce) {
   uint32_t hnonce = htonl(nonce);
   memcpy(B + 76, &hnonce, 4);
 #endif
-  
+   
   Sha256Initialise(&context);
   memset(B+80, 0, 3);
 

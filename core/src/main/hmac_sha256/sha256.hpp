@@ -11,11 +11,8 @@ struct Sha256Context {
   uint8_t buf[64];
 };
 
-const size_t SHA256_HASH_SIZE = 32;
+#define SHA256_HASH_SIZE 32
 
-struct SHA256_HASH {
-  uint8_t bytes[SHA256_HASH_SIZE];
-};
 void Sha256Initialise (Sha256Context *Context);
 void Sha256Update (Sha256Context *Context, void const *Buffer, uint32_t BufferSize);
 void Sha256Finalise (Sha256Context *Context, SHA256_HASH *Digest);
