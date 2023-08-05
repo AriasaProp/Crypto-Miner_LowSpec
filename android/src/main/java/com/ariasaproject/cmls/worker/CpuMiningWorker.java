@@ -39,8 +39,10 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public synchronized boolean doWork(MiningWork i_work) {
-        stopWork();
         if (workers.activeCount() > 0) {
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
+            workers.interrupt();
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
             try {
                 do {
                     wait();
@@ -54,7 +56,7 @@ public class CpuMiningWorker implements IMiningWorker {
         hashes = 0;
         hashes_per_sec = 0;
         worker_saved_time = System.currentTimeMillis();
-        lastStart.set(0);
+        lastStart = 0;
         generate_worker();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started");
         return true;
@@ -96,11 +98,11 @@ public class CpuMiningWorker implements IMiningWorker {
 
     private static final int maxCore = Runtime.getRuntime().availableProcessors();
     private static final int maxStart = 0xffff;
-    private AtomicInteger lastStart = new AtomicInteger(0);
+    private volatile int lastStart = 0;
 
-    void generate_worker() {
-        while ((lastStart.get() <= maxStart) && (maxCore > workers.activeCount())) {
-            final int _start = lastStart.getAndIncrement() << 16;
+    synchronized void generate_worker() {
+        while ((lastStart <= maxStart) && (maxCore > workers.activeCount())) {
+            final int _start = (lastStart++) << 16;
             new Thread(
                     workers,
                     () -> {
