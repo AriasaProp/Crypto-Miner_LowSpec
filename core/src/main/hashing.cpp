@@ -2,9 +2,8 @@
 #include <cstring>
 #include <netinet/in.h>
 
-static inline uint32_t _rotl(uint32_t value, size_t shift) {
-    return (value << shift) | (value >> (-shift&31));
-}
+#define _rotl(value, bits) (((value) >> (bits)) | ((value) << (32 - (bits))))
+
 hashing::hashing(){}
 hashing::~hashing(){}
 void hashing::xorSalsa8() {
@@ -159,10 +158,10 @@ void hashing::hash(uint8_t* header, uint32_t nonce) {
   for (i = 0; i < 4; i++) {
       B[83] = i + 1;
       Sha256Update(&context, B, 84);
-      Sha256Finalise(&context, &H);
+      Sha256Finalise(&context, H);
 
       for (j = 0; j < 8; j++) {
-          X[i * 8 + j] = (H.bytes[j * 4] & 0xFF) | ((H.bytes[j * 4 + 1] & 0xFF) << 8) | ((H.bytes[j * 4 + 2] & 0xFF) << 16) | ((H.bytes[j * 4 + 3] & 0xFF) << 24);
+          X[i * 8 + j] = (H[j * 4] & 0xFF) | ((H[j * 4 + 1] & 0xFF) << 8) | ((H[j * 4 + 2] & 0xFF) << 16) | ((H[j * 4 + 3] & 0xFF) << 24);
       }
   }
 
@@ -210,10 +209,10 @@ void hashN(uint8_t* header, uint8_t H[SHA256_HASH_SIZE]) {
     for (i = 0; i < 4; i++) {
         B[83] = i + 1;
         Sha256Update(&context, B, 84);
-        Sha256Finalise(&context, &H);
+        Sha256Finalise(&context, H);
 
         for (j = 0; j < 8; j++) {
-            X[i * 8 + j] = (H.bytes[j * 4] & 0xFF) | ((H.bytes[j * 4 + 1] & 0xFF) << 8) | ((H.bytes[j * 4 + 2] & 0xFF) << 16) | ((H.bytes[j * 4 + 3] & 0xFF) << 24);
+            X[i * 8 + j] = H[j * 4] | (H[j * 4 + 1] << 8) | (H[j * 4 + 2] << 16) | (H[j * 4 + 3] << 24);
         }
     }
 
