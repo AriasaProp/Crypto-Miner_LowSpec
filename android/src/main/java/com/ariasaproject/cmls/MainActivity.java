@@ -2,7 +2,8 @@ package com.ariasaproject.cmls;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
-import static com.ariasaproject.cmls.worker.CpuMiningWorker;
+import com.ariasaproject.cmls.worker.CpuMiningWorker;
+
 import static com.ariasaproject.cmls.Constants.DEFAULT_PASS;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PORT;
 import static com.ariasaproject.cmls.Constants.DEFAULT_URL;
