@@ -44,10 +44,10 @@ public class CpuMiningWorker implements IMiningWorker {
     @Override
     public boolean doWork(MiningWork i_work) {
         stopWork();
-        if (ThreadCount.get() > 0) {
+        if (workers.activeCount() > 0) {
             synchronized (this) {
                 try {
-                    while (ThreadCount.get() > 0) wait();
+                    while (workers.activeCount() > 0) wait();
                 } catch (InterruptedException e) {}
             }
         }
@@ -69,8 +69,10 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public void stopWork() {
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
-        onMine.set(false);
+        if (onMine.get()) {
+            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
+            onMine.set(false);
+        }
     }
 
     @Override
@@ -79,7 +81,7 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     public boolean getThreadsStatus() {
-        return ThreadCount.get() > 0;
+        return workers.activeCount() > 0;
     }
 
     public void ConsoleWrite(String c) {
@@ -100,12 +102,11 @@ public class CpuMiningWorker implements IMiningWorker {
 
     private static final int maxCore = Runtime.getRuntime().availableProcessors();
     private static final int maxStart = 0xffff;
-    private AtomicInteger lastStart = new AtomicInteger(0), ThreadCount = new AtomicInteger(0);
+    private AtomicInteger lastStart = new AtomicInteger(0);
 
     void generate_worker() {
-        while (onMine.get() && (lastStart.get() <= maxStart) && (maxCore > ThreadCount.get())) {
+        while (onMine.get() && (lastStart.get() <= maxStart) && (maxCore > workers.activeCount())) {
             final int _start = lastStart.getAndIncrement() << 16;
-            ThreadCount.incrementAndGet();
             new Thread(
                     workers,
                     () -> {
@@ -120,9 +121,7 @@ public class CpuMiningWorker implements IMiningWorker {
                             if((++nonce & 0xffff) == 0) break;
                         }
                         Constants.destroyHasher(hasher);
-                        ThreadCount.decrementAndGet();
                         synchronized(CpuMiningWorker.this) {
-                            CountingOnYou = CpuMiningWorker.this.workers.activeCount();
                             CpuMiningWorker.this.notify();
                         }
                         if(!onMine.get()) generate_worker();
@@ -130,5 +129,4 @@ public class CpuMiningWorker implements IMiningWorker {
             .start();
         }
     }
-    public static int CountingOnYou = 0;
 }

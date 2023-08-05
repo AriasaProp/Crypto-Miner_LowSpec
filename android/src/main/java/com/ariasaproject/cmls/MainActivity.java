@@ -2,7 +2,7 @@ package com.ariasaproject.cmls;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
-import com.ariasaproject.cmls.worker.CpuMiningWorker;
+//import com.ariasaproject.cmls.worker.CpuMiningWorker;
 
 import static com.ariasaproject.cmls.Constants.DEFAULT_PASS;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PORT;
@@ -213,6 +213,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     long AccC, rejectC;
     final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
+    final Runtime runtime = Runtime.getRuntime();
     final Handler.Callback sHCallback =
             (msg) -> {
                 switch (msg.what) {
@@ -223,8 +224,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             default:
                                 break;
                             case MSG_UPDATE_SPEED:
-                                tv_s.setText(df.format(speedC) + unit);
-                                tv_info.setText(String.valueOf(CpuMiningWorker.CountingOnYou));
+                                tv_s.setText(df.format(speedC) + unit);// Get the runtime instance
+                                long totalMemory = runtime.totalMemory();
+                                long freeMemory = runtime.freeMemory();
+                                long usedMemory = totalMemory - freeMemory;
+                                float memoryInMB = (float)usedMemory / (1048576.0f);
+                                tv_info.setText(String.format("Used Memory: %.4f MB", memoryInMB));
                                 break;
                             case MSG_UPDATE_ACCEPTED:
                                 tv_a.setText(String.format("%03d",AccC));
