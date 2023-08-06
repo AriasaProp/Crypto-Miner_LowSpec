@@ -83,7 +83,7 @@ public class CpuMiningWorker implements IMiningWorker {
 
     private synchronized void invokeNonceFound(int i_nonce) {
         workers.interrupt();
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce + " wait new job");
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce + ". Now, wait new job");
         for (IWorkerEvent i : _as_listener) i.onNonceFound(current_work, i_nonce);
     }
 
