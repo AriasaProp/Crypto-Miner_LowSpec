@@ -163,8 +163,9 @@
             app:layout_constraintTop_toBottomOf="@id/speed_label"
             app:layout_constraintStart_toStartOf="parent"
             android:text="Result:" />
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:id="@+id/container_result"
+            app:layout_constraintTop_toBottomOf="@id/speed_label"
             app:layout_constraintStart_toEndOf="@id/result_label"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_width="match_parent"
@@ -189,7 +190,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="000" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:id="@+id/information_label"
