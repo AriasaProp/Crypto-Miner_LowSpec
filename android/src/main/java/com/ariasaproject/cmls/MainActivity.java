@@ -225,13 +225,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 break;
                             case MSG_UPDATE_SPEED:
                                 tv_s.setText(df.format(speedC) + unit);// Get the runtime instance
-                                /*
+                                
                                 long totalMemory = runtime.totalMemory();
                                 long freeMemory = runtime.freeMemory();
                                 long usedMemory = totalMemory - freeMemory;
                                 float memoryInMB = (float)usedMemory / (1048576.0f);
                                 tv_info.setText(String.format("Used Memory: %.4f MB", memoryInMB));
-                                */
+                                
                                 break;
                             case MSG_UPDATE_ACCEPTED:
                                 tv_a.setText(String.format("%03d",AccC));

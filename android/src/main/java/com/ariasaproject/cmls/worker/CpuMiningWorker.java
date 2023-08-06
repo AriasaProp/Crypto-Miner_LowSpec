@@ -39,17 +39,7 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public synchronized boolean doWork(MiningWork i_work) {
-        if (threadCount > 0) {
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
-            workers.interrupt();
-            try {
-                do {
-                    wait();
-                } while (threadCount > 0);
-            } catch (InterruptedException e) {}
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
-        }
-        System.gc();
+        stopWork();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         current_work = i_work;
@@ -64,11 +54,16 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public synchronized void stopWork() {
-        if (threadCount > 0) {
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
-            workers.interrupt();
-            MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
-        }
+        if (threadCount <= 0) return;
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
+        workers.interrupt();
+        try {
+            do {
+                wait();
+            } while (threadCount > 0);
+        } catch (InterruptedException e) {}
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
+        System.gc();
     }
 
     @Override
@@ -87,8 +82,8 @@ public class CpuMiningWorker implements IMiningWorker {
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
 
     private synchronized void invokeNonceFound(int i_nonce) {
-        stopWork();
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce);
+        workers.interrupt();
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce + " wait new job");
         for (IWorkerEvent i : _as_listener) i.onNonceFound(current_work, i_nonce);
     }
 
@@ -119,11 +114,11 @@ public class CpuMiningWorker implements IMiningWorker {
                             if((++nonce & 0xffff) == 0) break;
                         }
                         Constants.destroyHasher(hasher);
-                        if(!isInterrupt) generate_worker();
                         synchronized(CpuMiningWorker.this) {
                             threadCount--;
                             CpuMiningWorker.this.notify();
                         }
+                        if(!isInterrupt) generate_worker();
                     })
             .start();
         }
