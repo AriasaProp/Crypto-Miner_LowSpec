@@ -163,38 +163,33 @@
             app:layout_constraintTop_toBottomOf="@id/speed_label"
             app:layout_constraintStart_toStartOf="parent"
             android:text="Result:" />
-        <Space
-            android:id="@+id/space_result"
+        <LinearLayout
+            android:id="@+id/container_result"
             app:layout_constraintStart_toEndOf="@id/result_label"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-        <androidx.appcompat.widget.AppCompatTextView
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:id="@+id/accepted_tv"
-            app:layout_constraintTop_toBottomOf="@id/speed_tv"
-            app:layout_constraintStart_toEndOf="@id/space_result"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:background="@drawable/result_left"
-            android:text="000" />
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/result_splitter"
-            app:layout_constraintTop_toBottomOf="@id/speed_tv"
-            app:layout_constraintStart_toEndOf="@id/accepted_tv"
-            app:layout_constraintDimensionRatio="H,1:1"
-            android:src="@drawable/result_center"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent" />
-        <androidx.appcompat.widget.AppCompatTextView
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:id="@+id/rejected_tv"
-            app:layout_constraintTop_toBottomOf="@id/speed_tv"
-            app:layout_constraintStart_toEndOf="@id/result_splitter"
             app:layout_constraintEnd_toEndOf="parent"
-            android:background="@drawable/result_right"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:text="000" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+            <androidx.appcompat.widget.AppCompatTextView
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:id="@+id/accepted_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@drawable/result_left"
+                android:text="000" />
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/result_splitter"
+                android:background="@drawable/result_center"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" />
+            <androidx.appcompat.widget.AppCompatTextView
+                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                android:id="@+id/rejected_tv"
+                android:background="@drawable/result_right"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="000" />
+        </LinearLayout>
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:id="@+id/information_label"
