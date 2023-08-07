@@ -5,6 +5,7 @@
 		android:viewportWidth="10.0"
 		android:viewportHeight="10.0">
   <path
+		android:fillType="nonZero"
     android:pathData="M0,0 L10,0 10,10 0,10 Z"
     android:fillColor="?attr/colorPrimary" />
 	<path
@@ -13,20 +14,14 @@
 		<aapt:attr name="android:fillColor">
 			<gradient
 				android:centerX="5"
-				android:centerY="10"
-				android:gradientRadius="10"
+				android:centerY="11"
+				android:gradientRadius="12"
 				android:type="radial">
 				<item
-					android:color="#AF00FF00"
+					android:color="#6F00FF00"
 					android:offset="0.000" />
 				<item
-					android:color="#AA00FF00"
-					android:offset="0.33" />
-				<item
-					android:color="#5500FF00"
-					android:offset="0.66" />
-				<item
-					android:color="#0000FF00"
+					android:color="#0f00FF00"
 					android:offset="1.000" />
 			</gradient>
 		</aapt:attr>
