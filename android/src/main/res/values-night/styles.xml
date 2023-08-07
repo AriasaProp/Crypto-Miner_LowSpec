@@ -1,5 +1,9 @@
 <resources>
-    <style name="BaseTheme" parent="Theme.AppCompat.DayNight">
+    <style name="BaseTheme" parent="The.AppCompat.DayNight">
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:colorPrimary">@android:color/background_dark</item>
+        <item name="android:colorPrimaryDark">@android:color/darker_grey</item>
+        <item name="android:colorAccent">@android:color/green</item>
     </style>
 
 </resources>
