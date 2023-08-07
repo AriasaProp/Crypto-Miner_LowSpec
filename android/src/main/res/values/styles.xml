@@ -4,10 +4,10 @@
     </style>
     
     <style name="BaseTheme" parent="The.AppCompat.Light">
-        <item name="android:textColorPrimary">@android:color/black</item>
-        <item name="android:colorPrimary">@android:color/background_light</item>
-        <item name="android:colorPrimaryDark">@android:color/grey</item>
-        <item name="android:colorAccent">@android:color/green</item>
+        <item name="android:textColorPrimary">#FF000000</item>
+        <item name="android:colorPrimary">#FFFFFFFF</item>
+        <item name="android:colorPrimaryDark">#FF333333</item>
+        <item name="android:colorAccent">#FF259024</item>
     </style>
 
     <style name="OwnSeekBar" parent="Widget.AppCompat.SeekBar">
