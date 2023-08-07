@@ -5,7 +5,7 @@
         </shape>
     </item>
     <item android:gravity="fill">
-        <shape android:shape="rectangle">
+        <shape>
             <gradient
                 android:type="radial"
                 android:gradientRadius="90%"
@@ -14,7 +14,6 @@
                 android:centerX="50%" 
                 android:centerY="100%" 
             />
-            <size android:width="100dp" android:height="100dp"/>
         </shape>
     </item>
 </layer-list>
