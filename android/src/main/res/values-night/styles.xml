@@ -2,8 +2,9 @@
     <style name="BaseTheme" parent="Theme.AppCompat.DayNight">
         <item name="android:textColorPrimary">#FFFFFFFF</item>
         <item name="android:colorPrimary">#FF000000</item>
-        <item name="android:colorPrimaryDark">#FF898989</item>
-        <item name="android:colorAccent">#FF056f00</item>
+        <item name="android:colorPrimaryDark">#AA898989</item>
+        <item name="android:colorAccent">#AA056f00</item>
+        <item name="android:textColor">#FFF9F9F9</item>
     </style>
 
 </resources>

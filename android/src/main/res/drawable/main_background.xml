@@ -17,10 +17,10 @@
 				android:gradientRadius="10"
 				android:type="radial">
 				<item
-					android:color="#FF00FF00"
+					android:color="#AF00FF00"
 					android:offset="0.000" />
 				<item
-					android:color="#6700FF00"
+					android:color="#5000FF00"
 					android:offset="0.7" />
 				<item
 					android:color="#00000000"
