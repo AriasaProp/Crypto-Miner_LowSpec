@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
 
     ViewGroup input_container, status_container;
-    AppCompatTextView tv_s, tv_a, tv_r, tv_info;
+    AppCompatTextView tv_s, tv_r, tv_info;
     AppCompatTextView tv_showInput;
     AppCompatEditText et_serv, et_port, et_user, et_pass;
     AppCompatButton btn_startmine, btn_stopmine;
@@ -121,8 +121,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         tv_showInput = (AppCompatTextView) findViewById(R.id.show_userInput);
         // text status
         tv_s = (AppCompatTextView) findViewById(R.id.speed_tv);
-        tv_a = (AppCompatTextView) findViewById(R.id.accepted_tv);
-        tv_r = (AppCompatTextView) findViewById(R.id.rejected_tv);
+        tv_r = (AppCompatTextView) findViewById(R.id.result_tv);
         // button
         btn_startmine = (AppCompatButton) findViewById(R.id.button_startmine);
         btn_stopmine = (AppCompatButton) findViewById(R.id.button_stopmine);
@@ -152,13 +151,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             logList = savedInstanceState.getParcelableArrayList(KEYBUNDLE_CONSOLE);
             CharSequence[] texts = savedInstanceState.getCharSequenceArray(KEYBUNDLE_TEXTS);
             tv_s.setText(texts[0]);
-            tv_a.setText(texts[1]);
-            tv_r.setText(texts[2]);
-            tv_showInput.setText(texts[3]);
-            et_serv.setText(texts[4]);
-            et_port.setText(texts[5]);
-            et_user.setText(texts[6]);
-            et_pass.setText(texts[7]);
+            tv_r.setText(texts[1]);
+            tv_showInput.setText(texts[2]);
+            et_serv.setText(texts[3]);
+            et_port.setText(texts[4]);
+            et_user.setText(texts[5]);
+            et_pass.setText(texts[6]);
             int[] ints = savedInstanceState.getIntArray(KEYBUNDLE_INTS);
             sb_cpu.setProgress(ints[0]); // old
         } else {
@@ -234,10 +232,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 */
                                 break;
                             case MSG_UPDATE_ACCEPTED:
-                                tv_a.setText(String.format("%03d",AccC));
-                                break;
                             case MSG_UPDATE_REJECTED:
-                                tv_r.setText(String.format("%03d",rejectC));
+                                tv_r.setText(String.format("%d accepted then %d rejected",AccC, rejectC));
                                 break;
                             case MSG_UPDATE_CONSOLE:
                                 adpt.notifyDataSetChanged();
@@ -423,13 +419,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         outState.putParcelableArrayList(KEYBUNDLE_CONSOLE, logList);
         CharSequence[] texts = new CharSequence[8];
         texts[0] = tv_s.getText();
-        texts[1] = tv_a.getText();
-        texts[2] = tv_r.getText();
-        texts[3] = tv_showInput.getText();
-        texts[4] = et_serv.getText();
-        texts[5] = et_port.getText();
-        texts[6] = et_user.getText();
-        texts[7] = et_pass.getText();
+        texts[1] = tv_r.getText();
+        texts[2] = tv_showInput.getText();
+        texts[3] = et_serv.getText();
+        texts[4] = et_port.getText();
+        texts[5] = et_user.getText();
+        texts[6] = et_pass.getText();
         outState.putCharSequenceArray(KEYBUNDLE_TEXTS, texts);
         int[] ints = new int[1];
         ints[0] = sb_cpu.getProgress();
@@ -444,13 +439,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             adpt.notifyDataSetChanged();
             CharSequence[] texts = savedInstanceState.getCharSequenceArray(KEYBUNDLE_TEXTS);
             tv_s.setText(texts[0]);
-            tv_a.setText(texts[1]);
-            tv_r.setText(texts[2]);
-            tv_showInput.setText(texts[3]);
-            et_serv.setText(texts[4]);
-            et_port.setText(texts[5]);
-            et_user.setText(texts[6]);
-            et_pass.setText(texts[7]);
+            tv_r.setText(texts[1]);
+            tv_showInput.setText(texts[2]);
+            et_serv.setText(texts[3]);
+            et_port.setText(texts[4]);
+            et_user.setText(texts[5]);
+            et_pass.setText(texts[6]);
             int[] ints = savedInstanceState.getIntArray(KEYBUNDLE_INTS);
             sb_cpu.setProgress(ints[0]); // old
         }
