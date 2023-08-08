@@ -23,7 +23,6 @@ public class CpuMiningWorker implements IMiningWorker {
     private volatile long hashes = 0;
     private volatile long hashes_per_sec = 0;
     private volatile long worker_saved_time = 0;
-    private volatile MiningWork current_work;
 
     private synchronized void calcSpeedPerThread() {
         hashes++;
@@ -42,25 +41,41 @@ public class CpuMiningWorker implements IMiningWorker {
         stopWork();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads starting");
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
-        current_work = i_work;
         hashes = 0;
         hashes_per_sec = 0;
         worker_saved_time = System.currentTimeMillis();
         lastStart = 0;
-        generate_worker();
+        for (int i = 0; i < _number_of_thread; i++) {
+            new Thread(workers, () -> {
+                long hasher = Constants.initHasher();
+                int nonce = i;
+                while(!Thread.interrupted()) {
+                    if (Constants.nativeHashing(hasher, i_work.header.refHex(), nonce, i_work.target.refHex())) {
+                        invokeNonceFound(nonce);
+                        break;
+                    }
+                    calcSpeedPerThread();
+                    nonce += _number_of_thread;
+                }
+                Constants.destroyHasher(hasher);
+            }).start();
+        }
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started");
         return true;
     }
 
     @Override
     public synchronized void stopWork() {
-        if (threadCount <= 0) return;
+        try {
+            if (workers.activeCount() <= 0) return;
+        } catch (InterruptedException e) {}
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
         workers.interrupt();
         try {
-            do {
-                wait();
-            } while (threadCount > 0);
+            Thread[] gr = new Thread[_number_of_thread];
+            workers.enumerate(gr);
+            for (Thread g : gr)
+                g.join();
         } catch (InterruptedException e) {}
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
         System.gc();
@@ -84,43 +99,11 @@ public class CpuMiningWorker implements IMiningWorker {
     private synchronized void invokeNonceFound(int i_nonce) {
         workers.interrupt();
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce + ". Now, wait new job");
-        for (IWorkerEvent i : _as_listener) i.onNonceFound(current_work, i_nonce);
+        for (IWorkerEvent i : _as_listener) i.onNonceFound(i_work, i_nonce);
     }
 
     public synchronized void addListener(IWorkerEvent i_listener) {
         this._as_listener.add(i_listener);
     }
 
-    private static final int maxCore = Runtime.getRuntime().availableProcessors();
-    private static final int maxStart = 0xffff;
-    private volatile int lastStart = 0, threadCount = 0;
-
-    synchronized void generate_worker() {
-        while ((lastStart <= maxStart) && (maxCore > threadCount)) {
-            final int _start = (lastStart++) << 16;
-            threadCount++;
-            new Thread(
-                    workers,
-                    () -> {
-                        long hasher = Constants.initHasher();
-                        int nonce = _start;
-                        boolean isInterrupt;
-                        while(!(isInterrupt = Thread.interrupted())) {
-                            if (Constants.nativeHashing(hasher, current_work.header.refHex(), nonce, current_work.target.refHex())) {
-                                invokeNonceFound(nonce);
-                                break;
-                            }
-                            calcSpeedPerThread();
-                            if((++nonce & 0xffff) == 0) break;
-                        }
-                        Constants.destroyHasher(hasher);
-                        synchronized(CpuMiningWorker.this) {
-                            threadCount--;
-                            CpuMiningWorker.this.notify();
-                        }
-                        if(!isInterrupt) generate_worker();
-                    })
-            .start();
-        }
-    }
 }
