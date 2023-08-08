@@ -62,7 +62,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Math;
+import java.lang.Math;
 
 public class MainActivity extends AppCompatActivity implements ServiceConnection {
     static final int UPDATE_DATA = 1;

@@ -13,11 +13,12 @@ import java.util.ArrayList;
 public class CpuMiningWorker implements IMiningWorker {
     private final int _number_of_thread;
     private final MessageSendListener MSL;
-    private final ThreadGroup workers = new ThreadGroup("CPU_Miner");
+    private final Thread[] workers;
 
     public CpuMiningWorker(int i_number_of_thread, MessageSendListener msl) {
         MSL = msl;
         _number_of_thread = i_number_of_thread;
+        workers = new Thread[i_number_of_thread];
     }
 
     private volatile long hashes = 0;
@@ -44,14 +45,13 @@ public class CpuMiningWorker implements IMiningWorker {
         hashes = 0;
         hashes_per_sec = 0;
         worker_saved_time = System.currentTimeMillis();
-        lastStart = 0;
         for (int i = 0; i < _number_of_thread; i++) {
-            new Thread(workers, () -> {
+            new Thread(() -> {
                 long hasher = Constants.initHasher();
                 int nonce = i;
                 while(!Thread.interrupted()) {
                     if (Constants.nativeHashing(hasher, i_work.header.refHex(), nonce, i_work.target.refHex())) {
-                        invokeNonceFound(nonce);
+                        invokeNonceFound(i_work,nonce);
                         break;
                     }
                     calcSpeedPerThread();
@@ -66,16 +66,15 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Override
     public synchronized void stopWork() {
-        try {
-            if (workers.activeCount() <= 0) return;
-        } catch (InterruptedException e) {}
+        if (!getThreadsStatus()) return;
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
-        workers.interrupt();
         try {
-            Thread[] gr = new Thread[_number_of_thread];
-            workers.enumerate(gr);
-            for (Thread g : gr)
-                g.join();
+            for (int i = 0; i < _number_of_thread; i++)
+                if ((workers[i]!=null) && workers[i].isAlive()) workers[i].interrupt();
+            for (int i = 0; i < _number_of_thread; i++)
+                if ((workers[i]!=null) && workers[i].isAlive()) workers[i].join();
+            for (int i = 0; i < _number_of_thread; i++)
+                workers[i] = null;
         } catch (InterruptedException e) {}
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
         System.gc();
@@ -87,7 +86,10 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     public synchronized boolean getThreadsStatus() {
-        return threadCount > 0;
+        for (int i = 0; i < _number_of_thread; i++)
+            if ((workers[i]!=null) && workers[i].isAlive())
+                return true;
+        return false;
     }
 
     public void ConsoleWrite(String c) {
@@ -96,10 +98,11 @@ public class CpuMiningWorker implements IMiningWorker {
 
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
 
-    private synchronized void invokeNonceFound(int i_nonce) {
-        workers.interrupt();
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i_nonce + ". Now, wait new job");
-        for (IWorkerEvent i : _as_listener) i.onNonceFound(i_work, i_nonce);
+    private synchronized void invokeNonceFound(MiningWork w, int i) {
+        for (int i = 0; i < _number_of_thread; i++)
+            if ((workers[i]!=null) && workers[i].isAlive()) workers[i].interrupt();
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + i + ". Now, wait new job");
+        for (IWorkerEvent i : _as_listener) i.onNonceFound(w, i);
     }
 
     public synchronized void addListener(IWorkerEvent i_listener) {
