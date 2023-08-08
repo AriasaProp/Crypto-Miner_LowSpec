@@ -31,10 +31,10 @@ public class CpuMiningWorker implements IMiningWorker {
         long curr_time = System.currentTimeMillis();
         long delta = curr_time - worker_saved_time;
         if (delta < 1000) return;
-        float _speed = (hashes_per_sec * 1000.0f) / (float) delta;
         worker_saved_time = curr_time;
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
+        float _speed = (hashes_per_sec * 1000.0f) / (float) delta;
         hashes_per_sec = 0;
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, _speed);
     }
 
     @Override
