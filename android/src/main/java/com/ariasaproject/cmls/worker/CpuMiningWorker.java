@@ -46,9 +46,10 @@ public class CpuMiningWorker implements IMiningWorker {
         hashes_per_sec = 0;
         worker_saved_time = System.currentTimeMillis();
         for (int i = 0; i < _number_of_thread; i++) {
+            final int _start = i;
             new Thread(() -> {
                 long hasher = Constants.initHasher();
-                int nonce = i;
+                int nonce = _start;
                 while(!Thread.interrupted()) {
                     if (Constants.nativeHashing(hasher, i_work.header.refHex(), nonce, i_work.target.refHex())) {
                         invokeNonceFound(i_work,nonce);
