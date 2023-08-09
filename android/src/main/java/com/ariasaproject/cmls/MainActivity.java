@@ -530,5 +530,5 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
     
     native String callHello();
-    String callOfCall() { return "Informasi dari java"; }
+    private String callOfCall() { return "Informasi dari java"; }
 }
