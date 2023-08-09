@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        callOfCall();
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
@@ -530,5 +530,5 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
     
     native String callHello();
-    private String callOfCall() { return "Informasi dari java"; }
+    public String callOfCall() { return "Informasi dari java"; }
 }
