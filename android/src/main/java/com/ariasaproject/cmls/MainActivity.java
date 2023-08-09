@@ -25,6 +25,7 @@ import static com.ariasaproject.cmls.Constants.STATUS_TYPE_ACCEPTED;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_REJECTED;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_SPEED;
 
+import androidx.annotation.Keep;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ComponentName;
@@ -97,7 +98,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        System.out.println(callOfCall());
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
@@ -530,5 +530,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
     
     native String callHello();
+    @Keep
     public String callOfCall() { return "Informasi dari java"; }
 }
