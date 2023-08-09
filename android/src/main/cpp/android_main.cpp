@@ -8,6 +8,12 @@
 #define __BYTE_ORDER__ __ORDER_LITTLE_ENDIAN__
 #endif
 
+#define JNIM(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_MainActivity_##M
+
+JNIM(jstring, callHello) (JNIEnv *env, jobject) {
+    return env->NewStringUTF("Halo dari komunikasi JNI");
+}
+
 #define JNIH(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_Constants_##M
 
 JNIH(jbyteArray, hash) (JNIEnv *env, jclass, jbyteArray head) {

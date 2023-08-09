@@ -26,6 +26,7 @@ import static com.ariasaproject.cmls.Constants.STATUS_TYPE_REJECTED;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_SPEED;
 
 import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -77,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
     }
 
     ViewGroup input_container, status_container;
-    AppCompatTextView tv_s, tv_r, tv_info;
+    AppCompatTextView tv_s, tv_r, tv_info, tv_jni;
     AppCompatTextView tv_showInput;
     AppCompatEditText et_serv, et_port, et_user, et_pass;
     AppCompatButton btn_startmine, btn_stopmine;
@@ -102,8 +103,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
 
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         boolean serviceWasRunning = false;
-        for (ActivityManager.RunningServiceInfo service :
-                manager.getRunningServices(Integer.MAX_VALUE)) {
+        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (MinerService.class.getName().equals(service.service.getClassName())) {
                 serviceWasRunning = true;
                 break;
@@ -115,6 +115,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         if (!serviceWasRunning) {
             startService(intent);
         }
+        //debug
+        tv_jni = (AppCompatTextView) findViewById(R.id.jni_tv);
+        tv_jni.setText(callHello());
         // define section layout
         input_container = (ViewGroup) findViewById(R.id.input_container);
         status_container = (ViewGroup) findViewById(R.id.status_container);
@@ -140,10 +143,8 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                         cuv.setText(String.format("%d Thread Usage", progress));
                     }
-
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {}
-
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {}
                 });
@@ -527,4 +528,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             dest.writeStringArray(new String[] {time, msg});
         }
     }
+    
+    String native callHello();
 }

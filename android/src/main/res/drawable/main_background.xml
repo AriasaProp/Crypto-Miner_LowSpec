@@ -1,19 +1,10 @@
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:gravity="fill">
-        <shape>
-            <solid android:color="?attr/colorPrimary" />
-        </shape>
-    </item>
-    <item android:gravity="fill">
-        <shape>
-            <gradient
-                android:type="radial"
-                android:gradientRadius="90%"
-                android:startColor="#6F00FF00"
-                android:endColor="#0000FF00"
-                android:centerX="50%" 
-                android:centerY="100%" 
-            />
-        </shape>
-    </item>
-</layer-list>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="90%"
+        android:startColor="@color/background_end"
+        android:endColor="@color/background_end"
+        android:centerX="50%" 
+        android:centerY="100%" 
+    />
+</shape>

@@ -7,12 +7,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSION OFF)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
-    -O3 -Wall -Wextra -Werror \
-    -DANDROID_STL=c++_static \
-    -DVK_USE_PLATFORM_ANDROID_KHR \
-    -DVK_NO_PROTOTYPES \
-    -fexceptions -frtti")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -Werror -fexceptions -frtti")
 
 set(CORE_SRC "../../../../core/src/main")
 file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
@@ -23,7 +18,7 @@ add_subdirectory(${CORE_SRC} bin/core)
 include_directories(${Include_Dir})
 include_directories(${Include_subDir})
 add_library(${PROJECT_NAME} SHARED ${Src_Files})
-target_link_libraries(${PROJECT_NAME} core GLESv3 android EGL log vulkan)
+target_link_libraries(${PROJECT_NAME} core android)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
 
