@@ -48,9 +48,10 @@ public class CpuMiningWorker implements IMiningWorker {
         for (int i = 0; i < _number_of_thread; i++) {
             final int _start = i;
             workers[i] = new Thread(() -> {
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started with ID: "+ workers[_start].getId());
                 long hasher = Constants.initHasher();
                 int nonce = _start;
-                while(!Thread.interrupted()) {
+                while(!workers[_start].isInterrupted()) {
                     if (Constants.nativeHashing(hasher, i_work.header.refHex(), nonce, i_work.target.refHex())) {
                         invokeNonceFound(i_work,nonce);
                         break;
@@ -59,6 +60,7 @@ public class CpuMiningWorker implements IMiningWorker {
                     nonce += _number_of_thread;
                 }
                 Constants.destroyHasher(hasher);
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads stopped with ID: "+ workers[_start].getId());
             });
             workers[i].start();
         }
