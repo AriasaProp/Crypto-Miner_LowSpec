@@ -52,7 +52,6 @@ public class CpuMiningWorker implements IMiningWorker {
         for (int i = 0; i < _number_of_thread; i++) {
             final int _start = i;
             workers[i] = new Thread(() -> {
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads started with ID: "+ workers[_start].getId());
                 synchronized (CpuMiningWorker.this) {
                     threadCountDown++;
                 }
@@ -71,7 +70,6 @@ public class CpuMiningWorker implements IMiningWorker {
                     threadCountDown--;
                     CpuMiningWorker.this.notify();
                 }
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker: Threads stopped with ID: "+ workers[_start].getId());
             });
             workers[i].start();
         }
