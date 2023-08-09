@@ -1,6 +1,7 @@
 #include "hashing.hpp"
 #include <jni.h>
 #include <cstring>
+#include <string>
 #include <cstdint>
 #include <endian.h>
 
@@ -11,13 +12,16 @@
 #define JNIM(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_MainActivity_##M
 
 JNIM(jstring, callHello) (JNIEnv *env, jobject obj) {
-    jclass cls = env->GetObjectClass(obj); // Get class reference
-    jmethodID mid = env->GetMethodID(cls, "callOfCall", "()Ljava/lang/String;"); // Get method ID
-    if (mid == nullptr)
-        return env->NewStringUTF("Halo dari komunikasi JNI, ini dikembalikan karena gagal.");
-    jstring javaString = (jstring)env->CallObjectMethod(obj, mid);
-    const char* nativeString = env->GetStringUTFChars(javaString, nullptr);
-    return env->NewStringUTF(nativeString);
+    try {
+        jclass cls = env->GetObjectClass(obj); // Get class reference
+        jmethodID mid = env->GetMethodID(cls, "callOfCall", "()Ljava/lang/String;"); // Get method ID
+        if (mid == nullptr) throw 0;
+        jstring javaString = (jstring)env->CallObjectMethod(obj, mid);
+        const char* nativeString = env->GetStringUTFChars(javaString, nullptr);
+        return env->NewStringUTF(nativeString);
+    } catch (...) {
+        return env->NewStringUTF("Halo dari komunikasi JNI, ini dikembalikan karena gagal");
+    }
 }
 
 #define JNIH(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_Constants_##M
