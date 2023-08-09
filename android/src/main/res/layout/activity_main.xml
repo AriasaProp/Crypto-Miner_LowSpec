@@ -101,7 +101,7 @@
             app:layout_constraintTop_toBottomOf="@id/user_container"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/cpu_usage_view"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </androidx.constraintlayout.widget.ConstraintLayout>
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -155,15 +155,13 @@
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             app:layout_constraintTop_toBottomOf="@id/speed_label"
-            app:layout_constraintStart_toEndOf="@id/result_label"
             app:layout_constraintEnd_toEndOf="parent"
             android:id="@+id/result_tv"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingRight="5dp"
-            android:gravity="right"
-            android:text="000" />
+            android:text="0 accepted then 0 rejected" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:id="@+id/information_label"
@@ -199,6 +197,7 @@
             android:layout_height="wrap_content"
             android:text="No Response" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+    
     <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/settings_checkBox_keepscreenawake"
         android:layout_width="wrap_content"
