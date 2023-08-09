@@ -529,5 +529,5 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         }
     }
     
-    String native callHello();
+    native String callHello();
 }
