@@ -47,7 +47,7 @@ public class CpuMiningWorker implements IMiningWorker {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
         hashes = 0;
         hashes_per_sec = 0;
-        onMine.set(false);
+        onMine.set(true);
         worker_saved_time = System.currentTimeMillis();
         for (int i = 0; i < _number_of_thread; i++) {
             final int _start = i;
