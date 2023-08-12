@@ -89,10 +89,13 @@
             style="@style/OwnSeekBar"
             android:id="@+id/cpuSeek"
             android:min="1"
+            app:layout_constrainedHeight="true"
+            app:layout_constraintHeight="spread"
+            app:layout_constraintWidth="default"
             app:layout_constraintTop_toBottomOf="@id/user_container"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content" />
             <!--
         <androidx.appcompat.widget.AppCompatTextView
