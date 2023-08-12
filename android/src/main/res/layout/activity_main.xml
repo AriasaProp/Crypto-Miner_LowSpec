@@ -94,7 +94,7 @@
             app:layout_constraintWidth="spread"
             app:layout_constraintTop_toBottomOf="@id/user_container"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="@id/cpu_usage_view"
+            app:layout_constraintEnd_toStartOf="@id/cpu_usage_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content" />
         <androidx.appcompat.widget.AppCompatTextView
