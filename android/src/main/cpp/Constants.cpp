@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <cstdint>
+#include "hashing.hpp"
 
 static uint8_t ret[SHA256_HASH_SIZE];
 

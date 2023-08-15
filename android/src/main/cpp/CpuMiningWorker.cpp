@@ -118,10 +118,6 @@ static pthread_t *workers = nullptr;
 
 void doJob(uint32_t parallel, const char* header, const char* target) {
     stopJob();
-    //speed update
-    jobject speed_calcl = env->NewObject(floatClass, floatConstructor, 0);
-    env->CallVoidMethod(job_globalClass, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed_calcl);
-    // ....
     workers = new pthread_t[parallel];
     pthread_mutex_lock(&_mtx);
     saved_time = std::chrono::steady_clock::now();
@@ -181,6 +177,10 @@ void onunload_CpyMiningWorker(JNIEnv *) {
 #define JNIF(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_worker_CpuMiningWorker_##M
 
 JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyteArray t) {
+    //speed update
+    jobject speed_calcl = env->NewObject(floatClass, floatConstructor, 0);
+    env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed_calcl);
+    // ....
     job_globalClass = env->NewGlobalRef(o);
     jbyte* header = env->GetByteArrayElements(h, NULL);
     jbyte* target = env->GetByteArrayElements(t, NULL);
