@@ -44,9 +44,9 @@ static jobject job_globalClass;
 static uint8_t job_header[76];
 static uint8_t job_target[SHA256_HASH_SIZE];
 
-static std::chrono::high_resolution_clock time_saved;
+static std::chrono::steady_clock time_saved;
 static pthread_mutex_t _mtx = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t mcond = PTHREAD_COND_INITIALIZER;
+//static pthread_cond_t mcond = PTHREAD_COND_INITIALIZER;
 
 static inline bool checkWithGuard(bool *check) {
     pthread_mutex_lock(&_mtx);
