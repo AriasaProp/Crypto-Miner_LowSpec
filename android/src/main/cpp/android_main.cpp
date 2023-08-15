@@ -18,11 +18,11 @@ jint JNI_OnLoad(JavaVM *vm, void *) {
     JNIEnv* env;
     if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK)
         goto failed_section;
-    if (onload_MainActivity(env))
+    if (!onload_MainActivity(env))
         goto failed_section;
-    if (onload_Constants(env))
+    if (!onload_Constants(env))
         goto failed_section;
-    if (onload_CpuMiningWorker(env))
+    if (!onload_CpuMiningWorker(env))
         goto failed_section;
     
     global_jvm = vm;
