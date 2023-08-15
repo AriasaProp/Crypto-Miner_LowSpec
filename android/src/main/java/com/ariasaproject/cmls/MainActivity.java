@@ -136,12 +136,12 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         et_pass = (AppCompatEditText) findViewById(R.id.password_et);
         sb_cpu = (AppCompatSeekBar) findViewById(R.id.cpuSeek);
         sb_cpu.setMax(Math.max(Runtime.getRuntime().availableProcessors(), 1));
-        //final AppCompatTextView cuv = (AppCompatTextView) findViewById(R.id.cpu_usage_view);
+        final AppCompatTextView cuv = (AppCompatTextView) findViewById(R.id.cpu_usage_view);
         sb_cpu.setOnSeekBarChangeListener(
                 new SeekBar.OnSeekBarChangeListener() {
                     @Override
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                        //cuv.setText(String.format("%d Thread Usage", progress));
+                        cuv.setText(String.format("%d Thread Usage", progress));
                     }
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {}
