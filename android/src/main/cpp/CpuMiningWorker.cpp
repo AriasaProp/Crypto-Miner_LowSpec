@@ -44,7 +44,6 @@ static jobject job_globalClass;
 static uint8_t job_header[76];
 static uint8_t job_target[SHA256_HASH_SIZE];
 
-static std::chrono::steady_clock time_saved;
 static pthread_mutex_t _mtx = PTHREAD_MUTEX_INITIALIZER;
 //static pthread_cond_t mcond = PTHREAD_COND_INITIALIZER;
 
@@ -57,7 +56,7 @@ static inline bool checkWithGuard(bool *check) {
 
 static unsigned long hash_total;
 static unsigned long hash_sec;
-std::chrono::steady_clock::time_point saved_time;
+static std::chrono::steady_clock::time_point saved_time;
 
 static void *hasher(void *param) {
     uint32_t nonce = *((uint32_t*)param);
