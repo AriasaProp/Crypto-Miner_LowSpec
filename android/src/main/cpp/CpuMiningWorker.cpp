@@ -55,9 +55,8 @@ static inline bool checkWithGuard(bool *check) {
     return r;
 }
 
-
-static unsigned long hashing_total;
-static unsigned long hashing_sec;
+static unsigned long hash_total;
+static unsigned long hash_sec;
 std::chrono::steady_clock::time_point saved_time;
 
 static void *hasher(void *param) {
@@ -89,19 +88,19 @@ static void *hasher(void *param) {
         
         //calculate speed
         pthread_mutex_lock(&_mtx);
-        hashing_total++;
-        hashing_sec++;
+        hash_total++;
+        hash_sec++;
         std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
         float timed = std::chrono::duration_cast<std::chrono::duration<float>>(current_time - saved_time).count();
         if (timed >= 1.0f) {
             JNIEnv *env;
             if (global_jvm->AttachCurrentThread(&env, &attachArgs) == JNI_OK) {
-                float speed = (float)hashing_sec / timed;
+                float speed = (float)hash_sec / timed;
                 jobject speed_calcl = env->NewObject(floatClass, floatConstructor, speed);
                 env->CallVoidMethod(job_globalClass, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed_calcl);
                 global_jvm->DetachCurrentThread();
             }
-            hashing_sec = 0;
+            hash_sec = 0;
             saved_time = current_time;
         }
         pthread_mutex_unlock(&_mtx);
@@ -117,18 +116,17 @@ static void *hasher(void *param) {
 
 static pthread_t *workers = nullptr;
 
-void doJob(uint32_t parallel, const char* header, const char* target) {
+void doJob(uint32_t parallel, char* header, char* target) {
     stopJob();
     workers = new pthread_t[parallel];
     pthread_mutex_lock(&_mtx);
     saved_time = std::chrono::steady_clock::now();
-    hashing_total = 0;
-    hashing_sec = 0;
+    hash_total = 0;
+    hash_sec = 0;
     job_step = parallel;
     doingJob = true;
     memcpy(job_header, header, 76);
     memcpy(job_target, target, SHA256_HASH_SIZE);
-    time_saved = std::chrono::high_resolution_clock::now();
     pthread_mutex_unlock(&_mtx);
     pthread_attr_t attr;
     pthread_attr_init (&attr);
@@ -194,9 +192,9 @@ JNIF(void, nativeStop) (JNIEnv *env, jobject) {
     env->DeleteGlobalRef(job_globalClass);
     job_globalClass = NULL;
 }
-JNIF(jint, getHashesTotal) (JNIEnv *env, jobject) {
-    return hashes_total;
+JNIF(jint, getHashesTotal) (JNIEnv *, jobject) {
+    return hash_total;
 }
-JNIF(jboolean, getStatus) (JNIEnv *env, jobject) {
+JNIF(jboolean, getStatus) (JNIEnv *, jobject) {
     return doingJob;
 }
