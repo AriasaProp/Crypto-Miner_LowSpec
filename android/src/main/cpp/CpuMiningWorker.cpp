@@ -116,6 +116,18 @@ static void *hasher(void *param) {
 
 static pthread_t *workers = nullptr;
 
+void stopJob() {
+    if (!workers) return;
+    pthread_mutex_lock(&_mtx);
+    doingJob = false;
+    pthread_mutex_unlock(&_mtx);
+    for (size_t i = 0; i < job_step; i++) {
+        pthread_join(workers[i], nullptr);
+    }
+    delete[] workers;
+    workers = nullptr;
+}
+
 void doJob(uint32_t parallel, char* header, char* target) {
     stopJob();
     workers = new pthread_t[parallel];
@@ -135,18 +147,6 @@ void doJob(uint32_t parallel, char* header, char* target) {
         pthread_create(workers+i, &attr, hasher, (void*)&i);
     }
     pthread_attr_destroy (&attr);
-}
-
-void stopJob() {
-    if (!workers) return;
-    pthread_mutex_lock(&_mtx);
-    doingJob = false;
-    pthread_mutex_unlock(&_mtx);
-    for (size_t i = 0; i < job_step; i++) {
-        pthread_join(workers[i], nullptr);
-    }
-    delete[] workers;
-    workers = nullptr;
 }
 
 bool onload_CpyMiningWorker(JNIEnv *env) {
@@ -183,7 +183,7 @@ JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyt
     job_globalClass = env->NewGlobalRef(o);
     jbyte* header = env->GetByteArrayElements(h, NULL);
     jbyte* target = env->GetByteArrayElements(t, NULL);
-    doJob(step, header, target);
+    doJob(step, (char*) header, (char*) target);
     env->ReleaseByteArrayElements(t, target, JNI_ABORT);
     env->ReleaseByteArrayElements(h, header, JNI_ABORT);
 }
