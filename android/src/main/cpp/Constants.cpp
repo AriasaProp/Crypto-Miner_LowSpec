@@ -5,7 +5,7 @@
 static uint8_t ret[SHA256_HASH_SIZE];
 
 bool onload_Constants(JNIEnv *) {
-    
+    return true;
 }
 void onunload_Constants(JNIEnv *) {
     

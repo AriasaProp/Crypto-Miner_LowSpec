@@ -186,6 +186,7 @@ JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyt
     doJob(step, (char*) header, (char*) target);
     env->ReleaseByteArrayElements(t, target, JNI_ABORT);
     env->ReleaseByteArrayElements(h, header, JNI_ABORT);
+    return true;
 }
 JNIF(void, nativeStop) (JNIEnv *env, jobject) {
     stopJob();
