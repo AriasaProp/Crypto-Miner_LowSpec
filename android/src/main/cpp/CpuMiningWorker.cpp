@@ -64,10 +64,10 @@ static void *hasher(void *param) {
     hashing hp;
     do {
         hp.hash(job_header, nonce);
-        uint8_t &*tar = job_target, *res = hp.H;
+        uint8_t *tar = job_target, *res = hp.H;
         size_t i = SHA256_HASH_SIZE;
         while (--i) {
-            uint8_t &a = res[i], &b = tar[i];
+            uint8_t a = res[i], b = tar[i];
             if (a != b) {
                 if (a < b) {
                     pthread_mutex_lock(&_mtx);
