@@ -148,7 +148,7 @@ void doJob(uint32_t parallel, char* header, char* target) {
     pthread_attr_destroy (&attr);
 }
 
-bool onload_CpyMiningWorker(JNIEnv *env) {
+bool onload_CpuMiningWorker(JNIEnv *env) {
     m_class = env->FindClass("com/ariasaproject/cmls/worker/CpuMiningWorker");
     if (!m_class) goto failed_section;
     invokeNonce = env->GetMethodID(m_class, "invokeNonceFound", "(I)V");
@@ -164,7 +164,7 @@ bool onload_CpyMiningWorker(JNIEnv *env) {
 failed_section:
     return false;
 }
-void onunload_CpyMiningWorker(JNIEnv *) {
+void onunload_CpuMiningWorker(JNIEnv *) {
     m_class = NULL;
     floatClass = NULL;
     invokeNonce = NULL;
