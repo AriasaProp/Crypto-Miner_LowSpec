@@ -8,7 +8,6 @@
 #include <endian.h>
 #include <chrono>
 
-#define 
 #define MSG_STATE 1
 #define MSG_UPDATE 2
 
@@ -28,8 +27,8 @@ extern JavaVM *global_jvm;
 
 static JavaVMAttachArgs attachArgs {
     .version = JNI_VERSION_1_6,
-    .attachArgs.name = "CpuWorker",
-    .attachArgs.group = NULL
+    .name = "CpuWorker",
+    .group = NULL
 };
 
 static jclass m_class;
@@ -46,8 +45,8 @@ static uint8_t job_header[76];
 static uint8_t job_target[SHA256_HASH_SIZE];
 
 static std::chrono::high_resolution_clock time_saved;
-static pthred_mutex_t _mtx = PTHREAD_MUTEX_INITIALIZER;
-static pthred_cond_t mcond = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t _mtx = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t mcond = PTHREAD_COND_INITIALIZER;
 
 static inline bool checkWithGuard(bool *check) {
     pthread_mutex_lock(&_mtx);
@@ -77,9 +76,10 @@ static void *hasher(void *param) {
                     pthread_mutex_unlock(&_mtx);
                     //java methode
                     JNIEnv *env;
-                    if (global_jvm->AttachCurrentThread(&env, &attachArgs) != JNI_OK) return;
-                    env->CallVoidMethod(job_globalClass, invokeNonce, nonce);
-                    global_jvm->DettachCurrentThread();
+                    if (global_jvm->AttachCurrentThread(&env, &attachArgs) == JNI_OK) {
+                        env->CallVoidMethod(job_globalClass, invokeNonce, nonce);
+                        global_jvm->DetachCurrentThread();
+                    }
                     //....
                     pthread_exit(nullptr);
                 }
@@ -95,11 +95,12 @@ static void *hasher(void *param) {
         float timed = std::chrono::duration_cast<std::chrono::duration<float>>(current_time - saved_time).count();
         if (timed >= 1.0f) {
             JNIEnv *env;
-            if (global_jvm->AttachCurrentThread(&env, &attachArgs) != JNI_OK) return;
-            float speed = (float)hashing_sec / timed
-            jobject speed_calcl = env->NewObject(floatClass, floatConstructor, value);
-            env->CallVoidMethod(job_globalClass, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed_calcl);
-            global_jvm->DettachCurrentThread();
+            if (global_jvm->AttachCurrentThread(&env, &attachArgs) == JNI_OK) {
+                float speed = (float)hashing_sec / timed;
+                jobject speed_calcl = env->NewObject(floatClass, floatConstructor, speed);
+                env->CallVoidMethod(job_globalClass, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed_calcl);
+                global_jvm->DetachCurrentThread();
+            }
             hashing_sec = 0;
             saved_time = current_time;
         }
@@ -110,7 +111,7 @@ static void *hasher(void *param) {
         if (next_nonce < nonce)
             break;
         nonce = next_nonce;
-    } while (checkWithGuard(doingJob));
+    } while (checkWithGuard(&doingJob));
     pthread_exit(nullptr);
 }
 
@@ -121,8 +122,8 @@ void doJob(uint32_t parallel, const char* header, const char* target) {
     workers = new pthread_t[parallel];
     pthread_mutex_lock(&_mtx);
     saved_time = std::chrono::steady_clock::now();
-    hahsing_total = 0;
-    hahsing_sec = 0;
+    hashing_total = 0;
+    hashing_sec = 0;
     job_step = parallel;
     doingJob = true;
     memcpy(job_header, header, 76);
