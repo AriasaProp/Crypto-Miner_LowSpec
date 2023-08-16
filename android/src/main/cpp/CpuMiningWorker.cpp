@@ -130,7 +130,7 @@ bool onload_CpuMiningWorker(JNIEnv *env) {
     if (!floatConstructor) goto failed_section;
     stringClass = env->FindClass("java/lang/String");
     if (!stringClass) goto failed_section;
-    stringConstructor = env->GetMethodID(stringClass, "<init>", "(Ljava/lang/String)V");
+    stringConstructor = env->GetMethodID(stringClass, "<init>", "(Ljava/lang/String;)V");
     if (!stringConstructor) goto failed_section;
     
     return true;
