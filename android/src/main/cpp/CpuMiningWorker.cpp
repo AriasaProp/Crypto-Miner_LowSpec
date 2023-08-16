@@ -33,9 +33,11 @@ static JavaVMAttachArgs attachArgs {
 
 static jclass m_class;
 static jclass floatClass;
+static jclass stringClass;
 static jmethodID invokeNonce;
 static jmethodID msl_sendMessage;
 static jmethodID floatConstructor;
+static jmethodID stringConstructor;
 
 static bool doingJob = false;
 
@@ -71,7 +73,6 @@ static void *hasher(void *param) {
                 if (a < b) {
                     pthread_mutex_lock(&_mtx);
                     doingJob = false;
-                    pthread_mutex_unlock(&_mtx);
                     //java methode
                     JNIEnv *env;
                     if (global_jvm->AttachCurrentThread(&env, &attachArgs) == JNI_OK) {
@@ -79,6 +80,7 @@ static void *hasher(void *param) {
                         global_jvm->DetachCurrentThread();
                     }
                     //....
+                    pthread_mutex_unlock(&_mtx);
                     pthread_exit(nullptr);
                 }
                 break;
@@ -115,39 +117,6 @@ static void *hasher(void *param) {
 
 static pthread_t *workers = nullptr;
 
-void stopJob() {
-    if (!workers) return;
-    pthread_mutex_lock(&_mtx);
-    doingJob = false;
-    pthread_mutex_unlock(&_mtx);
-    for (size_t i = 0; i < job_step; i++) {
-        pthread_join(workers[i], nullptr);
-    }
-    delete[] workers;
-    workers = nullptr;
-}
-
-void doJob(uint32_t parallel, char* header, char* target) {
-    stopJob();
-    workers = new pthread_t[parallel];
-    pthread_mutex_lock(&_mtx);
-    saved_time = std::chrono::steady_clock::now();
-    hash_total = 0;
-    hash_sec = 0;
-    job_step = parallel;
-    doingJob = true;
-    memcpy(job_header, header, 76);
-    memcpy(job_target, target, SHA256_HASH_SIZE);
-    pthread_mutex_unlock(&_mtx);
-    pthread_attr_t attr;
-    pthread_attr_init (&attr);
-    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_JOINABLE);
-    for(uint32_t i = 0; i < parallel; i++) {
-        pthread_create(workers+i, &attr, hasher, (void*)&i);
-    }
-    pthread_attr_destroy (&attr);
-}
-
 bool onload_CpuMiningWorker(JNIEnv *env) {
     m_class = env->FindClass("com/ariasaproject/cmls/worker/CpuMiningWorker");
     if (!m_class) goto failed_section;
@@ -159,6 +128,10 @@ bool onload_CpuMiningWorker(JNIEnv *env) {
     if (!floatClass) goto failed_section;
     floatConstructor = env->GetMethodID(floatClass, "<init>", "(F)V");
     if (!floatConstructor) goto failed_section;
+    stringClass = env->FindClass("java/lang/String");
+    if (!stringClass) goto failed_section;
+    stringConstructor = env->GetMethodID(stringClass, "<init>", "(Ljava/lang/String)V");
+    if (!stringConstructor) goto failed_section;
     
     return true;
 failed_section:
@@ -176,21 +149,76 @@ void onunload_CpuMiningWorker(JNIEnv *) {
 
 JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyteArray t) {
     //speed update
-    jobject speed_calcl = env->NewObject(floatClass, floatConstructor, 0);
-    env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed_calcl);
+    {
+        jobject speed_calcl = env->NewObject(floatClass, floatConstructor, 0.0f);
+        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed_calcl);
+        jobject msg = env->NewObject(stringClass, stringConstructor, "Native Worker: Workers Starting");
+        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, msg);
+    }
     // ....
     job_globalClass = env->NewGlobalRef(o);
     jbyte* header = env->GetByteArrayElements(h, NULL);
     jbyte* target = env->GetByteArrayElements(t, NULL);
-    doJob(step, (char*) header, (char*) target);
+    // ...
+    if (workers) {
+        pthread_mutex_lock(&_mtx);
+        doingJob = false;
+        pthread_mutex_unlock(&_mtx);
+        for (size_t i = 0; i < job_step; i++) {
+            pthread_join(workers[i], nullptr);
+        }
+        delete[] workers;
+        workers = nullptr;
+    }
+    workers = new pthread_t[step];
+    pthread_mutex_lock(&_mtx);
+    saved_time = std::chrono::steady_clock::now();
+    hash_total = 0;
+    hash_sec = 0;
+    job_step = step;
+    doingJob = true;
+    memcpy(job_header, header, 76);
+    memcpy(job_target, target, SHA256_HASH_SIZE);
+    pthread_mutex_unlock(&_mtx);
     env->ReleaseByteArrayElements(t, target, JNI_ABORT);
     env->ReleaseByteArrayElements(h, header, JNI_ABORT);
+    
+    pthread_attr_t attr;
+    pthread_attr_init (&attr);
+    pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_JOINABLE);
+    for(uint32_t i = 0; i < step; i++) {
+        if(pthread_create(workers+i, &attr, hasher, (void*)&i) != 0)
+            return false;
+    }
+    pthread_attr_destroy (&attr);
+    {
+        jobject msg = env->NewObject(stringClass, stringConstructor, "Native Worker: Workers Started");
+        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, msg);
+    }
+    //...
     return true;
 }
 JNIF(void, nativeStop) (JNIEnv *env, jobject) {
-    stopJob();
+    {
+        jobject msg = env->NewObject(stringClass, stringConstructor, "Native Worker: Workers Stopping");
+        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, msg);
+    }
+    if (workers) {
+        pthread_mutex_lock(&_mtx);
+        doingJob = false;
+        pthread_mutex_unlock(&_mtx);
+        for (size_t i = 0; i < job_step; i++) {
+            pthread_join(workers[i], nullptr);
+        }
+        delete[] workers;
+        workers = nullptr;
+    }
     env->DeleteGlobalRef(job_globalClass);
     job_globalClass = NULL;
+    {
+        jobject msg = env->NewObject(stringClass, stringConstructor, "Native Worker: Workers Stopped");
+        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, msg);
+    }
 }
 JNIF(jint, getHashesTotal) (JNIEnv *, jobject) {
     return hash_total;

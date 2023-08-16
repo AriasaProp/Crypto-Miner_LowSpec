@@ -24,7 +24,6 @@ public class CpuMiningWorker implements IMiningWorker {
     MiningWork mw;
     @Override
     public synchronized boolean doWork(MiningWork i_work) {
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Starting");
         mw = i_work; 
         nativeJob(_number_of_thread, i_work.header.refHex(), i_work.target.refHex());
         return true;
@@ -34,10 +33,8 @@ public class CpuMiningWorker implements IMiningWorker {
     
     @Override
     public synchronized void stopWork() {
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopping");
         nativeStop();
         System.gc();
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Worker Stopped");
     }
 
     @Override
@@ -55,11 +52,12 @@ public class CpuMiningWorker implements IMiningWorker {
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
 
     @Keep
-    private synchronized void msl_sendMessage(int a, int b, int c, Object d) {
+    private void msl_sendMessage(int a, int b, int c, Object d) {
         MSL.sendMessage(a, b, c, d);
     }
+    
     @Keep
-    private synchronized void invokeNonceFound(int n) {
+    private void invokeNonceFound(int n) {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + n + ". Now, wait new job");
         for (IWorkerEvent i : _as_listener) i.onNonceFound(mw, n);
     }
