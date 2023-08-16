@@ -198,7 +198,7 @@ JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyt
     //...
     return true;
 }
-JNIF(void, nativeStop) (JNIEnv *env, jobject) {
+JNIF(void, nativeStop) (JNIEnv *env, jobject o) {
     {
         jobject msg = env->NewObject(stringClass, stringConstructor, "Native Worker: Workers Stopping");
         env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, msg);
