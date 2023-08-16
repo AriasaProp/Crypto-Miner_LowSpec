@@ -25,8 +25,7 @@ public class CpuMiningWorker implements IMiningWorker {
     @Override
     public synchronized boolean doWork(MiningWork i_work) {
         mw = i_work; 
-        nativeJob(_number_of_thread, i_work.header.refHex(), i_work.target.refHex());
-        return true;
+        return nativeJob(_number_of_thread, i_work.header.refHex(), i_work.target.refHex());
     }
     private native boolean nativeJob(int step, byte[] head, byte[] target);
     private native void nativeStop();
@@ -50,10 +49,14 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
-
+    
     @Keep
-    private void msl_sendMessage(int a, int b, int c, Object d) {
-        MSL.sendMessage(a, b, c, d);
+    private void updateSpeed(float f) {
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, new Float(f));
+    }
+    @Keep
+    private void updateConsole(String s) {
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, s);
     }
     
     @Keep

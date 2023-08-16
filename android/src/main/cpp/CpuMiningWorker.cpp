@@ -31,13 +31,9 @@ static JavaVMAttachArgs attachArgs {
     .group = NULL
 };
 
-static jclass m_class;
-static jclass floatClass;
-static jclass stringClass;
 static jmethodID invokeNonce;
-static jmethodID msl_sendMessage;
-static jmethodID floatConstructor;
-static jmethodID stringConstructor;
+static jmethodID updateSpeed;
+static jmethodID updateConsole;
 
 static bool doingJob = false;
 
@@ -59,6 +55,28 @@ static inline bool checkWithGuard(bool *check) {
 static unsigned long hash_total;
 static unsigned long hash_sec;
 static std::chrono::steady_clock::time_point saved_time;
+
+static pthread_t *workers = nullptr;
+
+bool onload_CpuMiningWorker(JNIEnv *env) {
+    jclass m_class = env->FindClass("com/ariasaproject/cmls/worker/CpuMiningWorker");
+    if (!m_class) goto failed_section;
+    invokeNonce = env->GetMethodID(m_class, "invokeNonceFound", "(I)V");
+    if (!invokeNonce) goto failed_section;
+    updateSpeed = env->GetMethodID(m_class, "updateSpeed", "(F)V");
+    if (!updateSpeed) goto failed_section;
+    updateConsole = env->GetMethodID(m_class, "updateConsole", "(Ljava/lang/String;)V");
+    if (!updateConsole) goto failed_section;
+    
+    return true;
+failed_section:
+    return false;
+}
+void onunload_CpuMiningWorker(JNIEnv *) {
+    invokeNonce = NULL;
+    updateSpeed = NULL;
+    updateConsole = NULL;
+}
 
 static void *hasher(void *param) {
     uint32_t nonce = *((uint32_t*)param);
@@ -97,8 +115,7 @@ static void *hasher(void *param) {
             JNIEnv *env;
             if (global_jvm->AttachCurrentThread(&env, &attachArgs) == JNI_OK) {
                 float speed = (float)hash_sec / timed;
-                jobject speed_calcl = env->NewObject(floatClass, floatConstructor, speed);
-                env->CallVoidMethod(job_globalClass, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed_calcl);
+                env->CallVoidMethod(job_globalClass, updateSpeed, speed);
                 global_jvm->DetachCurrentThread();
             }
             hash_sec = 0;
@@ -115,62 +132,26 @@ static void *hasher(void *param) {
     pthread_exit(nullptr);
 }
 
-static pthread_t *workers = nullptr;
-
-bool onload_CpuMiningWorker(JNIEnv *env) {
-    m_class = env->FindClass("com/ariasaproject/cmls/worker/CpuMiningWorker");
-    if (!m_class) goto failed_section;
-    invokeNonce = env->GetMethodID(m_class, "invokeNonceFound", "(I)V");
-    if (!invokeNonce) goto failed_section;
-    msl_sendMessage = env->GetMethodID(m_class, "msl_sendMessage", "(IIILjava/lang/Object;)V");
-    if (!msl_sendMessage) goto failed_section;
-    floatClass = env->FindClass("java/lang/Float");
-    if (!floatClass) goto failed_section;
-    floatConstructor = env->GetMethodID(floatClass, "<init>", "(F)V");
-    if (!floatConstructor) goto failed_section;
-    stringClass = env->FindClass("java/lang/String");
-    if (!stringClass) goto failed_section;
-    stringConstructor = env->GetMethodID(stringClass, "<init>", "(Ljava/lang/String;)V");
-    if (!stringConstructor) goto failed_section;
-    
-    return true;
-failed_section:
-    return false;
-}
-void onunload_CpuMiningWorker(JNIEnv *) {
-    m_class = NULL;
-    floatClass = NULL;
-    invokeNonce = NULL;
-    msl_sendMessage = NULL;
-    floatConstructor = NULL;
-}
-
 #define JNIF(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_worker_CpuMiningWorker_##M
 
 JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyteArray t) {
     //speed update
-    {
-        jobject speed_calcl = env->NewObject(floatClass, floatConstructor, 0.0f);
-        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_SPEED, 0, speed_calcl);
-        jobject msg = env->NewObject(stringClass, stringConstructor, "Native Worker: Workers Starting");
-        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, msg);
-    }
+    env->CallVoidMethod(o, updateSpeed, 0.0f);
+    env->CallVoidMethod(o, updateConsole, env->NewStringUTF("Native Worker: Workers Starting"));
     // ....
     job_globalClass = env->NewGlobalRef(o);
     jbyte* header = env->GetByteArrayElements(h, NULL);
     jbyte* target = env->GetByteArrayElements(t, NULL);
     // ...
+    pthread_mutex_lock(&_mtx);
     if (workers) {
-        pthread_mutex_lock(&_mtx);
         doingJob = false;
-        pthread_mutex_unlock(&_mtx);
         for (size_t i = 0; i < job_step; i++) {
             pthread_join(workers[i], nullptr);
         }
         delete[] workers;
         workers = nullptr;
     }
-    pthread_mutex_lock(&_mtx);
     saved_time = std::chrono::steady_clock::now();
     hash_total = 0;
     hash_sec = 0;
@@ -191,18 +172,12 @@ JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyt
             return false;
     }
     pthread_attr_destroy (&attr);
-    {
-        jobject msg = env->NewObject(stringClass, stringConstructor, "Native Worker: Workers Started");
-        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, msg);
-    }
+    env->CallVoidMethod(o, updateConsole, env->NewStringUTF("Native Worker: Workers Started"));
     //...
     return true;
 }
 JNIF(void, nativeStop) (JNIEnv *env, jobject o) {
-    {
-        jobject msg = env->NewObject(stringClass, stringConstructor, "Native Worker: Workers Stopping");
-        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, msg);
-    }
+    env->CallVoidMethod(o, updateConsole, env->NewStringUTF("Native Worker: Workers Stopping"));
     if (workers) {
         pthread_mutex_lock(&_mtx);
         doingJob = false;
@@ -215,10 +190,7 @@ JNIF(void, nativeStop) (JNIEnv *env, jobject o) {
     }
     env->DeleteGlobalRef(job_globalClass);
     job_globalClass = NULL;
-    {
-        jobject msg = env->NewObject(stringClass, stringConstructor, "Native Worker: Workers Stopped");
-        env->CallVoidMethod(o, msl_sendMessage, MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, msg);
-    }
+    env->CallVoidMethod(o, updateConsole, env->NewStringUTF("Native Worker: Workers Stopped"));
 }
 JNIF(jint, getHashesTotal) (JNIEnv *, jobject) {
     return hash_total;
