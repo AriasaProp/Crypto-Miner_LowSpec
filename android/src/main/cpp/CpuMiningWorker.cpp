@@ -170,12 +170,11 @@ JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyt
         delete[] workers;
         workers = nullptr;
     }
-    workers = new pthread_t[step];
     pthread_mutex_lock(&_mtx);
     saved_time = std::chrono::steady_clock::now();
     hash_total = 0;
     hash_sec = 0;
-    job_step = step;
+    job_step = static_cast<uint32_t>(step);
     doingJob = true;
     memcpy(job_header, header, 76);
     memcpy(job_target, target, SHA256_HASH_SIZE);
@@ -183,10 +182,11 @@ JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyt
     env->ReleaseByteArrayElements(t, target, JNI_ABORT);
     env->ReleaseByteArrayElements(h, header, JNI_ABORT);
     
+    workers = new pthread_t[job_step];
     pthread_attr_t attr;
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_JOINABLE);
-    for(uint32_t i = 0; i < step; i++) {
+    for(uint32_t i = 0; i < job_step; i++) {
         if(pthread_create(workers+i, &attr, hasher, (void*)&i) != 0)
             return false;
     }
