@@ -10,7 +10,6 @@ import com.ariasaproject.cmls.MiningWork;
 
 import androidx.annotation.Keep;
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CpuMiningWorker implements IMiningWorker {
     private final int _number_of_thread;
