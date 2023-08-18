@@ -42,8 +42,8 @@ static uint8_t job_header[76];
 static uint8_t job_target[SHA256_HASH_SIZE];
 
 static pthread_mutex_t _mtx = PTHREAD_MUTEX_INITIALIZER;
-static pthread_cond_t mcond = PTHREAD_COND_INITIALIZER;
 static size_t thread_count = 0;
+static pthread_cond_t _cond = PTHREAD_COND_INITIALIZER;
 static unsigned long hash_total;
 static unsigned long hash_sec;
 static std::chrono::steady_clock::time_point saved_time;
@@ -122,7 +122,7 @@ static void *hasher(void *param) {
 end_section:
     pthread_mutex_lock(&_mtx);
     thread_count--;
-    pthread_cond_broadcast(&mcond);
+    pthread_cond_broadcast(&_cond);
     pthread_mutex_unlock(&_mtx);
     pthread_exit(nullptr);
 }
@@ -130,14 +130,12 @@ end_section:
 #define JNIF(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_worker_CpuMiningWorker_##M
 
 JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyteArray t) {
-    jbyte* header = env->GetByteArrayElements(h, NULL);
-    jbyte* target = env->GetByteArrayElements(t, NULL);
-    // ...
+    // try stopping old job
     if (job_step && workers) {
         pthread_mutex_lock(&_mtx);
         doingJob = false;
         while (thread_count > 0) {
-            pthread_cond_wait(&mcond, &_mtx);
+            pthread_cond_wait(&_cond, &_mtx);
         }
         pthread_mutex_unlock(&_mtx);
         job_step = 0;
@@ -147,44 +145,51 @@ JNIF(jboolean, nativeJob) (JNIEnv *env, jobject o, jint step, jbyteArray h, jbyt
         job_globalClass = NULL;
     }
     job_globalClass = env->NewGlobalRef(o);
-    //speed update
+    //speed update start from 0
     env->CallVoidMethod(o, updateSpeed, 0.0f);
     env->CallVoidMethod(o, updateConsole, env->NewStringUTF("Native Worker: Workers Starting"));
-    // ....
-    pthread_mutex_lock(&_mtx);
+    // none of thread workers is running
+    // set constant data each job
     saved_time = std::chrono::steady_clock::now();
     hash_total = 0;
     hash_sec = 0;
     job_step = static_cast<uint32_t>(step);
     doingJob = true;
+    
+    // copy java memory to native memory
+    jbyte* header = env->GetByteArrayElements(h, NULL);
+    jbyte* target = env->GetByteArrayElements(t, NULL);
     memcpy(job_header, header, 76);
     memcpy(job_target, target, SHA256_HASH_SIZE);
-    pthread_mutex_unlock(&_mtx);
     env->ReleaseByteArrayElements(t, target, JNI_ABORT);
     env->ReleaseByteArrayElements(h, header, JNI_ABORT);
     
+    //made some thread worker
     workers = new pthread_t[job_step];
     pthread_attr_t attr;
     pthread_attr_init (&attr);
     pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-    //pthread_attr_setschedparam(pthread_attr_t *attr,  const struct sched_param *param);
-    //pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize);
+    //pthread_attr_setschedparam(&attr,  const struct sched_param *param);
+    //pthread_attr_setstacksize(&attr, 1024); //1 MB?
+    bool result = true;
     for(uint32_t i = 0; i < job_step; i++) {
-        if(pthread_create(workers+i, &attr, hasher, (void*)&i) != 0)
-            return false;
+        if(pthread_create(workers+i, &attr, hasher, (void*)&i) != 0) {
+            result = false;
+            break;
+        }
     }
     pthread_attr_destroy (&attr);
     env->CallVoidMethod(o, updateConsole, env->NewStringUTF("Native Worker: Workers Started"));
-    //...
-    return true;
+    return result;
 }
 JNIF(void, nativeStop) (JNIEnv *env, jobject o) {
+    // completly stop the job
     env->CallVoidMethod(o, updateConsole, env->NewStringUTF("Native Worker: Workers Stopping"));
     if (job_step && workers) {
         pthread_mutex_lock(&_mtx);
         doingJob = false;
         while (thread_count > 0) {
-            pthread_cond_wait(&mcond, &_mtx);
+            pthread_cond_wait(&_cond, &_mtx);
         }
         pthread_mutex_unlock(&_mtx);
         job_step = 0;
