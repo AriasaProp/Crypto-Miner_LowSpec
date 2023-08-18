@@ -16,8 +16,8 @@ android {
         applicationId 'com.ariasaproject.cmls'
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 1
-        versionName 'v0.0.1 beta native'
+        versionCode 2
+        versionName 'v0.0.1'
         signingConfig signingConfigs.mainSign
         multiDexEnabled true
         proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
