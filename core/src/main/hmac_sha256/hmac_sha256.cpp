@@ -17,7 +17,7 @@ static void *sha256 (const void *data, const size_t datalen, void *out, const si
   Sha256Finalise (&ctx, H);
 
   sz = (outlen > SHA256_HASH_SIZE) ? SHA256_HASH_SIZE : outlen;
-  return memcpy(out, H, sz);
+  return memcpy (out, H, sz);
 }
 
 // Concatenate X & Y, return hash.
@@ -27,7 +27,7 @@ static void *H (const void *x, const size_t xlen, const void *y, const size_t yl
 
   memcpy (buf, x, xlen);
   memcpy (buf + xlen, y, ylen);
-  void *result = sha256(buf, buflen, out, outlen);
+  void *result = sha256 (buf, buflen, out, outlen);
 
   delete[] buf;
   return result;
@@ -65,4 +65,3 @@ size_t hmac_sha256 (const void *key, const size_t keylen, const void *data, cons
   memcpy (out, ohash, sz);
   return sz;
 }
-

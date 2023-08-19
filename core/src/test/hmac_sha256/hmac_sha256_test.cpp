@@ -128,7 +128,7 @@ bool hmac_sha256_test2 () {
   // Allocate memory for the HMAC
   uint8_t out[SHA256_HASH_SIZE];
   // Call hmac-sha256 function
-  hmac_sha256 (str_key, strlen(str_key), str_data, strlen(str_data), out, SHA256_HASH_SIZE);
+  hmac_sha256 (str_key, strlen (str_key), str_data, strlen (str_data), out, SHA256_HASH_SIZE);
   // Convert `out` to string with std::hex
   for (uint8_t x : out) {
     ss_result << std::hex << std::setfill ('0') << std::setw (2) << (int)x;
