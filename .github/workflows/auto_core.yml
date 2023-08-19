@@ -23,12 +23,12 @@ jobs:
           git add .
           git commit -m "reformating cpp"
           git push
-      - name: Gradle Test
+      - name: Gradle Instal
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.1.1
-        run: |
-          gradle :core:test > test_out.txt
+      - name: Gradle Test
+        run: gradle :core:test > test_out.txt
       - name: Publish Test
         uses: actions/upload-artifact@v3.1.2
         with:
