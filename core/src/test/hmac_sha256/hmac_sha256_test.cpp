@@ -110,14 +110,14 @@ bool hmac_sha256_test1 () {
         }
         */
         for (uint8_t i : out) {
-            ss << std::hex << std::setfill ('0') << std::setw (2) << i;
+            ss << std::hex << std::setfill ('0') << std::setw (2) << (int)i;
         }
         
-        std::cout << "Key: " << key << std::endl;
-        std::cout << "Data: " << data << std::endl;
-        std::cout << "HMAC Result: " << ss.str () << std::endl;
         
         if (strcmp(expected, ss.str().c_str()) != 0) {
+            std::cout << "Key: " << key << std::endl;
+            std::cout << "Data: " << data << std::endl;
+            std::cout << "HMAC Result: " << ss.str () << std::endl;
             std::cout << "*** TEST FAILED ***: \n\t" << ss.str () << " != \n\t" << expected << std::endl;
             return false;
         } else {
