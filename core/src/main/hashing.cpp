@@ -159,13 +159,7 @@ void hashing::hash(uint8_t* header, uint32_t nonce) {
       B[83] = i + 1;
       Sha256Update(&context, B, 84);
       Sha256Finalise(&context, H);
-      
       memcpy(X+(i*8), H, 32);
-      /*
-      for (j = 0; j < 8; j++) {
-          X[i * 8 + j] = H[j * 4] | ((H[j * 4 + 1] & 0xFF) << 8) | ((H[j * 4 + 2] & 0xFF) << 16) | ((H[j * 4 + 3] & 0xFF) << 24);
-      }
-      */
   }
 
   for (i = 0; i < 32768; i += 32) {
@@ -202,14 +196,7 @@ void hashN(uint8_t* header, uint8_t H[SHA256_HASH_SIZE]) {
         B[83] = i + 1;
         Sha256Update(&context, B, 84);
         Sha256Finalise(&context, H);
-        
         memcpy(X+(i*8), H, 32);
-        
-        /*
-        for (j = 0; j < 8; j++) {
-            X[i * 8 + j] = H[j * 4] | (H[j * 4 + 1] << 8) | (H[j * 4 + 2] << 16) | (H[j * 4 + 3] << 24);
-        }
-        */
     }
 
     for (i = 0; i < 32768; i += 32) {
