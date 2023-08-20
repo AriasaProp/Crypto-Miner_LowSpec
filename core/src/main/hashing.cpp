@@ -1,6 +1,5 @@
 #include "hashing.hpp"
 #include <cstring>
-#include <netinet/in.h>
 
 #define _rotl(value, bits) (((value) >> (bits)) | ((value) << (32 - (bits))))
 
@@ -143,14 +142,7 @@ void hashing::xorSalsa8() {
 }
 void hashing::hash(uint8_t* header, uint32_t nonce) {
   memcpy(B, header, 76);
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-  // Sistem menggunakan big-endian
   memcpy(B + 76, &nonce, 4);
-#else
-  // Sistem menggunakan little-endian atau tidak terdefinisi
-  uint32_t hnonce = htonl(nonce);
-  memcpy(B + 76, &hnonce, 4);
-#endif
    
   Sha256Initialise(&context);
   memset(B+80, 0, 3);
