@@ -95,7 +95,7 @@ public class MiningUnitTest {
                             }));
         }
         es.invokeAll(calls);
-        if (fn.get()) System.out.println(String.formar("Result Nonce: %d", nc.get()));
+        if (fn.get()) System.out.println(String.format("Result Nonce: %d", nc.get()));
         else System.out.println("Failed to Find Nonce! :-(");
         System.out.println("Hashing Test Ended!");
     }
