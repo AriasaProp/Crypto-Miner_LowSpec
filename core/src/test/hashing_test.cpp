@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 
 static inline void hexToBiner(const char *hex, void *out, size_t len_byte) {
     for (size_t i = 0; i < len_byte; i++) {
