@@ -162,9 +162,9 @@ bool hmac_sha256_test () {
         }};
     std::stringstream ss;
     for (const dat &d : test_data) {
-        const char *&key = d.key;
-        const char *&data = d.data;
-        const char *&expected = d.expected;
+        const char *key = d.key;
+        const char *data = d.data;
+        const char *expected = d.expected;
         size_t ex_len = strlen(expected);
         uint8_t out[ex_len / 2];
         hmac_sha256 (key, strlen(key), data, strlen(data), out, ex_len / 2);

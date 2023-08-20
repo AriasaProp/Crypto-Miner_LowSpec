@@ -1,7 +1,7 @@
 #ifndef HASHING_H_
 #define HASHING_H_
 
-#include "hmac_sha256/sha256.hpp"
+#include "sha256.hpp"
 
 struct hashing {
 private:
