@@ -1,4 +1,4 @@
-#include <hmac_sha256/hmac_sha256.hpp>
+#include <sha256.hpp>
 
 #include <cassert>
 #include <iomanip>
@@ -6,16 +6,84 @@
 #include <sstream>
 #include <string>
 #include <cstring>
-#include <tuple>
-#include <vector>
+#include <cstdlib>
+#include <stddef.h>
 
 // 256 bit, 32 byte
 #define SHA256_HASH_SIZE 32
+// 512 bit, 64 byte
+#define SHA256_BLOCK_SIZE 64
 
-bool hmac_sha256_test1 () {
-    std::cout << "Test Start" << std::endl;
-    // Test vectors from RFC4231, https://tools.ietf.org/html/rfc4231#section-4
-    const std::vector<std::tuple<const char*, const char*, const char*>> test_vectors = {
+//HMac test
+
+// Wrapper for sha256
+static void *sha256 (const void *data, const size_t datalen, void *out, const size_t outlen) {
+  size_t sz;
+  uint8_t H[SHA256_HASH_SIZE];
+  Sha256Context ctx;
+
+  Sha256Initialise (&ctx);
+  Sha256Update (&ctx, data, datalen);
+  Sha256Finalise (&ctx, H);
+
+  sz = (outlen > SHA256_HASH_SIZE) ? SHA256_HASH_SIZE : outlen;
+  return memcpy (out, H, sz);
+}
+
+// Concatenate X & Y, return hash.
+static void *H (const void *x, const size_t xlen, const void *y, const size_t ylen, void *out, const size_t outlen) {
+  size_t buflen = (xlen + ylen);
+  uint8_t *buf = new uint8_t[buflen];
+
+  memcpy (buf, x, xlen);
+  memcpy (buf + xlen, y, ylen);
+  void *result = sha256 (buf, buflen, out, outlen);
+
+  delete[] buf;
+  return result;
+}
+
+// Declared in hmac_sha256.h
+static size_t hmac_sha256 (const void *key, const size_t keylen, const void *data, const size_t datalen, void *out, const size_t outlen) {
+  uint8_t k[SHA256_BLOCK_SIZE];
+  uint8_t k_ipad[SHA256_BLOCK_SIZE];
+  uint8_t k_opad[SHA256_BLOCK_SIZE];
+  uint8_t ihash[SHA256_HASH_SIZE];
+  uint8_t ohash[SHA256_HASH_SIZE];
+  size_t sz;
+  int i;
+
+  memset (k, 0, sizeof (k));
+  memset (k_ipad, 0x36, SHA256_BLOCK_SIZE);
+  memset (k_opad, 0x5c, SHA256_BLOCK_SIZE);
+
+  if (keylen > SHA256_BLOCK_SIZE) {
+    sha256 (key, keylen, k, sizeof (k));
+  } else {
+    memcpy (k, key, keylen);
+  }
+
+  for (i = 0; i < SHA256_BLOCK_SIZE; i++) {
+    k_ipad[i] ^= k[i];
+    k_opad[i] ^= k[i];
+  }
+
+  H (k_ipad, sizeof (k_ipad), data, datalen, ihash, sizeof (ihash));
+  H (k_opad, sizeof (k_opad), ihash, sizeof (ihash), ohash, sizeof (ohash));
+
+  sz = (outlen > SHA256_HASH_SIZE) ? SHA256_HASH_SIZE : outlen;
+  memcpy (out, ohash, sz);
+  return sz;
+}
+
+bool hmac_sha256_test () {
+    std::cout << "HMac SHA256 Test Start" << std::endl;
+    // Test Data from RFC4231, https://tools.ietf.org/html/rfc4231#section-4
+    const struct dat {
+        const char *key;
+        const char *data;
+        const char *expected;
+    } test_data[] = {
         // Key      Data      HMAC
         {
             "super-secret-key",
@@ -93,11 +161,10 @@ bool hmac_sha256_test1 () {
             "9b09ffa71b942fcb27635fbcd5b0e944bfdc63644f0713938a7f51535c3a35e2",
         }};
     std::stringstream ss;
-    const char *key, *data, *expected;
-    for (auto tvec : test_vectors) {
-        key = std::get<0> (tvec);
-        data = std::get<1> (tvec);
-        expected = std::get<2> (tvec);
+    for (const dat &d : test_data) {
+        const char *&key = d.key;
+        const char *&data = d.data;
+        const char *&expected = d.expected;
         size_t ex_len = strlen(expected);
         uint8_t out[ex_len / 2];
         hmac_sha256 (key, strlen(key), data, strlen(data), out, ex_len / 2);
@@ -113,48 +180,17 @@ bool hmac_sha256_test1 () {
             ss << std::hex << std::setfill ('0') << std::setw (2) << (int)i;
         }
         
-        
         if (strcmp(expected, ss.str().c_str()) != 0) {
             std::cout << "Key: " << key << std::endl;
             std::cout << "Data: " << data << std::endl;
             std::cout << "HMAC Result: " << ss.str () << std::endl;
-            std::cout << "*** TEST FAILED ***: \n\t" << ss.str () << " != \n\t" << expected << std::endl;
+            std::cout << "*** TEST FAILED ***: \n\t Result that expected is \n\t" << expected << std::endl;
+            std::cout << "HMac SHA256 Test Ended" << std::endl;
             return false;
-        } else {
-            std::cout << "*** TEST SUCCESS ***" << std::endl;
         }
         ss.str("");
     }
-    std::cout << "Test Ended" << std::endl;
+    std::cout << "*** TEST SUCCESS ***" << std::endl;
+    std::cout << "HMac SHA256 Test Ended" << std::endl;
     return true;
-}
-/*
-bool hmac_sha256_test2 () {
-    const char *const expectedHex = "4b393abced1c497f8048860ba1ede46a23f1ff5209b18e9c428bddfbb690aad8";
-    const char *str_data = "Hello World!";
-    const char *str_key = "super-secret-key";
-    std::stringstream ss_result;
-    // Allocate memory for the HMAC
-    uint8_t out[SHA256_HASH_SIZE];
-    // Call hmac-sha256 function
-    hmac_sha256 (str_key, strlen (str_key), str_data, strlen (str_data), out, SHA256_HASH_SIZE);
-    // Convert `out` to string with std::hex
-    for (uint8_t x : out) {
-        ss_result << std::hex << std::setfill ('0') << std::setw (2) << x;
-    }
-    // Print out the result
-    std::cout << "Key: " << str_key << std::endl;
-    std::cout << "Data: " << str_data << std::endl;
-    std::cout << "HMAC: " << ss_result.str () << std::endl;
-  
-    return strcmp(ss_result.str().c_str(), expectedHex) == 0;
-}
-*/
-bool hmac_sha256_test () {
-  if (!hmac_sha256_test1 ()) goto failed_state;
-  //if (!hmac_sha256_test2 ()) goto failed_state;
-  
-  return true;
-failed_state:
-  return false;
 }
