@@ -75,7 +75,7 @@ public class MiningUnitTest {
         //prepare header and target
         final byte[] header = w.header.refHex(), target = w.target.refHex();
         AtomicBoolean fn = new AtomicBoolean(true);
-        AtomicInteger n = new AtomicInteger(-1);
+        AtomicInteger nc = new AtomicInteger(-1);
         //execute finding nonce
         ExecutorService es = Executors.newFixedThreadPool(MaxThreadTest);
         List<Callable<Object>> calls = new ArrayList<Callable<Object>>(MaxThreadTest);
@@ -88,14 +88,14 @@ public class MiningUnitTest {
                                 for (int nonce = b; (nonce >= b) && fn.get(); nonce += MaxThreadTest) {
                                     if(Constants.nativeHashing(h, header, nonce, target)) {
                                         fn.set(false);
-                                        n.set(nonce);
+                                        nc.set(nonce);
                                     }
                                 }
                                 Constants.destroyHasher(h);
                             }));
         }
         es.invokeAll(calls);
-        if (fn.get()) System.out.println(String.formar("Result Nonce: %d", n.get()));
+        if (fn.get()) System.out.println(String.formar("Result Nonce: %d", nc.get()));
         else System.out.println("Failed to Find Nonce! :-(");
         System.out.println("Hashing Test Ended!");
     }
