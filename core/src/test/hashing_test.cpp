@@ -31,7 +31,7 @@ bool hashing_test() {
         hexToBiner(d.nonce, &nonce, 4);
         hexToBiner(d.result, expected, SHA256_HASH_SIZE);
         hp.hash(header, nonce);
-        if (memcmp(hp.H, expected) == 0) {
+        if (memcmp(hp.H, expected, SHA256_HASH_SIZE) == 0) {
             std::cout << "*** TEST SUCCESS ***" << std::endl;
         } else {
             std::cout << "*** TEST FAILED ***" << std::endl;
