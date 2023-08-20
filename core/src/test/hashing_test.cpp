@@ -41,7 +41,6 @@ bool hashing_test() {
                 std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(expected[i]);
             }
             std::cout << std::endl;
-            std::cout << "Expected Before pressed: " << d.expected << std::endl;
             std::cout << "*** TEST FAILED ***" << std::endl;
         }
     }
