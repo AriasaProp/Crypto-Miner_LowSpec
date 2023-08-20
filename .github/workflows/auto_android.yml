@@ -63,5 +63,5 @@ jobs:
       if:  ${{ inputs.job_type == 'test' }}
       uses: actions/upload-artifact@v3.1.2
       with:
-        name: buildAPK
+        name: AndroidTest
         path: ${{ github.workspace }}/android_test.txt

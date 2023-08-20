@@ -21,15 +21,6 @@ JNIF (jbyteArray, hash)
   env->SetByteArrayRegion (result, 0, SHA256_HASH_SIZE, reinterpret_cast<const jbyte *> (ret));
   return result;
 }
-JNIF (jbyteArray, hash2)
-(JNIEnv *env, jclass, jbyteArray head) {
-  jbyte *header = env->GetByteArrayElements (head, NULL);
-  hashN ((uint8_t *)header, ret);
-  env->ReleaseByteArrayElements (head, header, JNI_ABORT);
-  jbyteArray result = env->NewByteArray (SHA256_HASH_SIZE);
-  env->SetByteArrayRegion (result, 0, SHA256_HASH_SIZE, reinterpret_cast<const jbyte *> (ret));
-  return result;
-}
 JNIF (jlong, initHasher)
 (JNIEnv *, jclass) {
   return (jlong)(new hashing);

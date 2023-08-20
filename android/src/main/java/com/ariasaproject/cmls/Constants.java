@@ -48,8 +48,6 @@ public class Constants {
     // native hasher
     public static native byte[] hash(byte[] header);
 
-    public static native byte[] hash2(byte[] header);
-
     public static native long initHasher();
 
     public static native boolean nativeHashing(long o, byte[] header, int nonce, byte[] target);
