@@ -1,5 +1,6 @@
 #include <hashing.hpp>
 #include <iostream>
+#include <iomanip>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
