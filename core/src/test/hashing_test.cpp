@@ -23,17 +23,21 @@ bool hashing_test() {
     };
     uint8_t header[80];
     uint8_t expected[SHA256_HASH_SIZE];
-    uint8_t H[SHA256_HASH_SIZE];
+    uint32_t nonce;
+    //uint8_t H[SHA256_HASH_SIZE];
+    hashing hp;
     for(const dat &d : test_data) {
         hexToBiner(d.header, header, 80);
         hexToBiner(d.expected, expected, SHA256_HASH_SIZE);
-        hashN(header, H);
-        if (memcmp(H, expected, SHA256_HASH_SIZE) == 0) {
+        memcpy(&nonce, header+76, 4);
+        hp.hash(header, nonce);
+        //hashN(header, H);
+        if (memcmp(hp.H, expected, SHA256_HASH_SIZE) == 0) {
             std::cout << "*** TEST SUCCESS ***" << std::endl;
         } else {
             std::cout << "Result: ";
             for (int i = 0; i < SHA256_HASH_SIZE; i++) {
-                std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(H[i]);
+                std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(hp.H[i]);
             }
             std::cout << std::endl;
             std::cout << "Expected: ";
