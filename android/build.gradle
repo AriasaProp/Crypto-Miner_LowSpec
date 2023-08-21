@@ -30,6 +30,11 @@ android {
             testCoverageEnabled true
         }
     }
+    testOptions.unitTests.all {
+        testLogging {
+            events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+        }
+    }
     externalNativeBuild {
         cmake {
             path 'src/main/cpp/CMakeLists.txt'

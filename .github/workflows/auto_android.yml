@@ -56,5 +56,8 @@ jobs:
       uses: actions/upload-artifact@v3.1.2
       with:
         name: Output
-        path: ${{ github.workspace }}/android/build
+        path: |
+          ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk
+          ${{ github.workspace }}/android/build/reports
+          
 
