@@ -27,6 +27,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
+            testCoverageEnabled true
         }
     }
     externalNativeBuild {
@@ -54,12 +55,4 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.8.5'
     
     testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-}
-
-jacocoTestReport{
-    reports {
-            xml.enabled false
-            csv.enabled false
-            html.destination '${buildDir}/jacocoHtml'
-    }
 }
