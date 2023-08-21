@@ -32,7 +32,12 @@ android {
     }
     testOptions.unitTests.all {
         testLogging {
-            events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+            // Mengaktifkan output ke konsol selama eksekusi tes
+            events "passed", "skipped", "failed", "standardOut", "standardError"
+            // Menampilkan keluaran dari tes dalam konsol
+            showStandardStreams = true
+            // Konfigurasi level log yang ingin Anda tampilkan
+            exceptionFormat = 'full'
         }
     }
     externalNativeBuild {
