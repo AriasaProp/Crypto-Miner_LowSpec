@@ -140,6 +140,35 @@ void hashing::xorSalsa8 () {
   X[30] += xs[14];
   X[31] += xs[15];
 }
+void hashing::hash (uint8_t *header) {
+  memcpy (B, header, 80);
+  Sha256Initialise (&context);
+  memset (B + 80, 0, 3);
+
+  for (i = 0; i < 4; i++) {
+    B[83] = i + 1;
+    Sha256Update (&context, B, 84);
+    Sha256Finalise (&context, H);
+    memcpy (X + (i * 8), H, 32);
+  }
+
+  for (i = 0; i < 32768; i += 32) {
+    memcpy (V + i, X, 32);
+    xorSalsa8 ();
+  }
+
+  for (i = 0; i < 1024; i++) {
+    k = (X[16] & 0x3ff) << 5;
+    for (j = 0; j < 32; j++) {
+      X[j] ^= V[k + j];
+    }
+    xorSalsa8 ();
+  }
+  memcpy (B, X, 128);
+  B[131] = 1;
+  Sha256Update (&context, B, 132);
+  Sha256Finalise (&context, H);
+}
 void hashing::hash (uint8_t *header, uint32_t nonce) {
   memcpy (B, header, 76);
   memcpy (B + 76, &nonce, 4);
