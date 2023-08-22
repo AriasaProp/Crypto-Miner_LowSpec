@@ -28,8 +28,8 @@ const char *read_file (const char *path) {
   return (const char *)buffer;
 }
 
-bool json_test () {
-  const char *json = read_file ("reddit.json");
+bool json_test() {
+  const char *json = read_file("obj/test/reddit.json");
   if (json == NULL) {
     printf ("Can not find the file");
     return false;
