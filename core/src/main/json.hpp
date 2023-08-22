@@ -13,7 +13,6 @@ namespace json {
 
 class invalid_key : public std::exception {
 public:
-
   const std::string key;
 
   inline invalid_key (const std::string &key) : key (key) {}
@@ -27,7 +26,6 @@ public:
 
 class parsing_error : public std::invalid_argument {
 public:
-
   inline parsing_error (const char *message) : std::invalid_argument (message) {}
 
   inline virtual ~parsing_error () throw () {}
@@ -38,26 +36,26 @@ typedef std::vector<std::string> key_list_t;
 namespace jtype {
 
   enum jtype {
-    jstring,  
-    jnumber,  
-    jobject,  
-    jarray,   
-    jbool,    
-    jnull,    
-    not_valid 
+    jstring,
+    jnumber,
+    jobject,
+    jarray,
+    jbool,
+    jnull,
+    not_valid
   };
 
   jtype peek (const char input);
 
   jtype detect (const char *input);
-} 
+} // namespace jtype
 
 class reader : protected std::string {
 public:
   enum push_result {
-    ACCEPTED,  
-    REJECTED,  
-    WHITESPACE 
+    ACCEPTED,
+    REJECTED,
+    WHITESPACE
   };
 
   inline reader () : std::string (), sub_reader (NULL) { this->clear (); }
@@ -89,7 +87,6 @@ public:
   inline virtual ~reader () { this->clear (); }
 
 protected:
-
   reader *sub_reader;
 
   push_result push_string (const char next);
@@ -115,53 +112,51 @@ protected:
   }
 
   enum string_reader_enum {
-    STRING_EMPTY = 0,        
-    STRING_OPENING_QUOTE,    
-    STRING_OPEN,             
-    STRING_ESCAPED,          
-    STRING_CODE_POINT_START, 
-    STRING_CODE_POINT_1,     
-    STRING_CODE_POINT_2,     
-    STRING_CODE_POINT_3,     
-    STRING_CLOSED            
+    STRING_EMPTY = 0,
+    STRING_OPENING_QUOTE,
+    STRING_OPEN,
+    STRING_ESCAPED,
+    STRING_CODE_POINT_START,
+    STRING_CODE_POINT_1,
+    STRING_CODE_POINT_2,
+    STRING_CODE_POINT_3,
+    STRING_CLOSED
   };
 
   enum number_reader_enum {
-    NUMBER_EMPTY = 0,       
-    NUMBER_OPEN_NEGATIVE,   
-    NUMBER_ZERO,            
-    NUMBER_INTEGER_DIGITS,  
-    NUMBER_DECIMAL,         
-    NUMBER_FRACTION_DIGITS, 
-    NUMBER_EXPONENT,        
-    NUMBER_EXPONENT_SIGN,   
-    NUMBER_EXPONENT_DIGITS  
+    NUMBER_EMPTY = 0,
+    NUMBER_OPEN_NEGATIVE,
+    NUMBER_ZERO,
+    NUMBER_INTEGER_DIGITS,
+    NUMBER_DECIMAL,
+    NUMBER_FRACTION_DIGITS,
+    NUMBER_EXPONENT,
+    NUMBER_EXPONENT_SIGN,
+    NUMBER_EXPONENT_DIGITS
   };
 
   enum array_reader_enum {
-    ARRAY_EMPTY = 0,          
-    ARRAY_OPEN_BRACKET,       
-    ARRAY_READING_VALUE,      
-    ARRAY_AWAITING_NEXT_LINE, 
-    ARRAY_CLOSED              
+    ARRAY_EMPTY = 0,
+    ARRAY_OPEN_BRACKET,
+    ARRAY_READING_VALUE,
+    ARRAY_AWAITING_NEXT_LINE,
+    ARRAY_CLOSED
   };
 
   enum object_reader_enum {
-    OBJECT_EMPTY = 0,          
-    OBJECT_OPEN_BRACE,         
-    OBJECT_READING_ENTRY,      
-    OBJECT_AWAITING_NEXT_LINE, 
-    OBJECT_CLOSED              
+    OBJECT_EMPTY = 0,
+    OBJECT_OPEN_BRACE,
+    OBJECT_READING_ENTRY,
+    OBJECT_AWAITING_NEXT_LINE,
+    OBJECT_CLOSED
   };
 
 private:
-
   char read_state;
 };
 
 class kvp_reader : public reader {
 public:
-
   inline kvp_reader () : reader () {
     this->clear ();
   }
@@ -181,7 +176,6 @@ public:
   virtual std::string readout () const;
 
 private:
-
   reader _key;
 
   bool _colon_read;
@@ -230,19 +224,17 @@ namespace parsing {
   }
 
   std::vector<std::string> parse_array (const char *input);
-} 
+} // namespace parsing
 
 typedef std::pair<std::string, std::string> kvp;
 
 class jobject {
 private:
-
   std::vector<kvp> data;
 
   bool array_flag;
 
 public:
-
   inline jobject (bool array = false)
       : array_flag (array) {}
 
@@ -334,7 +326,6 @@ public:
 
   class entry {
   protected:
-
     virtual const std::string &ref () const = 0;
 
     template <typename T>
@@ -353,7 +344,6 @@ public:
     }
 
   public:
-
     inline std::string as_string () const {
       return json::jtype::peek (*this->ref ().c_str ()) == json::jtype::jstring ? json::parsing::decode_string (this->ref ().c_str ()) : this->ref ();
     }
@@ -451,17 +441,14 @@ public:
 
   class const_value : public entry {
   private:
-
     std::string data;
 
   protected:
-
     inline const std::string &ref () const {
       return this->data;
     }
 
   public:
-
     inline const_value (std::string value)
         : data (value) {}
 
@@ -476,11 +463,9 @@ public:
 
   class const_proxy : public entry {
   private:
-
     const jobject &source;
 
   protected:
-
     const std::string key;
 
     inline const std::string &ref () const {
@@ -490,7 +475,6 @@ public:
     }
 
   public:
-
     const_proxy (const jobject &source, const std::string key) : source (source), key (key) {
       if (source.array_flag) throw std::logic_error ("Source cannot be an array");
     }
@@ -506,11 +490,9 @@ public:
 
   class proxy : public json::jobject::const_proxy {
   private:
-
     jobject &sink;
 
   protected:
-
     template <typename T>
     inline void set_number (const T value, const char *format) {
       this->sink.set (key, json::parsing::get_number_string (value, format));
@@ -528,7 +510,6 @@ public:
     }
 
   public:
-
     proxy (jobject &source, const std::string key)
         : json::jobject::const_proxy (source, key),
           sink (source) {}
@@ -621,6 +602,6 @@ public:
 
   std::string pretty (unsigned int indent_level = 0) const;
 };
-} 
+} // namespace json
 
-#endif 
+#endif
