@@ -1,59 +1,57 @@
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-
 #include "json.hpp"
+#include <cstdio>
+#include <cassert>
 
-const char *read_file (const char *path) {
-  FILE *file = fopen (path, "r");
-  if (file == NULL) {
-    fprintf (stderr, "Expected file \"%s\" not found", path);
-    return NULL;
-  }
-  fseek (file, 0, SEEK_END);
-  long len = ftell (file);
-  fseek (file, 0, SEEK_SET);
-  char *buffer = malloc (len + 1);
+bool json_test() {
+	// Create a couple objects
+    const std::string test = 
+    "["
+    "   {"
+    "       \"firstName\": \"Jimmy\","
+    "       \"lastName\": \"D\","
+    "       \"hobbies\": ["
+    "           {"
+    "               \"sport\": \"tennis\""
+    "           },"
+    "           {"
+    "               \"music\": \"rock\""
+    "           }"
+    "       ]"
+    "   },"
+    "   {"
+    "       \"firstName\": \"Sussi\","
+    "       \"lastName\": \"Q\","
+    "       \"hobbies\": ["
+    "           {"
+    "               \"sport\": \"volleyball\""
+    "           },"
+    "           {"
+    "               \"music\": \"classical\""
+    "           }"
+    "       ]"
+    "   }"
+    "]";
 
-  if (buffer == NULL) {
-    fprintf (stderr, "Unable to allocate memory for file");
-    fclose (file);
-    return NULL;
-  }
+    // Parse the test array
+    json::jobject example = json::jobject::parse(test);
 
-  fread (buffer, 1, len, file);
-  buffer[len] = '\0';
+    // Access the data
+    std::string music_desired = example.array(0).get("hobbies").array(1).get("music").as_string();
 
-  return (const char *)buffer;
-}
+    // Print the data
+    printf("Music desired: %s\n", music_desired.c_str()); // Returns "rock"
 
-bool json_test () {
-  const char *json = read_file ("obj/test/reddit.json");
-  if (json == NULL) {
-    printf ("Can not find the file");
-    return false;
-  }
+    // Check the result
+    assert(music_desired == std::string("rock"));
 
-  clock_t start, end;
-  start = clock ();
-  result (json_element) element_result = json_parse (json);
-  end = clock ();
+    // Access the second entry
+    music_desired = example.array(1).get("hobbies").array(1).get("music").as_string();
 
-  printf ("Time taken %fs\n", (double)(end - start) / (double)CLOCKS_PER_SEC);
+    // Print the data
+    printf("Music desired: %s\n", music_desired.c_str()); // Returns "classical"
 
-  free ((void *)json);
-
-  if (result_is_err (json_element) (&element_result)) {
-    typed (json_error) error = result_unwrap_err (json_element) (&element_result);
-    fprintf (stderr, "Error parsing JSON: %s\n", json_error_to_string (error));
-    return false;
-  }
-  typed (json_element) element = result_unwrap (json_element) (&element_result);
-  typed (json_object) *obj = element.value.as_object;
-
-  // json_print(&element, 2);
-  json_free (&element);
-
-  return true;
+    // Check the result
+    assert(music_desired == std::string("classical"));
+    
+    return true;
 }

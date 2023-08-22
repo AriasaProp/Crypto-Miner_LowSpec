@@ -1,1049 +1,1039 @@
-#include "json.hpp"
+/*! \file json.cpp
+ * \brief Simpleson source file
+ */
 
-#include <cerrno>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
+#include "json.h"
 #include <cstring>
+#include <cassert>
 
-#ifdef JSON_SCRAPE_WHITESPACE
-#define json_scrape_whitespace(arg) json_skip_whitespace (arg)
-#else
-#define json_scrape_whitespace(arg)
-#endif
-
-#ifdef JSON_DEBUG
-#define log(str, ...) printf (str "\n", ##__VA_ARGS__)
-#else
-#define log(str, ...)
-#endif
-
-/**
- * @brief Allocate `count` number of items of `type` in memory
- * and return the pointer to the newly allocated memory
+/*! \brief Checks for an empty string
+ * 
+ * @param str The string to check
+ * @return True if the string is empty, false if the string is not empty
+ * @warning The string must be null-terminated for this macro to work
  */
-#define allocN(type, count) (type *)malloc ((count) * sizeof (type))
+#define EMPTY_STRING(str) (*str == '\0')
 
-/**
- * @brief Allocate an item of `type` in memory and return the
- * pointer to the newly allocated memory
- */
-#define alloc(type) allocN (type, 1)
-
-/**
- * @brief Re-allocate `count` number of items of `type` in memory
- * and return the pointer to the newly allocated memory
- */
-#define reallocN(ptr, type, count) (type *)realloc (ptr, (count) * sizeof (type))
-
-/**
- * @brief Determines whether a character `ch` is whitespace
- */
-#define is_whitespace(ch) (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t')
-
-/**
- * @brief Parses a JSON element {json_element_t} and moves the string
- * pointer to the end of the parsed element
- */
-static result (json_entry) json_parse_entry (const char **);
-
-/**
- * @brief Guesses the element type at the start of a string
- */
-static result (json_element_type) json_guess_element_type (const char *);
-
-/**
- * @brief Whether a token represents a string. Like '"'
- */
-static bool json_is_string (char);
-
-/**
- * @brief Whether a token represents a number. Like '0'
- */
-static bool json_is_number (char);
-
-/**
- * @brief Whether a token represents a object. Like '"'
- */
-static bool json_is_object (char);
-
-/**
- * @brief Whether a token represents a array. Like '['
- */
-static bool json_is_array (char);
-
-/**
- * @brief Whether a token represents a boolean. Like 't'
- */
-static bool json_is_boolean (char);
-
-/**
- * @brief Whether a token represents a null. Like 'n'
- */
-static bool json_is_null (char);
-
-/**
- * @brief Parses a JSON element value {json_element_value_t} based
- * on the `type` parameter passed and moves the string pointer
- * to end of the parsed element
- */
-static result (json_element_value)
-    json_parse_element_value (const char **, typed (json_element_type));
-
-/**
- * @brief Parses a `String` {json_string_t} and moves the string
- * pointer to the end of the parsed string
- */
-static result (json_element_value) json_parse_string (const char **);
-
-/**
- * @brief Parses a `Number` {json_number_t} and moves the string
- * pointer to the end of the parsed number
- */
-static result (json_element_value) json_parse_number (const char **);
-
-/**
- * @brief Parses a `Object` {json_object_t} and moves the string
- * pointer to the end of the parsed object
- */
-static result (json_element_value) json_parse_object (const char **);
-
-static typed (uint64) json_key_hash (const char *);
-
-/**
- * @brief Parses a `Array` {json_array_t} and moves the string
- * pointer to the end of the parsed array
- */
-static result (json_element_value) json_parse_array (const char **);
-
-/**
- * @brief Parses a `Boolean` {json_boolean_t} and moves the string
- * pointer to the end of the parsed boolean
- */
-static result (json_element_value) json_parse_boolean (const char **);
-
-/**
- * @brief Skips a Key-Value pair
+/*! \brief Moves a pointer to the first character that is not white space
  *
- * @return true If a valid entry is skipped
- * @return false If entry was invalid (still skips)
+ * @param str The pointer to move
  */
-static bool json_skip_entry (const char **);
+#define SKIP_WHITE_SPACE(str) { const char *next = json::parsing::tlws(str); str = next; }
 
-/**
- * @brief Skips an element value
+/*! \brief Determines if the end character of serialized JSON is encountered
+ * 
+ * @param obj The JSON object or array that is being written to
+ * @param index The pointer to the character to be checked
+ */
+#define END_CHARACTER_ENCOUNTERED(obj, index) (obj.is_array() ? *index == ']' : *index == '}')
+
+/*! \brief Determines if the supplied character is a digit
  *
- * @return true If a valid element is skipped
- * @return false If element was invalid (still skips)
+ * @param input The character to be tested
  */
-static bool json_skip_element_value (const char **,
-                                     typed (json_element_type));
+#define IS_DIGIT(input) (input >= '0' && input <= '9')
 
-/**
- * @brief Skips a string value
- *
- * @return true If a valid string is skipped
- * @return false If string was invalid (still skips)
- */
-static bool json_skip_string (const char **);
+/*! \brief Format used for integer to string conversion */
+const char * INT_FORMAT = "%i";
 
-/**
- * @brief Skips a number value
- *
- * @return true If a valid number is skipped
- * @return false If number was invalid (still skips)
- */
-static bool json_skip_number (const char **);
+/*! \brief Format used for unsigned integer to string conversion */
+const char * UINT_FORMAT = "%u";
 
-/**
- * @brief Skips an object value
- *
- * @return true If a valid object is skipped
- * @return false If object was invalid (still skips)
- */
-static bool json_skip_object (const char **);
+/*! \brief Format used for long integer to string conversion */
+const char * LONG_FORMAT = "%li";
 
-/**
- * @brief Skips an array value
- *
- * @return true If a valid array is skipped
- * @return false If array was invalid (still skips)
- */
-static bool json_skip_array (const char **);
+/*! \brief Format used for unsigned long integer to string conversion */
+const char * ULONG_FORMAT = "%lu";
 
-/**
- * @brief Skips a boolean value
- *
- * @return true If a valid boolean is skipped
- * @return false If boolean was invalid (still skips)
- */
-static bool json_skip_boolean (const char **);
+/*! \brief Format used for character to string conversion */
+const char * CHAR_FORMAT = "%c";
 
-/**
- * @brief Moves a JSON string pointer beyond any whitespace
- */
-static void json_skip_whitespace (const char **);
+/*! \brief Format used for floating-point number to string conversion */
+const char * FLOAT_FORMAT = "%f";
 
-/**
- * @brief Moves a JSON string pointer beyond `null` literal
- *
- */
-static void json_skip_null (const char **);
+/*! \brief Format used for double floating-opint number to string conversion */
+const char * DOUBLE_FORMAT = "%lf";
 
-/**
- * @brief Prints a JSON element {json_element_t} type
- */
-static void json_print_element (typed (json_element) *, int, int);
-
-/**
- * @brief Prints a `String` {json_string_t} type
- */
-static void json_print_string (const char *);
-
-/**
- * @brief Prints a `Number` {json_number_t} type
- */
-static void json_print_number (typed (json_number));
-
-/**
- * @brief Prints an `Object` {json_object_t} type
- */
-static void json_print_object (typed (json_object) *, int, int);
-
-/**
- * @brief Prints an `Array` {json_array_t} type
- */
-static void json_print_array (typed (json_array) *, int, int);
-
-/**
- * @brief Prints a `Boolean` {json_boolean_t} type
- */
-static void json_print_boolean (bool);
-
-/**
- * @brief Frees a `String` (json_string_t) from memory
- */
-static void json_free_string (const char *);
-
-/**
- * @brief Frees an `Object` (json_object_t) from memory
- */
-static void json_free_object (typed (json_object) *);
-
-/**
- * @brief Frees an `Array` (json_array_t) from memory
- */
-static void json_free_array (typed (json_array) *);
-
-/**
- * @brief Utility function to convert an escaped string to a formatted string
- */
-static result (json_string)
-    json_unescape_string (const char *, typed (size));
-
-/**
- * @brief Offset to the last `"` of a JSON string
- */
-static typed (size) json_string_len (const char *);
-
-/**
- * @brief Debug print some characters from a string
- */
-static void json_debug_print (const char *str, typed (size) len);
-
-result (json_element) json_parse (const char *json_str) {
-  if (json_str == NULL) {
-    return result_err (json_element) (JSON_ERROR_EMPTY);
-  }
-
-  typed (size) len = strlen (json_str);
-  if (len == 0) {
-    return result_err (json_element) (JSON_ERROR_EMPTY);
-  }
-
-  result_try (json_element, json_element_type, type, json_guess_element_type (json_str));
-  result_try (json_element, json_element_value, value, json_parse_element_value (&json_str, type));
-
-  const typed (json_element) element = {
-      .type = type,
-      .value = value,
-  };
-
-  return result_ok (json_element) (element);
+const char* json::parsing::tlws(const char *input)
+{
+    const char *output = input;
+    while(!EMPTY_STRING(output) && std::isspace(*output)) output++;
+    return output;
 }
 
-result (json_entry) json_parse_entry (const char **str_ptr) {
-  result_try (json_entry, json_element_value, key, json_parse_string (str_ptr));
-  json_scrape_whitespace (str_ptr);
-
-  // Skip the ':' delimiter
-  (*str_ptr)++;
-
-  json_scrape_whitespace (str_ptr);
-
-  result (json_element_type) type_result = json_guess_element_type (*str_ptr);
-  if (result_is_err (json_element_type) (&type_result)) {
-    free ((void *)key.as_string);
-    return result_map_err (json_entry, json_element_type, &type_result);
-  }
-  typed (json_element_type) type =
-      result_unwrap (json_element_type) (&type_result);
-
-  result (json_element_value) value_result =
-      json_parse_element_value (str_ptr, type);
-  if (result_is_err (json_element_value) (&value_result)) {
-    free ((void *)key.as_string);
-    return result_map_err (json_entry, json_element_value, &value_result);
-  }
-  typed (json_element_value) value =
-      result_unwrap (json_element_value) (&value_result);
-
-  typed (json_entry) entry = {
-      .key = key.as_string,
-      .element =
-          {
-              .type = type,
-              .value = value,
-          },
-  };
-
-  return result_ok (json_entry) (entry);
+json::jtype::jtype json::jtype::peek(const char input)
+{
+    switch (input)
+    {
+    case '[':
+        return json::jtype::jarray;
+    case '"':
+        return json::jtype::jstring;
+    case '{':
+        return json::jtype::jobject;
+    case '-':
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+        return json::jtype::jnumber;
+    case 't':
+    case 'f':
+        return json::jtype::jbool;
+    case 'n':
+        return json::jtype::jnull;
+    default:
+        return json::jtype::not_valid;
+    }
 }
 
-result (json_element_type) json_guess_element_type (const char *str) {
-  const char ch = *str;
-  typed (json_element_type) type;
-
-  if (json_is_string (ch))
-    type = JSON_ELEMENT_TYPE_STRING;
-  else if (json_is_object (ch))
-    type = JSON_ELEMENT_TYPE_OBJECT;
-  else if (json_is_array (ch))
-    type = JSON_ELEMENT_TYPE_ARRAY;
-  else if (json_is_null (ch))
-    type = JSON_ELEMENT_TYPE_NULL;
-  else if (json_is_number (ch))
-    type = JSON_ELEMENT_TYPE_NUMBER;
-  else if (json_is_boolean (ch))
-    type = JSON_ELEMENT_TYPE_BOOLEAN;
-  else
-    return result_err (json_element_type) (JSON_ERROR_INVALID_TYPE);
-
-  return result_ok (json_element_type) (type);
+json::jtype::jtype json::jtype::detect(const char *input)
+{
+    const char *start = json::parsing::tlws(input);
+    return json::jtype::peek(*start);
 }
 
-bool json_is_string (char ch) { return ch == '"'; }
-
-bool json_is_number (char ch) {
-  return (ch >= '0' && ch <= '9') || ch == '+' || ch == '-' || ch == '.' ||
-      ch == 'e' || ch == 'E';
+void json::reader::clear()
+{
+    std::string::clear(); 
+    if(this->sub_reader != NULL) {
+        delete this->sub_reader;
+        this->sub_reader = NULL;
+    }
+    this->read_state = 0;
 }
 
-bool json_is_object (char ch) { return ch == '{'; }
+json::reader::push_result json::reader::push(const char next)
+{
+    // Check for opening whitespace
+    if(this->length() == 0 && std::isspace(next)) return reader::ACCEPTED;
 
-bool json_is_array (char ch) { return ch == '['; }
+    // Get the type
+    const json::jtype::jtype type = json::jtype::peek(this->length() > 0 ? this->front() : next);
 
-bool json_is_boolean (char ch) { return ch == 't' || ch == 'f'; }
+    // Store the return
+    reader::push_result result = reader::REJECTED;
 
-bool json_is_null (char ch) { return ch == 'n'; }
+    #if DEBUG
+    const size_t start_length = this->length();
+    #endif
 
-result (json_element_value)
-    json_parse_element_value (const char **str_ptr,
-                              typed (json_element_type) type) {
-  switch (type) {
-  case JSON_ELEMENT_TYPE_STRING:
-    return json_parse_string (str_ptr);
-  case JSON_ELEMENT_TYPE_NUMBER:
-    return json_parse_number (str_ptr);
-  case JSON_ELEMENT_TYPE_OBJECT:
-    return json_parse_object (str_ptr);
-  case JSON_ELEMENT_TYPE_ARRAY:
-    return json_parse_array (str_ptr);
-  case JSON_ELEMENT_TYPE_BOOLEAN:
-    return json_parse_boolean (str_ptr);
-  case JSON_ELEMENT_TYPE_NULL:
-    json_skip_null (str_ptr);
-    return result_err (json_element_value) (JSON_ERROR_EMPTY);
-  }
-}
-
-result (json_element_value) json_parse_string (const char **str_ptr) {
-  // Skip the first '"' character
-  (*str_ptr)++;
-
-  typed (size) len = json_string_len (*str_ptr);
-  if (len == 0) {
-    // Skip the end quote
-    (*str_ptr)++;
-    return result_err (json_element_value) (JSON_ERROR_EMPTY);
-  }
-
-  result_try (json_element_value, json_string, output, json_unescape_string (*str_ptr, len));
-
-  // Skip to beyond the string
-  (*str_ptr) += len + 1;
-
-  return result_ok (json_element_value) ((typed (json_element_value))output);
-}
-
-result (json_element_value) json_parse_number (const char **str_ptr) {
-  const char *temp_str = *str_ptr;
-  bool has_decimal = false;
-
-  while (json_is_number (*temp_str)) {
-    if (*temp_str == '.') {
-      has_decimal = true;
+    switch(type)
+    {
+    case json::jtype::jarray:
+        result = this->push_array(next);
+        break;
+    case json::jtype::jbool:
+        result = this->push_boolean(next);
+        assert(result != WHITESPACE);
+        break;
+    case json::jtype::jnull:
+        result = this->push_null(next);
+        assert(result != WHITESPACE);
+        break;
+    case json::jtype::jnumber:
+        result = this->push_number(next);
+        assert(result != WHITESPACE);
+        break;
+    case json::jtype::jobject:
+        result = this->push_object(next);
+        break;
+    case json::jtype::jstring:
+        result = this->push_string(next);
+        assert(result != WHITESPACE);
+        break;
+    case json::jtype::not_valid:
+        result = reader::REJECTED;
+        break;
     }
 
-    temp_str++;
-  }
+    // Verify the expected length change
+    #if DEBUG
+    if(result == ACCEPTED) assert(this->length() - start_length == 1);
+    else assert(this->length() == start_length);
+    #endif
 
-  typed (json_number) number = {};
-
-  if (has_decimal) {
-    errno = 0;
-
-    number.type = JSON_NUMBER_TYPE_DOUBLE;
-    number.value = (typed (json_number_value))strtod (*str_ptr, (char **)str_ptr);
-
-    if (errno == EINVAL || errno == ERANGE)
-      return result_err (json_element_value) (JSON_ERROR_INVALID_VALUE);
-  } else {
-    errno = 0;
-
-    number.type = JSON_NUMBER_TYPE_LONG;
-    number.value = (typed (json_number_value))strtol (*str_ptr, (char **)str_ptr, 10);
-
-    if (errno == EINVAL || errno == ERANGE)
-      return result_err (json_element_value) (JSON_ERROR_INVALID_VALUE);
-  }
-
-  return result_ok (json_element_value) ((typed (json_element_value))number);
+    // Return the result
+    return result;
 }
 
-result (json_element_value) json_parse_object (const char **str_ptr) {
-  const char *temp_str = *str_ptr;
+bool json::reader::is_valid() const
+{
+    switch (this->type())
+    {
+    case jtype::jarray:
+        return this->get_state<array_reader_enum>() == ARRAY_CLOSED;
+    case jtype::jbool:
+        if(this->length() < 4) return false;
+        if(this->length() == 4 && *this == "true") return true;
+        if(this->length() == 5 && *this == "false") return true;
+        return false;
+    case jtype::jnull:
+        return (this->length() == 4 && *this == "null");
+    case jtype::jnumber:
+        switch (this->get_state<number_reader_enum>())
+        {
+        case NUMBER_ZERO:
+        case NUMBER_INTEGER_DIGITS:
+        case NUMBER_FRACTION_DIGITS:
+        case NUMBER_EXPONENT_DIGITS:
+            return true;
+        default:
+            return false;
+        }
+    case jtype::jobject:
+        return this->get_state<object_reader_enum>() == OBJECT_CLOSED;
+    case jtype::jstring:
+        return this->get_state<string_reader_enum>() == STRING_CLOSED;
+    case jtype::not_valid:
+        return false;
+    }
+    throw std::logic_error("Unexpected return");
+}
 
-  // ******* First find the number of valid entries *******
-  // Skip the first '{' character
-  temp_str++;
+bool is_control_character(const char input)
+{
+    switch (input)
+    {
+    case 'b':
+    case 'f':
+    case 'n':
+    case 'r':
+    case 't':
+    case '"':
+    case '\\':
+        return true;
+    default:
+        return false;
+    }
+}
 
-  json_scrape_whitespace (&temp_str);
+bool is_hex_digit(const char input)
+{
+    return IS_DIGIT(input) || (input >= 'a' && input <= 'f') || (input >= 'A' && input <= 'F');
+}
 
-  if (*temp_str == '}') {
-    // Skip the end '}' in the actual pointer
-    (*str_ptr) = temp_str + 1;
-    return result_err (json_element_value) (JSON_ERROR_EMPTY);
-  }
+json::reader::push_result json::reader::push_string(const char next)
+{
+    const string_reader_enum state = this->get_state<string_reader_enum>();
+    switch (state)
+    {
+    case STRING_EMPTY:
+        assert(this->length() == 0);
+        if(next == '"') {
+            assert(this->length() == 0);
+            this->push_back(next);
+            this->set_state(STRING_OPENING_QUOTE);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case STRING_OPENING_QUOTE:
+        assert(this->length() == 1);
+        this->set_state(STRING_OPEN);
+        // Fall through deliberate
+    case STRING_OPEN:
+        assert(this->length() > 0);
+        switch (next)
+        {
+        case '\\':
+            this->set_state(STRING_ESCAPED);
+            break;
+        case '"':
+            this->set_state(STRING_CLOSED);
+            break;
+        default:
+            // No state change
+            break;
+        }
+        this->push_back(next);
+        return ACCEPTED;
+    case STRING_ESCAPED:
+        if(is_control_character(next)) {
+            this->set_state(STRING_OPEN);
+            this->push_back(next);
+            return ACCEPTED;
+        } else if(next == 'u') {
+            this->set_state(STRING_CODE_POINT_START);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case STRING_CODE_POINT_START:
+        assert(this->back() == 'u');
+        if(!is_hex_digit(next)) return REJECTED;
+        this->push_back(next);
+        this->set_state(STRING_CODE_POINT_1);
+        return ACCEPTED;
+    case STRING_CODE_POINT_1:
+        assert(is_hex_digit(this->back()));
+        if(!is_hex_digit(next)) return REJECTED;
+        this->push_back(next);
+        this->set_state(STRING_CODE_POINT_2);
+        return ACCEPTED;
+    case STRING_CODE_POINT_2:
+        assert(is_hex_digit(this->back()));
+        if(!is_hex_digit(next)) return REJECTED;
+        this->push_back(next);
+        this->set_state(STRING_CODE_POINT_3);
+        return ACCEPTED;
+    case STRING_CODE_POINT_3:
+        assert(is_hex_digit(this->back()));
+        if(!is_hex_digit(next)) return REJECTED;
+        this->push_back(next);
+        this->set_state(STRING_OPEN);
+        return ACCEPTED;
+    case STRING_CLOSED:
+        return REJECTED;
+    }
+    throw std::logic_error("Unexpected return");
+}
 
-  typed (size) count = 0;
+json::reader::push_result json::reader::push_array(const char next)
+{
+    const array_reader_enum state = this->get_state<array_reader_enum>();
 
-  while (*temp_str != '\0') {
-    // Skip any accidental whitespace
-    json_scrape_whitespace (&temp_str);
+    switch (state)
+    {
+    case ARRAY_EMPTY:
+        assert(this->sub_reader == NULL);
+        if(next == '[') {
+            this->set_state(ARRAY_OPEN_BRACKET);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case ARRAY_OPEN_BRACKET:
+        assert(this->sub_reader == NULL);
+        if(std::isspace(next)) return WHITESPACE;
+        if(next == ']') {
+            this->set_state(ARRAY_CLOSED);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        begin_reading_value:
+        if(json::jtype::peek(next) == json::jtype::not_valid) return REJECTED;
+        this->sub_reader = new reader();
+        this->set_state(ARRAY_READING_VALUE);
+        // Fall-through deliberate
+    case ARRAY_READING_VALUE:
+        assert(this->sub_reader != NULL);
+        if(this->sub_reader->is_valid() && std::isspace(next)) return WHITESPACE;
+        switch (this->sub_reader->push(next))
+        {
+        case ACCEPTED:
+            return ACCEPTED;
+        case WHITESPACE:
+            return WHITESPACE;
+        case REJECTED:
+            switch (next)
+            {
+            case ']':
+                if(!this->sub_reader->is_valid()) return REJECTED;
+                this->append(this->sub_reader->readout());
+                delete this->sub_reader;
+                this->sub_reader = NULL;
+                this->push_back(next);
+                this->set_state(ARRAY_CLOSED);
+                return ACCEPTED;
+            case ',':
+                if(!this->sub_reader->is_valid()) return REJECTED;
+                this->append(this->sub_reader->readout());
+                delete this->sub_reader;
+                this->sub_reader = NULL;
+                this->push_back(next);
+                this->set_state(ARRAY_AWAITING_NEXT_LINE);
+                return ACCEPTED;
+            default:
+                return REJECTED;
+            }
+        }
+        // This point should not be reached
+        break;
+    case ARRAY_AWAITING_NEXT_LINE:
+        if(std::isspace(next)) return WHITESPACE;
+        goto begin_reading_value;
+    case ARRAY_CLOSED:
+        return REJECTED;
+    }
+    throw std::logic_error("Unexpected return");
+}
 
-    char prev = *temp_str;
-    if (json_skip_entry (&temp_str)) {
-      count++;
+json::reader::push_result json::reader::push_object(const char next)
+{
+    const object_reader_enum state = this->get_state<object_reader_enum>();
+
+    switch (state)
+    {
+    case OBJECT_EMPTY:
+        assert(this->sub_reader == NULL);
+        if(next == '{') {
+            this->set_state(OBJECT_OPEN_BRACE);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case OBJECT_OPEN_BRACE:
+        assert(this->sub_reader == NULL);
+        if(next == '}') {
+            this->set_state(OBJECT_CLOSED);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        // Fall-through deliberate
+    case OBJECT_AWAITING_NEXT_LINE:
+        if(std::isspace(next)) return WHITESPACE;
+        if(next != '"') return REJECTED;
+        this->sub_reader = new kvp_reader();
+        #if DEBUG
+        assert(
+        #endif
+        this->sub_reader->push(next)
+        #if DEBUG
+        == ACCEPTED);
+        #else
+        ;
+        #endif
+        this->set_state(OBJECT_READING_ENTRY);
+        return ACCEPTED;
+    case OBJECT_READING_ENTRY:
+        assert(this->sub_reader != NULL);
+        switch (this->sub_reader->push(next))
+        {
+        case ACCEPTED:
+            return ACCEPTED;
+        case WHITESPACE:
+            return WHITESPACE;
+        case REJECTED:
+            if(!this->sub_reader->is_valid()) return REJECTED;
+            if(std::isspace(next)) return WHITESPACE;
+            switch (next)
+            {
+            case '}':
+                this->append(this->sub_reader->readout());
+                delete this->sub_reader;
+                this->sub_reader = NULL;
+                this->push_back(next);
+                this->set_state(OBJECT_CLOSED);
+                return ACCEPTED;
+            case ',':
+                this->append(this->sub_reader->readout());
+                delete this->sub_reader;
+                this->sub_reader = NULL;
+                this->push_back(next);
+                this->set_state(OBJECT_AWAITING_NEXT_LINE);
+                return ACCEPTED;
+            default:
+                return REJECTED;
+            }
+        }
+        // This point should never be reached
+        break;
+    case OBJECT_CLOSED:
+        return REJECTED;
+    }
+    throw std::logic_error("Unexpected return");
+}
+
+json::reader::push_result json::reader::push_number(const char next)
+{
+    const number_reader_enum state = this->get_state<number_reader_enum>();
+    switch (state)
+    {
+    case NUMBER_EMPTY:
+        assert(this->length() == 0);
+        if(next == '-') {
+            this->set_state(NUMBER_OPEN_NEGATIVE);
+            this->push_back(next);
+            return ACCEPTED;
+        } else if(IS_DIGIT(next)) {
+            this->set_state(next == '0' ? NUMBER_ZERO : NUMBER_INTEGER_DIGITS);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case NUMBER_OPEN_NEGATIVE:
+        if(IS_DIGIT(next)) {
+            this->set_state(next == '0' ? NUMBER_ZERO : NUMBER_INTEGER_DIGITS);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case NUMBER_INTEGER_DIGITS:
+        assert(IS_DIGIT(this->back()));
+        if(IS_DIGIT(next)) {
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        // Fall-through deliberate
+    case NUMBER_ZERO:
+        switch (next)
+        {
+        case '.':
+            this->set_state(NUMBER_DECIMAL);
+            this->push_back(next);
+            return ACCEPTED;
+        case 'e':
+        case 'E':
+            this->set_state(NUMBER_EXPONENT);
+            this->push_back(next);
+            return ACCEPTED;
+        default:
+            return REJECTED;
+        }
+    case NUMBER_DECIMAL:
+        assert(this->back() == '.');
+        if(IS_DIGIT(next)) {
+            this->set_state(NUMBER_FRACTION_DIGITS);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case NUMBER_FRACTION_DIGITS:
+        assert(IS_DIGIT(this->back()));
+        if(IS_DIGIT(next)) {
+            this->push_back(next);
+            return ACCEPTED;
+        } else if(next == 'e' || next == 'E') {
+            this->set_state(NUMBER_EXPONENT);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case NUMBER_EXPONENT:
+        assert(this->back() == 'e' || this->back() == 'E');
+        if(next == '+' || next == '-') {
+            this->set_state(NUMBER_EXPONENT_SIGN);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        // Fall-through deliberate
+    case NUMBER_EXPONENT_SIGN:
+    case NUMBER_EXPONENT_DIGITS:
+        if(IS_DIGIT(next)) {
+            this->set_state(NUMBER_EXPONENT_DIGITS);
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    }
+    throw std::logic_error("Unexpected return");
+}
+
+json::reader::push_result json::reader::push_boolean(const char next)
+{
+    const char *str_true = "true";
+    const char *str_false = "false";
+    const char *str = NULL;
+
+    if(this->length() == 0) {
+        switch (next)
+        {
+        case 't':
+        case 'f':
+            this->push_back(next);
+            return ACCEPTED;
+        default:
+            return REJECTED;
+        }
     }
 
-    // Skip any accidental whitespace
-    json_scrape_whitespace (&temp_str);
+    // Determine which string to use
+    switch (this->at(0))
+    {
+    case 't':
+        str = str_true;
+        break;
+    case 'f':
+        str = str_false;
+        break;
+    default:
+        throw json::parsing_error("Unexpected state");
+    }
+    assert(str == str_true || str == str_false);
 
-    if (*temp_str == '}')
-      break;
+    // Push the value
+    if(this->length() < strlen(str) && str[this->length()] == next) {
+        this->push_back(next);
+        return ACCEPTED;
+    }
+    return REJECTED;
+}
 
-    // Skip the ',' to move to the next entry
-    temp_str++;
-  }
+json::reader::push_result json::reader::push_null(const char next)
+{    
+    switch (this->length())
+    {
+    case 0:
+        if(next == 'n') {
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case 1:
+        if(next == 'u') {
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    case 2:
+    case 3:
+        if(next == 'l') {
+            this->push_back(next);
+            return ACCEPTED;
+        }
+        // Fall through
+    case 4:
+        return REJECTED;
+    default:
+        throw json::parsing_error("Unexpected state");
+    }
+}
 
-  if (count == 0)
-    return result_err (json_element_value) (JSON_ERROR_EMPTY);
+json::reader::push_result json::kvp_reader::push(const char next)
+{
+    if(this->_key.length() == 0) {
+        if(std::isspace(next)) return WHITESPACE;
+        if(next == '"') {
+            this->_key.push(next);
+            assert(this->_key.type() == json::jtype::jstring);
+            assert(this->_key.length() == 1);
+            return ACCEPTED;
+        }
+        return REJECTED;
+    } else if (!this->_key.is_valid()) {
+        return this->_key.push(next);
+    }
 
-  // ******* Initialize the hash map *******
-  // Now we have a perfectly sized hash map
-  typed (json_entry) **entries = allocN (typed (json_entry) *, count);
-  for (int i = 0; i < count; i++)
-    entries[i] = NULL;
+    // At this point the key should be valid
+    assert(this->_key.is_valid());
 
-  // Skip the first '{' character
-  (*str_ptr)++;
+    if(!this->_colon_read) {
+        if(std::isspace(next)) return WHITESPACE;
+        if(next == ':') {
+            this->_colon_read = true;
+            return ACCEPTED;
+        }
+        return REJECTED;
+    }
 
-  json_scrape_whitespace (str_ptr);
+    // At this point the colon should be read
+    assert(this->_colon_read);
 
-  while (**str_ptr != '\0') {
-    // Skip any accidental whitespace
-    json_scrape_whitespace (str_ptr);
-    result (json_entry) entry_result = json_parse_entry (str_ptr);
+    // Check for a fresh start
+    if(reader::length() == 0 && std::isspace(next))
+    {
+        assert(reader::get_state<char>() == 0);
+        return WHITESPACE;
+    }
+    return reader::push(next);
+}
 
-    if (result_is_ok (json_entry) (&entry_result)) {
-      typed (json_entry) entry = result_unwrap (json_entry) (&entry_result);
-      typed (uint64) bucket = json_key_hash (entry.key) % count;
+std::string json::kvp_reader::readout() const
+{
+    return this->_key.readout() + ":" + reader::readout();
+}
 
-      // Bucket size is exactly count. So there will be at max
-      // count misses in the worst case
-      for (int i = 0; i < count; i++) {
-        if (entries[bucket] == NULL) {
-          typed (json_entry) *temp_entry = alloc (typed (json_entry));
-          memcpy (temp_entry, &entry, sizeof (typed (json_entry)));
-          entries[bucket] = temp_entry;
-          break;
+std::string json::parsing::read_digits(const char *input)
+{
+    // Trim leading white space
+    const char *index = json::parsing::tlws(input);
+
+    // Initialize the result
+    std::string result;
+
+    // Loop until all digits are read
+    while (
+        !EMPTY_STRING(index) &&
+        (
+            *index == '0' ||
+            *index == '1' ||
+            *index == '2' ||
+            *index == '3' ||
+            *index == '4' ||
+            *index == '5' ||
+            *index == '6' ||
+            *index == '7' ||
+            *index == '8' ||
+            *index == '9'
+            )
+        )
+    {
+        result += *index;
+        index++;
+    }
+
+    // Return the result
+    return result;
+}
+
+std::string json::parsing::decode_string(const char *input)
+{
+    const char *index = input;
+    std::string result;
+
+    if(*index != '"') throw json::parsing_error("Expecting opening quote");
+    index++;
+    bool escaped = false;
+    // Loop until the end quote is found
+    while(!(!escaped && *index == '"'))
+    {
+        if(escaped)
+        {
+            switch (*index)
+            {
+            case '"':
+            case '\\':
+            case '/':
+                result += *index;
+                break;
+            case 'b':
+                result += '\b';
+                break;
+            case 'f':
+                result += '\f';
+                break;
+            case 'n':
+                result += '\n';
+                break;
+            case 'r':
+                result += '\r';
+                break;
+            case 't':
+                result += '\t';
+                break;
+            case 'u':
+                // #todo Unicode support
+                index += 4;
+                break;
+            default:
+                throw json::parsing_error("Expected control character");
+            }
+            escaped = false;
+        } else if(*index == '\\') {
+            escaped = true;
+        } else {
+            result += *index;
+        }
+        index++;
+    }
+    return result;
+}
+
+std::string json::parsing::encode_string(const char *input)
+{
+    std::string result = "\"";
+
+    while (!EMPTY_STRING(input))
+    {
+        switch (*input)
+        {
+        case '"':
+        case '\\':
+        case '/':
+            result += "\\";
+            result += *input;
+            break;
+        case '\b':
+            result += "\\b";
+            break;
+        case '\f':
+            result += "\\f";
+            break;
+        case '\n':
+            result += "\\n";
+            break;
+        case '\r':
+            result += "\\r";
+            break;
+        case '\t':
+            result += "\\t";
+            break;
+        default:
+            result += *input;
+            break;
+        }
+        input++;
+    }
+    result += '\"';
+    return result;
+}
+
+json::parsing::parse_results json::parsing::parse(const char *input)
+{
+    // Strip white space
+    const char *index = json::parsing::tlws(input);
+
+    // Validate input
+    if (EMPTY_STRING(index)) throw json::parsing_error("Input was only whitespace");
+
+    // Initialize the output
+    json::parsing::parse_results result;
+    result.type = json::jtype::not_valid;
+
+    // Initialize the reader
+    json::reader stream;
+
+    // Iterate
+    while(!EMPTY_STRING(input) && stream.push(*index) != json::reader::REJECTED)
+    {
+        index++;
+    }
+
+    if(stream.is_valid()) {
+        result.value = stream.readout();
+        result.type = stream.type();
+    }
+    result.remainder = index;
+
+    return result;
+}
+
+std::vector<std::string> json::parsing::parse_array(const char *input)
+{
+    // Initalize the result
+    std::vector<std::string> result;
+
+    const char *index = json::parsing::tlws(input);
+    if (*index != '[') throw json::parsing_error("Input was not an array");
+    index++;
+    SKIP_WHITE_SPACE(index);
+    if (*index == ']')
+    {
+        return result;
+    }
+    const char error[] = "Input was not properly formated";
+    while (!EMPTY_STRING(index))
+    {
+        SKIP_WHITE_SPACE(index);
+        json::parsing::parse_results parse_results = json::parsing::parse(index);
+        if (parse_results.type == json::jtype::not_valid) throw json::parsing_error(error);
+        if(parse_results.type == json::jtype::jstring) {
+            result.push_back(json::parsing::decode_string(parse_results.value.c_str()));
+        } else {
+            result.push_back(parse_results.value);
+        }
+        index = json::parsing::tlws(parse_results.remainder);
+        if (*index == ']') break;
+        if (*index == ',') index++;
+    }
+    if (*index != ']') throw json::parsing_error(error);
+    index++;
+    return result;
+}
+
+json::jobject::entry::operator int() const { return this->get_number<int>(INT_FORMAT); }
+json::jobject::entry::operator unsigned int() const { return this->get_number<unsigned int>(UINT_FORMAT); }
+json::jobject::entry::operator long() const { return this->get_number<long>(LONG_FORMAT); }
+json::jobject::entry::operator unsigned long() const { return this->get_number<unsigned long>(ULONG_FORMAT); }
+json::jobject::entry::operator char() const { return this->get_number<char>(CHAR_FORMAT); }
+json::jobject::entry::operator float() const { return this->get_number<float>(FLOAT_FORMAT); }
+json::jobject::entry::operator double() const { return this->get_number<double>(DOUBLE_FORMAT); }
+
+json::jobject::entry::operator std::vector<int>() const { return this->get_number_array<int>(INT_FORMAT); }
+json::jobject::entry::operator std::vector<unsigned int>() const { return this->get_number_array<unsigned int>(UINT_FORMAT); }
+json::jobject::entry::operator std::vector<long>() const { return this->get_number_array<long>(LONG_FORMAT); }
+json::jobject::entry::operator std::vector<unsigned long>() const { return this->get_number_array<unsigned long>(ULONG_FORMAT); }
+json::jobject::entry::operator std::vector<char>() const { return this->get_number_array<char>(CHAR_FORMAT); }
+json::jobject::entry::operator std::vector<float>() const { return this->get_number_array<float>(FLOAT_FORMAT); }
+json::jobject::entry::operator std::vector<double>() const { return this->get_number_array<double>(DOUBLE_FORMAT); }
+
+void json::jobject::proxy::set_array(const std::vector<std::string> &values, const bool wrap)
+{
+    std::string value = "[";
+    for (size_t i = 0; i < values.size(); i++)
+    {
+        if (wrap) value += json::parsing::encode_string(values[i].c_str()) + ",";
+        else value += values[i] + ",";
+    }
+    if(values.size() > 0) value.erase(value.size() - 1, 1);
+    value += "]";
+    this->sink.set(key, value);
+}
+
+json::jobject json::jobject::parse(const char *input)
+{
+    const char error[] = "Input is not a valid object";
+    const char *index = json::parsing::tlws(input);
+    json::jobject result;
+    json::reader stream;
+    switch (*index)
+    {
+    case '{':
+        // Result is already an object
+        break;
+    case '[':
+        result = json::jobject(true);
+        break;
+    default:
+        throw json::parsing_error(error);
+        break;
+    }
+    index++;
+    SKIP_WHITE_SPACE(index);
+    if (EMPTY_STRING(index)) throw json::parsing_error(error);
+
+    while (!EMPTY_STRING(index) && !END_CHARACTER_ENCOUNTERED(result, index))
+    {
+        // Get key
+        kvp entry;
+
+        if(!result.is_array()) {
+            json::parsing::parse_results key = json::parsing::parse(index);
+            if (key.type != json::jtype::jstring || key.value == "") throw json::parsing_error(error);
+            entry.first = json::parsing::decode_string(key.value.c_str());
+            index = key.remainder;
+
+            // Get value
+            SKIP_WHITE_SPACE(index);
+            if (*index != ':') throw json::parsing_error(error);
+            index++;
         }
 
-        bucket = (bucket + 1) % count;
-      }
+        SKIP_WHITE_SPACE(index);
+        json::parsing::parse_results value = json::parsing::parse(index);
+        if (value.type == json::jtype::not_valid) throw json::parsing_error(error);
+        entry.second = value.value;
+        index = value.remainder;
+
+        // Clean up
+        SKIP_WHITE_SPACE(index);
+        if (*index != ',' && !END_CHARACTER_ENCOUNTERED(result, index)) throw json::parsing_error(error);
+        if (*index == ',') index++;
+        result += entry;
+
     }
-
-    // Skip any accidental whitespace
-    json_scrape_whitespace (str_ptr);
-
-    if (**str_ptr == '}')
-      break;
-
-    // Skip the ',' to move to the next entry
-    (*str_ptr)++;
-  }
-
-  // Skip the '}' closing brace
-  (*str_ptr)++;
-
-  typed (json_object) *object = alloc (typed (json_object));
-  object->count = count;
-  object->entries = entries;
-
-  return result_ok (json_element_value) ((typed (json_element_value))object);
+    if (EMPTY_STRING(index) || !END_CHARACTER_ENCOUNTERED(result, index)) throw json::parsing_error(error);
+    index++;
+    return result;
 }
 
-typed (uint64) json_key_hash (const char *str) {
-  typed (uint64) hash = 0;
+json::key_list_t json::jobject::list_keys() const
+{
+    // Initialize the result
+    key_list_t result;
 
-  while (*str != '\0')
-    hash += (hash * 31) + *str++;
+    // Return an empty list if the object is an array
+    if(this->is_array()) return result;
 
-  return hash;
-}
-
-result (json_element_value) json_parse_array (const char **str_ptr) {
-  // Skip the starting '[' character
-  (*str_ptr)++;
-
-  json_scrape_whitespace (str_ptr);
-
-  // Unfortunately the array is empty
-  if (**str_ptr == ']') {
-    // Skip the end ']'
-    (*str_ptr)++;
-    return result_err (json_element_value) (JSON_ERROR_EMPTY);
-  }
-
-  typed (size) count = 0;
-  typed (json_element) *elements = NULL;
-
-  while (**str_ptr != '\0') {
-    json_scrape_whitespace (str_ptr);
-
-    // Guess the type
-    result (json_element_type) type_result = json_guess_element_type (*str_ptr);
-    if (result_is_ok (json_element_type) (&type_result)) {
-      typed (json_element_type) type =
-          result_unwrap (json_element_type) (&type_result);
-
-      // Parse the value based on guessed type
-      result (json_element_value) value_result =
-          json_parse_element_value (str_ptr, type);
-      if (result_is_ok (json_element_value) (&value_result)) {
-        typed (json_element_value) value =
-            result_unwrap (json_element_value) (&value_result);
-
-        count++;
-        elements = reallocN (elements, typed (json_element), count);
-        elements[count - 1].type = type;
-        elements[count - 1].value = value;
-      }
-
-      json_scrape_whitespace (str_ptr);
+    for(size_t i = 0; i < this->data.size(); i++)
+    {
+        result.push_back(this->data.at(i).first);
     }
-
-    // Reached the end
-    if (**str_ptr == ']')
-      break;
-
-    // Skip the ','
-    (*str_ptr)++;
-  }
-
-  // Skip the ']' closing array
-  (*str_ptr)++;
-
-  if (count == 0)
-    return result_err (json_element_value) (JSON_ERROR_EMPTY);
-
-  typed (json_array) *array = alloc (typed (json_array));
-  array->count = count;
-  array->elements = elements;
-
-  return result_ok (json_element_value) ((typed (json_element_value))array);
+    return result;
 }
 
-result (json_element_value) json_parse_boolean (const char **str_ptr) {
-  bool output;
-
-  switch (**str_ptr) {
-  case 't':
-    output = true;
-    (*str_ptr) += 4;
-    break;
-
-  case 'f':
-    output = false;
-    (*str_ptr) += 5;
-    break;
-  }
-
-  return result_ok (json_element_value) ((typed (json_element_value))output);
-}
-
-result (json_element)
-    json_object_find (typed (json_object) * obj, const char *key) {
-  if (key == NULL || strlen (key) == 0)
-    return result_err (json_element) (JSON_ERROR_INVALID_KEY);
-
-  typed (uint64) bucket = json_key_hash (key) % obj->count;
-
-  // Bucket size is exactly obj->count. So there will be at max
-  // obj->count misses in the worst case
-  for (int i = 0; i < obj->count; i++) {
-    typed (json_entry) *entry = obj->entries[bucket];
-    if (strcmp (key, entry->key) == 0)
-      return result_ok (json_element) (entry->element);
-
-    bucket = (bucket + 1) % obj->count;
-  }
-
-  return result_err (json_element) (JSON_ERROR_INVALID_KEY);
-}
-
-bool json_skip_entry (const char **str_ptr) {
-  json_skip_string (str_ptr);
-
-  json_scrape_whitespace (str_ptr);
-
-  // Skip the ':' delimiter
-  (*str_ptr)++;
-
-  json_scrape_whitespace (str_ptr);
-
-  result (json_element_type) type_result = json_guess_element_type (*str_ptr);
-  if (result_is_err (json_element_type) (&type_result))
-    return false;
-
-  typed (json_element_type) type =
-      result_unwrap (json_element_type) (&type_result);
-
-  return json_skip_element_value (str_ptr, type);
-}
-
-bool json_skip_element_value (const char **str_ptr,
-                              typed (json_element_type) type) {
-  switch (type) {
-  case JSON_ELEMENT_TYPE_STRING:
-    return json_skip_string (str_ptr);
-  case JSON_ELEMENT_TYPE_NUMBER:
-    return json_skip_number (str_ptr);
-  case JSON_ELEMENT_TYPE_OBJECT:
-    return json_skip_object (str_ptr);
-  case JSON_ELEMENT_TYPE_ARRAY:
-    return json_skip_array (str_ptr);
-  case JSON_ELEMENT_TYPE_BOOLEAN:
-    return json_skip_boolean (str_ptr);
-  case JSON_ELEMENT_TYPE_NULL:
-    json_skip_null (str_ptr);
-    return false;
-
-  default:
-    return false;
-  }
-}
-
-bool json_skip_string (const char **str_ptr) {
-  // Skip the initial '"'
-  (*str_ptr)++;
-
-  // Find the length till the last '"'
-  typed (size) len = json_string_len (*str_ptr);
-
-  // Skip till the end of the string
-  (*str_ptr) += len + 1;
-
-  return len > 0;
-}
-
-bool json_skip_number (const char **str_ptr) {
-  while (json_is_number (**str_ptr)) {
-    (*str_ptr)++;
-  }
-
-  return true;
-}
-
-bool json_skip_object (const char **str_ptr) {
-  // Skip the first '{' character
-  (*str_ptr)++;
-
-  json_scrape_whitespace (str_ptr);
-
-  if (**str_ptr == '}') {
-    // Skip the end '}'
-    (*str_ptr)++;
-    return false;
-  }
-
-  while (**str_ptr != '\0') {
-    // Skip any accidental whitespace
-    json_scrape_whitespace (str_ptr);
-
-    json_skip_entry (str_ptr);
-
-    // Skip any accidental whitespace
-    json_scrape_whitespace (str_ptr);
-
-    if (**str_ptr == '}')
-      break;
-
-    // Skip the ',' to move to the next entry
-    (*str_ptr)++;
-  }
-
-  // Skip the '}' closing brace
-  (*str_ptr)++;
-
-  return true;
-}
-
-bool json_skip_array (const char **str_ptr) {
-  // Skip the starting '[' character
-  (*str_ptr)++;
-
-  json_scrape_whitespace (str_ptr);
-
-  // Unfortunately the array is empty
-  if (**str_ptr == ']') {
-    // Skip the end ']'
-    (*str_ptr)++;
-    return false;
-  }
-
-  while (**str_ptr != '\0') {
-    json_scrape_whitespace (str_ptr);
-
-    // Guess the type
-    result (json_element_type) type_result = json_guess_element_type (*str_ptr);
-    if (result_is_ok (json_element_type) (&type_result)) {
-      typed (json_element_type) type =
-          result_unwrap (json_element_type) (&type_result);
-
-      // Parse the value based on guessed type
-      json_skip_element_value (str_ptr, type);
-
-      json_scrape_whitespace (str_ptr);
+void json::jobject::set(const std::string &key, const std::string &value)
+{
+    if(this->array_flag) throw json::invalid_key(key);
+    for (size_t i = 0; i < this->size(); i++)
+    {
+        if (this->data.at(i).first == key)
+        {
+            this->data.at(i).second = value;
+            return;
+        }
     }
-
-    // Reached the end
-    if (**str_ptr == ']')
-      break;
-
-    // Skip the ','
-    (*str_ptr)++;
-  }
-
-  // Skip the ']' closing array
-  (*str_ptr)++;
-
-  return true;
+    kvp entry;
+    entry.first = key;
+    entry.second = value;
+    this->data.push_back(entry);
 }
 
-bool json_skip_boolean (const char **str_ptr) {
-  switch (**str_ptr) {
-  case 't':
-    (*str_ptr) += 4;
-    return true;
-
-  case 'f':
-    (*str_ptr) += 5;
-    return true;
-  }
-
-  return false;
-}
-
-void json_skip_whitespace (const char **str_ptr) {
-  while (is_whitespace (**str_ptr))
-    (*str_ptr)++;
-}
-
-void json_skip_null (const char **str_ptr) { (*str_ptr) += 4; }
-
-void json_print (typed (json_element) * element, int indent) {
-  json_print_element (element, indent, 0);
-}
-
-void json_print_element (typed (json_element) * element, int indent, int indent_level) {
-
-  switch (element->type) {
-  case JSON_ELEMENT_TYPE_STRING:
-    json_print_string (element->value.as_string);
-    break;
-  case JSON_ELEMENT_TYPE_NUMBER:
-    json_print_number (element->value.as_number);
-    break;
-  case JSON_ELEMENT_TYPE_OBJECT:
-    json_print_object (element->value.as_object, indent, indent_level);
-    break;
-  case JSON_ELEMENT_TYPE_ARRAY:
-    json_print_array (element->value.as_array, indent, indent_level);
-    break;
-  case JSON_ELEMENT_TYPE_BOOLEAN:
-    json_print_boolean (element->value.as_boolean);
-    break;
-  case JSON_ELEMENT_TYPE_NULL:
-    break;
-    // Do nothing
-  }
-}
-
-void json_print_string (const char *string) { printf ("\"%s\"", string); }
-
-void json_print_number (typed (json_number) number) {
-  switch (number.type) {
-  case JSON_NUMBER_TYPE_DOUBLE:
-    printf ("%f", number.value.as_double);
-    break;
-
-  case JSON_NUMBER_TYPE_LONG:
-    printf ("%ld", number.value.as_long);
-    break;
-  }
-}
-
-void json_print_object (typed (json_object) * object, int indent, int indent_level) {
-  printf ("{\n");
-
-  for (int i = 0; i < object->count; i++) {
-    for (int j = 0; j < indent * (indent_level + 1); j++)
-      printf (" ");
-
-    typed (json_entry) *entry = object->entries[i];
-
-    json_print_string (entry->key);
-    printf (": ");
-    json_print_element (&entry->element, indent, indent_level + 1);
-
-    if (i != object->count - 1)
-      printf (",");
-    printf ("\n");
-  }
-
-  for (int j = 0; j < indent * indent_level; j++)
-    printf (" ");
-  printf ("}");
-}
-
-void json_print_array (typed (json_array) * array, int indent, int indent_level) {
-  printf ("[\n");
-
-  for (int i = 0; i < array->count; i++) {
-    typed (json_element) element = array->elements[i];
-    for (int j = 0; j < indent * (indent_level + 1); j++)
-      printf (" ");
-    json_print_element (&element, indent, indent_level + 1);
-
-    if (i != array->count - 1)
-      printf (",");
-    printf ("\n");
-  }
-
-  for (int i = 0; i < indent * indent_level; i++)
-    printf (" ");
-  printf ("]");
-}
-
-void json_print_boolean (bool boolean) {
-  printf ("%s", boolean ? "true" : "false");
-}
-
-void json_free (typed (json_element) * element) {
-  switch (element->type) {
-  case JSON_ELEMENT_TYPE_STRING:
-    json_free_string (element->value.as_string);
-    break;
-
-  case JSON_ELEMENT_TYPE_OBJECT:
-    json_free_object (element->value.as_object);
-    break;
-
-  case JSON_ELEMENT_TYPE_ARRAY:
-    json_free_array (element->value.as_array);
-    break;
-
-  case JSON_ELEMENT_TYPE_NUMBER:
-  case JSON_ELEMENT_TYPE_BOOLEAN:
-  case JSON_ELEMENT_TYPE_NULL:
-    // Do nothing
-    break;
-  }
-}
-
-void json_free_string (const char *string) { free ((void *)string); }
-
-void json_free_object (typed (json_object) * object) {
-  if (object == NULL)
-    return;
-
-  if (object->count == 0) {
-    free (object);
-    return;
-  }
-
-  for (int i = 0; i < object->count; i++) {
-    typed (json_entry) *entry = object->entries[i];
-
-    if (entry != NULL) {
-      free ((void *)entry->key);
-      json_free (&entry->element);
-      free (entry);
+void json::jobject::remove(const std::string &key)
+{
+    for (size_t i = 0; i < this->size(); i++)
+    {
+        if (this->data.at(i).first == key)
+        {
+            this->remove(i);
+        }
     }
-  }
-
-  free (object->entries);
-  free (object);
 }
 
-void json_free_array (typed (json_array) * array) {
-  if (array == NULL)
-    return;
-
-  if (array->count == 0) {
-    free (array);
-    return;
-  }
-
-  // Recursively free each element in the array
-  for (int i = 0; i < array->count; i++) {
-    typed (json_element) element = array->elements[i];
-    json_free (&element);
-  }
-
-  // Lastly free
-  free (array->elements);
-  free (array);
-}
-
-const char *json_error_to_string (typed (json_error) error) {
-  switch (error) {
-  case JSON_ERROR_EMPTY:
-    return "Empty";
-  case JSON_ERROR_INVALID_KEY:
-    return "Invalid key";
-  case JSON_ERROR_INVALID_TYPE:
-    return "Invalid type";
-  case JSON_ERROR_INVALID_VALUE:
-    return "Invalid value";
-
-  default:
-    return "Unknown error";
-  }
-}
-
-typed (size) json_string_len (const char *str) {
-  typed (size) len = 0;
-
-  const char *iter = str;
-  while (*iter != '\0') {
-    if (*iter == '\\')
-      iter += 2;
-
-    if (*iter == '"') {
-      len = iter - str;
-      break;
-    }
-
-    iter++;
-  }
-
-  return len;
-}
-
-result (json_string)
-    json_unescape_string (const char *str, typed (size) len) {
-  typed (size) count = 0;
-  const char *iter = str;
-
-  while (iter - str < len) {
-    if (*iter == '\\')
-      iter++;
-
-    count++;
-    iter++;
-  }
-
-  char *output = allocN (char, count + 1);
-  typed (size) offset = 0;
-  iter = str;
-
-  while (iter - str < len) {
-    if (*iter == '\\') {
-      iter++;
-
-      switch (*iter) {
-      case 'b':
-        output[offset] = '\b';
-        break;
-      case 'f':
-        output[offset] = '\f';
-        break;
-      case 'n':
-        output[offset] = '\n';
-        break;
-      case 'r':
-        output[offset] = '\r';
-        break;
-      case 't':
-        output[offset] = '\t';
-        break;
-      case '"':
-        output[offset] = '"';
-        break;
-      case '\\':
-        output[offset] = '\\';
-        break;
-      default:
-        return result_err (json_string) (JSON_ERROR_INVALID_VALUE);
-      }
+json::jobject::operator std::string() const
+{
+    if (is_array()) {
+        if (this->size() == 0) return "[]";
+        std::string result = "[";
+        for (size_t i = 0; i < this->size(); i++)
+        {
+            result += this->data.at(i).second + ",";
+        }
+        result.erase(result.size() - 1, 1);
+        result += "]";
+        return result;
     } else {
-      output[offset] = *iter;
+        if (this->size() == 0) return "{}";
+        std::string result = "{";
+        for (size_t i = 0; i < this->size(); i++)
+        {
+            result += json::parsing::encode_string(this->data.at(i).first.c_str()) + ":" + this->data.at(i).second + ",";
+        }
+        result.erase(result.size() - 1, 1);
+        result += "}";
+        return result;
     }
-
-    offset++;
-    iter++;
-  }
-
-  output[offset] = '\0';
-  return result_ok (json_string) ((const char *)output);
 }
 
-void json_debug_print (const char *str, typed (size) len) {
-  for (int i = 0; i < len; i++) {
-    if (str[i] == '\0')
-      break;
+std::string json::jobject::pretty(unsigned int indent_level) const
+{
+    std::string result = "";
+    for(unsigned int i = 0; i < indent_level; i++) result += "\t";
+    if (is_array()) {
+        if(this->size() == 0) {
+            result += "[]";
+            return result;
+        }
+        result += "[\n";
+        for (size_t i = 0; i < this->size(); i++)
+        {
+            switch(json::jtype::peek(*this->data.at(i).second.c_str())) {
+                case json::jtype::jarray:
+                case json::jtype::jobject:
+                    result += json::jobject::parse(this->data.at(i).second).pretty(indent_level + 1);
+                    break;
+                default:
+                    for(unsigned int j = 0; j < indent_level + 1; j++) result += "\t";
+                    result += this->data.at(i).second;
+                    break;
+            }
 
-    putchar (str[i]);
-  }
-  printf ("\n");
+            result += ",\n";
+        }
+        result.erase(result.size() - 2, 1);
+        for(unsigned int i = 0; i < indent_level; i++) result += "\t";
+        result += "]";
+    } else {
+        if(this->size() == 0) {
+            result += "{}";
+            return result;
+        }
+        result += "{\n";
+        for (size_t i = 0; i < this->size(); i++)
+        {
+            for(unsigned int j = 0; j < indent_level + 1; j++) result += "\t";
+            result += "\"" + this->data.at(i).first + "\": ";
+            switch(json::jtype::peek(*this->data.at(i).second.c_str())) {
+                case json::jtype::jarray:
+                case json::jtype::jobject:
+                    result += std::string(json::parsing::tlws(json::jobject::parse(this->data.at(i).second).pretty(indent_level + 1).c_str()));
+                    break;
+                default:
+                    result += this->data.at(i).second;
+                    break;
+            }
+
+            result += ",\n";
+        }
+        result.erase(result.size() - 2, 1);
+        for(unsigned int i = 0; i < indent_level; i++) result += "\t";
+        result += "}";
+    }
+    return result;
 }
-
-define_result_type (json_element_type);
-define_result_type (json_element_value);
-define_result_type (json_element);
-define_result_type (json_entry);
-define_result_type (json_string);
-define_result_type (size);
