@@ -259,7 +259,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                     continue;
                 }
                 if (!auth.result) {
-                    // autrntications result error
+                    // autentications result error
                 }
                 synchronized (this._data_lock) {
                     // worker builderの構築
@@ -308,11 +308,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     private Object _data_lock = new Object();
     private StratumWorkBuilder _work_builder = null;
 
-    /**
-     * 現在のMiningWorkを生成して返す。
-     *
-     * @return
-     */
     public MiningWork getWork() {
         MiningWork work = null;
         synchronized (this._data_lock) {
@@ -362,20 +357,17 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                 return;
             }
         }
-        // notifyを更新
         this._work_builder.setDiff(i_difficulty);
         MiningWork w = this.getWork();
         if (w == null) {
             return;
         }
-        // 登録されているlistenerをコール
         for (IConnectionEvent i : this._as_listener) {
             i.onNewWork(w);
         }
     }
 
     private void cbSubmitRecv(SubmitOrder so, StratumJsonResultStandard i_result) {
-        // 登録されているlistenerをコール
         for (IConnectionEvent i : this._as_listener) {
             i.onSubmitResult(so.work, so.nonce, i_result.error == null);
         }
@@ -387,7 +379,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         }
         StratumMiningWork w = (StratumMiningWork) i_work;
         String ntime = w.data.getStr(StratumMiningWork.INDEX_OF_NTIME, 4);
-        // Stratum送信
         try {
             long id = this._sock.submit(i_nonce, this._uid, w.job_id, w.xnonce2, ntime);
             SubmitOrder so = new SubmitOrder(id, w, i_nonce);

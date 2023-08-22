@@ -1,0 +1,59 @@
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+
+#include "json.hpp"
+
+const char *read_file(const char *path) {
+  FILE *file = fopen(path, "r");
+  if (file == NULL) {
+    fprintf(stderr, "Expected file \"%s\" not found", path);
+    return NULL;
+  }
+  fseek(file, 0, SEEK_END);
+  long len = ftell(file);
+  fseek(file, 0, SEEK_SET);
+  char *buffer = malloc(len + 1);
+
+  if (buffer == NULL) {
+    fprintf(stderr, "Unable to allocate memory for file");
+    fclose(file);
+    return NULL;
+  }
+
+  fread(buffer, 1, len, file);
+  buffer[len] = '\0';
+
+  return (const char *)buffer;
+}
+
+bool json_test() {
+  const char *json = read_file("reddit.json");
+  if (json == NULL) {
+    printf("Can not find the file");
+    return false;
+  }
+
+  clock_t start, end;
+  start = clock();
+  result(json_element) element_result = json_parse(json);
+  end = clock();
+
+  printf("Time taken %fs\n", (double)(end - start) / (double)CLOCKS_PER_SEC);
+
+  free((void *)json);
+
+  if (result_is_err(json_element)(&element_result)) {
+    typed(json_error) error = result_unwrap_err(json_element)(&element_result);
+    fprintf(stderr, "Error parsing JSON: %s\n", json_error_to_string(error));
+    return false;
+  }
+  typed(json_element) element = result_unwrap(json_element)(&element_result);
+  typed(json_object) *obj = element.value.as_object;
+
+  // json_print(&element, 2);
+  json_free(&element);
+
+  return true;
+}

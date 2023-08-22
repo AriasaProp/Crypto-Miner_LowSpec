@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'jacoco'
 
 android {
     signingConfigs {
@@ -32,12 +31,9 @@ android {
     }
     testOptions.unitTests.all {
         testLogging {
-            // Mengaktifkan output ke konsol selama eksekusi tes
             events "passed", "skipped", "failed", "standardOut", "standardError"
-            // Menampilkan keluaran dari tes dalam konsol
-            showStandardStreams = true
-            // Konfigurasi level log yang ingin Anda tampilkan
-            exceptionFormat = 'full'
+            showStandardStreams true
+            exceptionFormat 'full'
         }
     }
     externalNativeBuild {

@@ -15,28 +15,6 @@ import java.net.URI;
 import java.net.UnknownHostException;
 
 public class StratumSocket extends Socket {
-    private class LoggingWriter extends BufferedWriter {
-        public LoggingWriter(Writer arg0) {
-            super(arg0);
-        }
-
-        @Override
-        public void write(String str) throws IOException {
-            super.write(str);
-        }
-    }
-
-    private class LoggingReader extends BufferedReader {
-        public LoggingReader(Reader arg0) {
-            super(arg0);
-        }
-
-        public String readLine() throws IOException {
-            String s = super.readLine();
-            return s;
-        }
-    }
-
     private BufferedWriter _tx;
     private BufferedReader _rx;
     private int _id;
@@ -45,8 +23,8 @@ public class StratumSocket extends Socket {
 
     public StratumSocket(URI i_url) throws UnknownHostException, IOException {
         super(i_url.getHost(), i_url.getPort());
-        this._tx = new LoggingWriter(new OutputStreamWriter(this.getOutputStream()));
-        this._rx = new LoggingReader(new InputStreamReader(this.getInputStream()));
+        this._tx = new BufferedWriter(new OutputStreamWriter(this.getOutputStream()));
+        this._rx = new BufferedReader(new InputStreamReader(this.getInputStream()));
         this._id = 1;
     }
 
@@ -56,8 +34,6 @@ public class StratumSocket extends Socket {
             id = this._id;
             this._id++;
         }
-        //        this._tx.write("{\"id\": "+id+", \"method\": \"mining.subscribe\", \"params\":
-        // [\""+i_agent_name+"\"]}\n");
         this._tx.write("{\"id\": " + id + ", \"method\": \"mining.subscribe\", \"params\": []}\n");
         this._tx.flush();
         return id;

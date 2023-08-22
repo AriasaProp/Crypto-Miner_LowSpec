@@ -12,4 +12,5 @@ library {
 unitTest {
     source.from file('src/test')
     privateHeaders.from file('src/test')
+    objectFileDir.from file('obj/test')
 }
