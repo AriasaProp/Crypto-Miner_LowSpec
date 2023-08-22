@@ -27,10 +27,5 @@ jobs:
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.1.1
-      - name: Gradle Test
-        run: gradle :core:test > test_out.txt
-      - name: Publish Test
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: Test
-          path: ${{ github.workspace }}/test_out.txt
+          arguments: ":core:test"
+          

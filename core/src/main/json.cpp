@@ -1,63 +1,31 @@
-/*! \file json.cpp
- * \brief Simpleson source file
- */
-
 #include "json.hpp"
 #include <cstring>
 #include <cassert>
 
-/*! \brief Checks for an empty string
- * 
- * @param str The string to check
- * @return True if the string is empty, false if the string is not empty
- * @warning The string must be null-terminated for this macro to work
- */
-#define EMPTY_STRING(str) (*str == '\0')
-
-/*! \brief Moves a pointer to the first character that is not white space
- *
- * @param str The pointer to move
- */
 #define SKIP_WHITE_SPACE(str) { const char *next = json::parsing::tlws(str); str = next; }
 
-/*! \brief Determines if the end character of serialized JSON is encountered
- * 
- * @param obj The JSON object or array that is being written to
- * @param index The pointer to the character to be checked
- */
 #define END_CHARACTER_ENCOUNTERED(obj, index) (obj.is_array() ? *index == ']' : *index == '}')
 
-/*! \brief Determines if the supplied character is a digit
- *
- * @param input The character to be tested
- */
 #define IS_DIGIT(input) (input >= '0' && input <= '9')
 
-/*! \brief Format used for integer to string conversion */
 const char * INT_FORMAT = "%i";
 
-/*! \brief Format used for unsigned integer to string conversion */
 const char * UINT_FORMAT = "%u";
 
-/*! \brief Format used for long integer to string conversion */
 const char * LONG_FORMAT = "%li";
 
-/*! \brief Format used for unsigned long integer to string conversion */
 const char * ULONG_FORMAT = "%lu";
 
-/*! \brief Format used for character to string conversion */
 const char * CHAR_FORMAT = "%c";
 
-/*! \brief Format used for floating-point number to string conversion */
 const char * FLOAT_FORMAT = "%f";
 
-/*! \brief Format used for double floating-opint number to string conversion */
 const char * DOUBLE_FORMAT = "%lf";
 
 const char* json::parsing::tlws(const char *input)
 {
     const char *output = input;
-    while(!EMPTY_STRING(output) && std::isspace(*output)) output++;
+    while((*output) && std::isspace(*output)) output++;
     return output;
 }
 
@@ -111,13 +79,11 @@ void json::reader::clear()
 
 json::reader::push_result json::reader::push(const char next)
 {
-    // Check for opening whitespace
+
     if(this->length() == 0 && std::isspace(next)) return reader::ACCEPTED;
 
-    // Get the type
     const json::jtype::jtype type = json::jtype::peek(this->length() > 0 ? this->front() : next);
 
-    // Store the return
     reader::push_result result = reader::REJECTED;
 
     #if DEBUG
@@ -153,13 +119,11 @@ json::reader::push_result json::reader::push(const char next)
         break;
     }
 
-    // Verify the expected length change
     #if DEBUG
     if(result == ACCEPTED) assert(this->length() - start_length == 1);
     else assert(this->length() == start_length);
     #endif
 
-    // Return the result
     return result;
 }
 
@@ -236,7 +200,7 @@ json::reader::push_result json::reader::push_string(const char next)
     case STRING_OPENING_QUOTE:
         assert(this->length() == 1);
         this->set_state(STRING_OPEN);
-        // Fall through deliberate
+
     case STRING_OPEN:
         assert(this->length() > 0);
         switch (next)
@@ -248,7 +212,7 @@ json::reader::push_result json::reader::push_string(const char next)
             this->set_state(STRING_CLOSED);
             break;
         default:
-            // No state change
+
             break;
         }
         this->push_back(next);
@@ -320,7 +284,7 @@ json::reader::push_result json::reader::push_array(const char next)
         if(json::jtype::peek(next) == json::jtype::not_valid) return REJECTED;
         this->sub_reader = new reader();
         this->set_state(ARRAY_READING_VALUE);
-        // Fall-through deliberate
+
     case ARRAY_READING_VALUE:
         assert(this->sub_reader != NULL);
         if(this->sub_reader->is_valid() && std::isspace(next)) return WHITESPACE;
@@ -353,7 +317,7 @@ json::reader::push_result json::reader::push_array(const char next)
                 return REJECTED;
             }
         }
-        // This point should not be reached
+
         break;
     case ARRAY_AWAITING_NEXT_LINE:
         if(std::isspace(next)) return WHITESPACE;
@@ -385,7 +349,7 @@ json::reader::push_result json::reader::push_object(const char next)
             this->push_back(next);
             return ACCEPTED;
         }
-        // Fall-through deliberate
+
     case OBJECT_AWAITING_NEXT_LINE:
         if(std::isspace(next)) return WHITESPACE;
         if(next != '"') return REJECTED;
@@ -432,7 +396,7 @@ json::reader::push_result json::reader::push_object(const char next)
                 return REJECTED;
             }
         }
-        // This point should never be reached
+
         break;
     case OBJECT_CLOSED:
         return REJECTED;
@@ -470,7 +434,7 @@ json::reader::push_result json::reader::push_number(const char next)
             this->push_back(next);
             return ACCEPTED;
         }
-        // Fall-through deliberate
+
     case NUMBER_ZERO:
         switch (next)
         {
@@ -512,7 +476,7 @@ json::reader::push_result json::reader::push_number(const char next)
             this->push_back(next);
             return ACCEPTED;
         }
-        // Fall-through deliberate
+
     case NUMBER_EXPONENT_SIGN:
     case NUMBER_EXPONENT_DIGITS:
         if(IS_DIGIT(next)) {
@@ -543,7 +507,6 @@ json::reader::push_result json::reader::push_boolean(const char next)
         }
     }
 
-    // Determine which string to use
     switch (this->at(0))
     {
     case 't':
@@ -557,7 +520,6 @@ json::reader::push_result json::reader::push_boolean(const char next)
     }
     assert(str == str_true || str == str_false);
 
-    // Push the value
     if(this->length() < strlen(str) && str[this->length()] == next) {
         this->push_back(next);
         return ACCEPTED;
@@ -587,7 +549,7 @@ json::reader::push_result json::reader::push_null(const char next)
             this->push_back(next);
             return ACCEPTED;
         }
-        // Fall through
+
     case 4:
         return REJECTED;
     default:
@@ -610,7 +572,6 @@ json::reader::push_result json::kvp_reader::push(const char next)
         return this->_key.push(next);
     }
 
-    // At this point the key should be valid
     assert(this->_key.is_valid());
 
     if(!this->_colon_read) {
@@ -622,10 +583,8 @@ json::reader::push_result json::kvp_reader::push(const char next)
         return REJECTED;
     }
 
-    // At this point the colon should be read
     assert(this->_colon_read);
 
-    // Check for a fresh start
     if(reader::length() == 0 && std::isspace(next))
     {
         assert(reader::get_state<char>() == 0);
@@ -641,15 +600,13 @@ std::string json::kvp_reader::readout() const
 
 std::string json::parsing::read_digits(const char *input)
 {
-    // Trim leading white space
+
     const char *index = json::parsing::tlws(input);
 
-    // Initialize the result
     std::string result;
 
-    // Loop until all digits are read
     while (
-        !EMPTY_STRING(index) &&
+        (*index) &&
         (
             *index == '0' ||
             *index == '1' ||
@@ -668,7 +625,6 @@ std::string json::parsing::read_digits(const char *input)
         index++;
     }
 
-    // Return the result
     return result;
 }
 
@@ -680,7 +636,7 @@ std::string json::parsing::decode_string(const char *input)
     if(*index != '"') throw json::parsing_error("Expecting opening quote");
     index++;
     bool escaped = false;
-    // Loop until the end quote is found
+
     while(!(!escaped && *index == '"'))
     {
         if(escaped)
@@ -708,7 +664,7 @@ std::string json::parsing::decode_string(const char *input)
                 result += '\t';
                 break;
             case 'u':
-                // #todo Unicode support
+
                 index += 4;
                 break;
             default:
@@ -729,7 +685,7 @@ std::string json::parsing::encode_string(const char *input)
 {
     std::string result = "\"";
 
-    while (!EMPTY_STRING(input))
+    while (*input)
     {
         switch (*input)
         {
@@ -766,21 +722,17 @@ std::string json::parsing::encode_string(const char *input)
 
 json::parsing::parse_results json::parsing::parse(const char *input)
 {
-    // Strip white space
+
     const char *index = json::parsing::tlws(input);
 
-    // Validate input
-    if (EMPTY_STRING(index)) throw json::parsing_error("Input was only whitespace");
+    if (!*index) throw json::parsing_error("Input was only whitespace");
 
-    // Initialize the output
     json::parsing::parse_results result;
     result.type = json::jtype::not_valid;
 
-    // Initialize the reader
     json::reader stream;
 
-    // Iterate
-    while(!EMPTY_STRING(input) && stream.push(*index) != json::reader::REJECTED)
+    while((*input) && stream.push(*index) != json::reader::REJECTED)
     {
         index++;
     }
@@ -796,7 +748,7 @@ json::parsing::parse_results json::parsing::parse(const char *input)
 
 std::vector<std::string> json::parsing::parse_array(const char *input)
 {
-    // Initalize the result
+
     std::vector<std::string> result;
 
     const char *index = json::parsing::tlws(input);
@@ -808,7 +760,7 @@ std::vector<std::string> json::parsing::parse_array(const char *input)
         return result;
     }
     const char error[] = "Input was not properly formated";
-    while (!EMPTY_STRING(index))
+    while (*index)
     {
         SKIP_WHITE_SPACE(index);
         json::parsing::parse_results parse_results = json::parsing::parse(index);
@@ -865,7 +817,7 @@ json::jobject json::jobject::parse(const char *input)
     switch (*index)
     {
     case '{':
-        // Result is already an object
+
         break;
     case '[':
         result = json::jobject(true);
@@ -876,11 +828,11 @@ json::jobject json::jobject::parse(const char *input)
     }
     index++;
     SKIP_WHITE_SPACE(index);
-    if (EMPTY_STRING(index)) throw json::parsing_error(error);
+    if (!*index) throw json::parsing_error(error);
 
-    while (!EMPTY_STRING(index) && !END_CHARACTER_ENCOUNTERED(result, index))
+    while ((*index) && !END_CHARACTER_ENCOUNTERED(result, index))
     {
-        // Get key
+
         kvp entry;
 
         if(!result.is_array()) {
@@ -889,7 +841,6 @@ json::jobject json::jobject::parse(const char *input)
             entry.first = json::parsing::decode_string(key.value.c_str());
             index = key.remainder;
 
-            // Get value
             SKIP_WHITE_SPACE(index);
             if (*index != ':') throw json::parsing_error(error);
             index++;
@@ -901,24 +852,22 @@ json::jobject json::jobject::parse(const char *input)
         entry.second = value.value;
         index = value.remainder;
 
-        // Clean up
         SKIP_WHITE_SPACE(index);
         if (*index != ',' && !END_CHARACTER_ENCOUNTERED(result, index)) throw json::parsing_error(error);
         if (*index == ',') index++;
         result += entry;
 
     }
-    if (EMPTY_STRING(index) || !END_CHARACTER_ENCOUNTERED(result, index)) throw json::parsing_error(error);
+    if ( (!*index) || !END_CHARACTER_ENCOUNTERED(result, index)) throw json::parsing_error(error);
     index++;
     return result;
 }
 
 json::key_list_t json::jobject::list_keys() const
 {
-    // Initialize the result
+
     key_list_t result;
 
-    // Return an empty list if the object is an array
     if(this->is_array()) return result;
 
     for(size_t i = 0; i < this->data.size(); i++)
