@@ -5,36 +5,18 @@
 #include <cstdio>
 #include <cstring>
 
-static inline void hexToBiner(const char *hex, uint8_t *out, size_t len_byte) {
-    for (size_t i = 0, j = 0; i < len_byte; i++, j += 2) {
-        uint8_t &result = out[i];
-        
-        const char &b = hex[j+1];
-        if (b >= '0' && b <= '9') {
-            result = b - '0';
-        } else if (b >= 'a' && b <= 'f') {
-            result = b - 'a' + 10;
-        } else {
-            return;
-        }
-        
-        result <<= 4;
-        
-        const char &a = hex[j];
-        if (a >= '0' && a <= '9') {
-            result |= a - '0';
-        } else if (a >= 'a' && a <= 'f') {
-            result |= a - 'a' + 10;
-        } else {
-            return;
-        }
+static void toBinary(const char* s, uint8_t* data, size_t len) {
+    for (size_t i = 0, j = 0; i < len; i++, j += 2) {
+        sscanf(s+j, "%2hhx", data+i);
     }
-    /*
-    for (size_t i = 0, j = 0; i < len_byte; i++, j += 2) {
-        sscanf(hex + j, "%2hhx", out+i);
-    }
-    */
 }
+
+static void toHex(const uint8_t* b, char* result, size_t len) {
+    for (size_t i = 0, j = 0; i < len; i++, j += 2) {
+        snprintf(result+j, 3, "%02x", b+i);
+    }
+}
+
 bool hashing_test() {
     std::cout << "Hashing Test Start" << std::endl;
     const struct dat {
@@ -48,26 +30,19 @@ bool hashing_test() {
     };
     uint8_t header[80];
     uint8_t expected[SHA256_HASH_SIZE];
-    //uint8_t H[SHA256_HASH_SIZE];
     hashing hp;
     for(const dat &d : test_data) {
-        hexToBiner(d.header, header, 80);
-        hexToBiner(d.expected, expected, SHA256_HASH_SIZE);
+        toBinary(d.header, header, 80);
+        toBinary(d.expected, expected, SHA256_HASH_SIZE);
         hp.hash(header);
-        //hashN(header, H);
         if (memcmp(hp.H, expected, SHA256_HASH_SIZE) == 0) {
             std::cout << "*** TEST SUCCESS ***" << std::endl;
         } else {
-            std::cout << "Result: ";
-            for (int i = 0; i < SHA256_HASH_SIZE; i++) {
-                std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(hp.H[i]);
-            }
-            std::cout << std::endl;
-            std::cout << "Expected: ";
-            for (int i = 0; i < SHA256_HASH_SIZE; i++) {
-                std::cout << std::setfill('0') << std::setw(2) << std::hex << static_cast<int>(expected[i]);
-            }
-            std::cout << std::endl;
+            char resHex[SHA256_HASH_SIZE*2];
+            toHex(hp.H, resHex, SHA256_HASH_SIZE);
+            std::cout << "Result  : " << resHex << std::endl;
+            toHex(expected, resHex, SHA256_HASH_SIZE);
+            std::cout << "Expected: " << resHex << std::endl;
             std::cout << "*** TEST FAILED ***" << std::endl;
         }
     }
