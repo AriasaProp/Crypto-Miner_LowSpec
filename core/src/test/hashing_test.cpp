@@ -13,7 +13,7 @@ static void toBinary(const char* s, uint8_t* data, size_t len) {
 
 static void toHex(const uint8_t* b, char* result, size_t len) {
     for (size_t i = 0, j = 0; i < len; i++, j += 2) {
-        snprintf(result+j, 3, "%02x", b+i);
+        snprintf(result+j, 3, "%02x", b[i]);
     }
 }
 
