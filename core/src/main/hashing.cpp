@@ -170,7 +170,7 @@ void hashing::innerHash() {
   }
 
   for (i = 0; i < 32768; i += 32) {
-    memcpy (V + i, X, 32);
+    memcpy (V+i, X, 32);
     xorSalsa8 ();
   }
 
@@ -228,7 +228,7 @@ void hashing::innerHash() {
   */
 }
 
-void hashN (uint8_t *header, uint8_t H[SHA256_HASH_SIZE]) {
+void hashN (const uint8_t *header, uint8_t H[SHA256_HASH_SIZE]) {
   uint8_t B[132];
   uint32_t X[32];
   uint32_t V[32768];
