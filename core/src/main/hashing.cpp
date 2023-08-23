@@ -238,7 +238,7 @@ void hashing::innerHash() {
     xorSalsa8 (16,0);
   }
   memcpy (B, X, 128);
-  memset (B+128, 0, 3)
+  memset (B+128, 0, 3);
   B[131] = 1;
   Sha256Update (&context, B, 132);
   Sha256Finalise (&context, H);
