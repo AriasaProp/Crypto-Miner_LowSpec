@@ -31,21 +31,21 @@ bool hashing_test() {
     uint8_t header[80];
     uint8_t expected[SHA256_HASH_SIZE];
     hashing hp;
+    bool result;
     for(const dat &d : test_data) {
         toBinary(d.header, header, 80);
         toBinary(d.expected, expected, SHA256_HASH_SIZE);
         hp.hash(header);
-        if (memcmp(hp.H, expected, SHA256_HASH_SIZE) == 0) {
-            std::cout << "*** TEST SUCCESS ***" << std::endl;
-        } else {
+        result = memcmp(hp.H, expected, SHA256_HASH_SIZE) == 0;
+        if (!result) {
             char resHex[SHA256_HASH_SIZE*2];
             toHex(hp.H, resHex, SHA256_HASH_SIZE);
             std::cout << "Result  : " << resHex << std::endl;
             toHex(expected, resHex, SHA256_HASH_SIZE);
             std::cout << "Expected: " << resHex << std::endl;
-            std::cout << "*** TEST FAILED ***" << std::endl;
+            break;
         }
     }
     std::cout << "Hashing Test Ended" << std::endl;
-    return true;
+    return result;
 }

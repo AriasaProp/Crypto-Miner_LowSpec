@@ -11,6 +11,7 @@ private:
   uint32_t X[32];
   uint32_t V[32768];
   Sha256Context context;
+  void innerHash ();
 
 public:
   uint8_t H[SHA256_HASH_SIZE]; // cache of hashing

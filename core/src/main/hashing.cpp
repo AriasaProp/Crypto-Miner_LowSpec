@@ -142,45 +142,31 @@ void hashing::xorSalsa8 () {
 }
 void hashing::hash (uint8_t *header) {
   memcpy (B, header, 80);
-  Sha256Initialise (&context);
-  memset (B + 80, 0, 3);
-
-  for (i = 0; i < 4; i++) {
-    B[83] = i + 1;
-    Sha256Update (&context, B, 84);
-    Sha256Finalise (&context, H);
-    memcpy (X + (i * 8), H, 32);
-  }
-
-  for (i = 0; i < 32768; i += 32) {
-    memcpy (V + i, X, 32);
-    xorSalsa8 ();
-  }
-
-  for (i = 0; i < 1024; i++) {
-    k = (X[16] & 0x3ff) << 5;
-    for (j = 0; j < 32; j++) {
-      X[j] ^= V[k + j];
-    }
-    xorSalsa8 ();
-  }
-  memcpy (B, X, 128);
-  B[131] = 1;
-  Sha256Update (&context, B, 132);
-  Sha256Finalise (&context, H);
+  uint8_t temp = B[76];
+  B[76] = B[79];
+  B[79] = temp;
+  temp = B[77];
+  B[77] = B[78];
+  B[78] = temp;
+  innerHash();
 }
 void hashing::hash (uint8_t *header, uint32_t nonce) {
   memcpy (B, header, 76);
-  memcpy (B + 76, &nonce, 4);
-
+  uint8_t *tempN = &nonce;
+  B[76] = tempN[3];
+  B[77] = tempN[2];
+  B[78] = tempN[1];
+  B[79] = tempN[0];
+  innerHash();
+}
+void hashing::innerHash() {
   Sha256Initialise (&context);
   memset (B + 80, 0, 3);
 
   for (i = 0; i < 4; i++) {
     B[83] = i + 1;
     Sha256Update (&context, B, 84);
-    Sha256Finalise (&context, H);
-    memcpy (X + (i * 8), H, 32);
+    Sha256Finalise (&context, X + (i * 8));
   }
 
   for (i = 0; i < 32768; i += 32) {
@@ -199,6 +185,47 @@ void hashing::hash (uint8_t *header, uint32_t nonce) {
   B[131] = 1;
   Sha256Update (&context, B, 132);
   Sha256Finalise (&context, H);
+  
+  /*
+    for (i = 0; i < 4; i++) {
+        B[83] = (byte) (i + 1);
+        mac.update(B, 0, 84);
+        mac.doFinal(H, 0);
+
+
+        for (j = 0; j < 8; j++) {
+            X[i * 8 + j]  = (H[j * 4 + 0] & 0xff) << 0
+                    | (H[j * 4 + 1] & 0xff) << 8
+                    | (H[j * 4 + 2] & 0xff) << 16
+                    | (H[j * 4 + 3] & 0xff) << 24;
+        }
+    }
+
+
+    for (i = 0; i < 1024; i++) {
+        arraycopy(X, 0, V, i * 32, 32);
+        xorSalsa8();
+    }
+    for (i = 0; i < 1024; i++) {
+        k = (X[16] & 1023) * 32;
+        for (j = 0; j < 32; j++)
+            X[j] ^= V[k + j];
+        xorSalsa8();
+    }
+
+
+    for (i = 0; i < 32; i++) {
+        B[i * 4 + 0] = (byte) (X[i] >>  0);
+        B[i * 4 + 1] = (byte) (X[i] >>  8);
+        B[i * 4 + 2] = (byte) (X[i] >> 16);
+        B[i * 4 + 3] = (byte) (X[i] >> 24);
+    }
+
+
+    B[128 + 3] = 1;
+    mac.update(B, 0, 128 + 4);
+    mac.doFinal(H, 0);
+  */
 }
 
 void hashN (uint8_t *header, uint8_t H[SHA256_HASH_SIZE]) {
