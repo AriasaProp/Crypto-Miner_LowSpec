@@ -5,7 +5,7 @@
 
 hashing::hashing () {}
 hashing::~hashing () {}
-hashing::xorSalsa8(const size_t di, const size_t xi) {
+void hashing::xorSalsa8(const size_t di, const size_t xi) {
   uint32_t x00 = (X[di +  0] ^= X[xi +  0]);
   uint32_t x01 = (X[di +  1] ^= X[xi +  1]);
   uint32_t x02 = (X[di +  2] ^= X[xi +  2]);
