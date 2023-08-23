@@ -194,14 +194,12 @@ void hashing::xorSalsa8 () {
 }
 void hashing::hash (const uint8_t *header) {
   memcpy (B, header, 80);
-  /*
   uint8_t temp = B[76];
   B[76] = B[79];
   B[79] = temp;
   temp = B[77];
   B[77] = B[78];
   B[78] = temp;
-  */
   innerHash();
 }
 void hashing::hash (const uint8_t *header, const uint32_t nonce) {
