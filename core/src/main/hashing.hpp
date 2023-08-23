@@ -18,6 +18,7 @@ public:
   hashing ();
   ~hashing ();
   void xorSalsa8 ();
+  void xorSalsa8 (const size_t,const size_t);
   void hash (const uint8_t *, const uint32_t);
   void hash (const uint8_t *); //combined nonce
 };
