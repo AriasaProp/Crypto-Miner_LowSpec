@@ -140,7 +140,7 @@ void hashing::xorSalsa8 () {
   X[30] += xs[14];
   X[31] += xs[15];
 }
-void hashing::hash (uint8_t *header) {
+void hashing::hash (const uint8_t *header) {
   memcpy (B, header, 80);
   uint8_t temp = B[76];
   B[76] = B[79];
@@ -150,9 +150,9 @@ void hashing::hash (uint8_t *header) {
   B[78] = temp;
   innerHash();
 }
-void hashing::hash (uint8_t *header, uint32_t nonce) {
+void hashing::hash (const uint8_t *header, const uint32_t nonce) {
   memcpy (B, header, 76);
-  uint8_t *tempN = &nonce;
+  uint8_t *tempN = (uint8_t*)&nonce;
   B[76] = tempN[3];
   B[77] = tempN[2];
   B[78] = tempN[1];
@@ -166,7 +166,7 @@ void hashing::innerHash() {
   for (i = 0; i < 4; i++) {
     B[83] = i + 1;
     Sha256Update (&context, B, 84);
-    Sha256Finalise (&context, X + (i * 8));
+    Sha256Finalise (&context, (uint8_t*)(X + (i * 8)));
   }
 
   for (i = 0; i < 32768; i += 32) {
