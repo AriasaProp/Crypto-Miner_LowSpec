@@ -31,17 +31,9 @@ bool hashing_test() {
     uint8_t expected[SHA256_HASH_SIZE];
     hashing hp;
     for(const dat &d : test_data) {
-        toBinary(d.header, header, 76);
+        toBinary(d.header, header, 80);
         toBinary(d.expected, expected, SHA256_HASH_SIZE);
-        uint32_t i = 0;
-        do {
-            hp.hash(header, i);
-            if (memcmp(hp.H, expected, SHA256_HASH_SIZE) == 0) {
-                std::cout << "nonce : " << i << std::endl;
-                break;
-            }
-        } while (++i);
-        /*
+        
         if (memcmp(hp.H, expected, SHA256_HASH_SIZE) != 0) {
             std::cout << "Header length : " << strlen(d.header) << std::endl;
             char resHex[SHA256_HASH_SIZE*2];
@@ -52,7 +44,7 @@ bool hashing_test() {
             std::cout << "**** Hashing Test Failed ****" << std::endl;
             return false;
         }
-        */
+        
     }
     std::cout << "**** Hashing Test Success ****" << std::endl;
     return true;
