@@ -225,8 +225,11 @@ void hashing::innerHash() {
 
   for (i = 0; i < 32768; i += 32) {
     memcpy (V+i, X, 32);
+/*
     xorSalsa8 (0,16);
     xorSalsa8 (16,0);
+*/
+    xorSalsa8 ();
   }
 
   for (i = 0; i < 1024; i++) {
@@ -234,8 +237,11 @@ void hashing::innerHash() {
     for (j = 0; j < 32; j++) {
       X[j] ^= V[k + j];
     }
+/*
     xorSalsa8 (0,16);
     xorSalsa8 (16,0);
+*/
+    xorSalsa8 ();
   }
   memcpy (B, X, 128);
   memset (B+128, 0, 3);
