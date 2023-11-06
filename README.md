@@ -17,10 +17,10 @@ This project source completly from [Stratum Miner](https://github.com/taldatech/
 BTW using mobile platform as mining isn't worth it.😞
 
 ## Installation
-This project using Gradle 8.1.1 to build.
+This project using Gradle 8.4 to build.
 
 ## Configuration
-This project was made by using Gradle 8.1.1. This project has 2 sub-module, 
+This project was made by using Gradle 8.4 This project has 2 sub-module, 
 - core : C++ Library for hold main function for Application
 - android : Android project 
 

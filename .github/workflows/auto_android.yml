@@ -50,7 +50,7 @@ jobs:
     - name: Gradle ${{ inputs.job_type }}
       uses: gradle/gradle-build-action@v2.4.2
       with:
-        gradle-version: 8.1.1
+        gradle-version: 8.4
         arguments: ':android:${{ inputs.job_type }}'
     - name: Publish Output Artifacts
       uses: actions/upload-artifact@v3.1.2
