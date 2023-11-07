@@ -207,11 +207,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         checkBatteryOptimizations();
     }
 
-    float speedC;
-    long AccC, rejectC;
-    final String unit = " hash/sec";
     final DecimalFormat df = new DecimalFormat("#.##");
-    final Runtime runtime = Runtime.getRuntime();
     final Handler.Callback sHCallback =
             (msg) -> {
                 switch (msg.what) {
@@ -222,20 +218,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             default:
                                 break;
                             case MSG_UPDATE_SPEED:
-                                tv_s.setText(df.format(speedC) + unit); // Get the runtime instance
-                                /*
-                                long totalMemory = runtime.totalMemory();
-                                long freeMemory = runtime.freeMemory();
-                                long usedMemory = totalMemory - freeMemory;
-                                float memoryInMB = (float)usedMemory / (1048576.0f);
-                                tv_info.setText(String.format("Used Memory: %.4f MB", memoryInMB));
-                                */
+                                tv_s.setText(df.format((float)msg.obj));
                                 break;
                             case MSG_UPDATE_ACCEPTED:
-                                tv_ra.setText(AccC.toString());
+                                tv_ra.setText(df.format((long)msg.obj));
                                 break;
                             case MSG_UPDATE_REJECTED:
-                                tv_rr.setText(rejectC.toString());
+                                tv_rr.setText(df.format((long)msg.obj));
                                 break;
                             case MSG_UPDATE_CONSOLE:
                                 adpt.notifyDataSetChanged();
@@ -250,7 +239,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 btn_stopmine.setEnabled(false);
                                 btn_startmine.setVisibility(View.VISIBLE);
                                 btn_startmine.setEnabled(true);
-                                tv_s.setText("0 hash/sec");
+                                tv_s.setText("000");
                                 // enable all user Input
                                 input_container.setVisibility(View.VISIBLE);
                                 status_container.setVisibility(View.GONE);
@@ -302,25 +291,19 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 for (ConsoleItem ci : mService.console) logList.add(0, ci);
                                 while (logList.size() > MAX_LOG_COUNT)
                                     logList.remove(logList.size() - 1);
-                                sH.sendMessage(
-                                        sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_CONSOLE, 0));
+                                sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_CONSOLE, 0));
                                 mService.console.clear();
                             }
                             if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
-                                speedC = (float) mService.minerStatus[STATUS_TYPE_SPEED];
-                                sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_SPEED, 0));
+                                sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_SPEED, 0, mService.minerStatus[STATUS_TYPE_SPEED]));
                                 mService.minerStatus[STATUS_TYPE_SPEED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
-                                AccC = (long) mService.minerStatus[STATUS_TYPE_ACCEPTED];
-                                sH.sendMessage(
-                                        sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_ACCEPTED, 0));
+                                sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_ACCEPTED, 0, mService.minerStatus[STATUS_TYPE_ACCEPTED]));
                                 mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
                             }
                             if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
-                                rejectC = (long) mService.minerStatus[STATUS_TYPE_REJECTED];
-                                sH.sendMessage(
-                                        sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_REJECTED, 0));
+                                sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_REJECTED, 0, mService.minerStatus[STATUS_TYPE_REJECTED]));
                                 mService.minerStatus[STATUS_TYPE_REJECTED] = null;
                             }
                             mService.wait();
