@@ -2,6 +2,7 @@ package com.ariasaproject.cmls.connection;
 
 import android.os.AsyncTask;
 
+import com.ariasaproject.cmls.MessageSendListener;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.StratumMiningWork;
 import com.ariasaproject.cmls.stratum.StratumJson;
@@ -65,7 +66,9 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             for (; ; ) {
                 try {
                     ObjectMapper mapper = new ObjectMapper();
-                    JsonNode jn = mapper.readTree(recv());
+                    String receivedMsg = recv();
+                    workerMsg.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Socket receive Msg: " receivedMsg);
+                    JsonNode jn = mapper.readTree(receivedMsg);
                     // parse method
                     try {
                         StratumJsonMethodGetVersion sjson = new StratumJsonMethodGetVersion(jn);
@@ -173,19 +176,18 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     private final String CLIENT_NAME = "CMLS";
     private String _uid;
     private String _pass;
-    private URI _server;
+    private String _uri;
+    private int _port;
     private final AtomicLong _ids = new AtomicLong(0);
     private AsyncRxSocketThread _rx_thread;
+    private final MessageSendListener workerMsg;
 
-    public StratumMiningConnection(String i_url, String i_userid, String i_password)
-            throws RuntimeException {
+    public StratumMiningConnection(String i_url, int i_port, String i_userid, String i_password, MessageSendListener wMsg) {
+        _url = i_url;
+        _port = i_port;
         _pass = i_password;
         _uid = i_userid;
-        try {
-            _server = new URI(i_url);
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
+        workerMsg = wMsg;
     }
 
     private StratumJsonMethodSetDifficulty _last_difficulty = null;
@@ -198,7 +200,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         try {
             MiningWork ret = null;
             try {
-                if (!connectN(_server.getHost(), _server.getPort())) throw new RuntimeException("failed to connect with " + _server.toString());
+                if (!connectN(_url, _port)) throw new RuntimeException("failed to connect with " + _url + ":" + _port);
                 _ids.set(0);
             } catch (Exception e) {
                 setChanged();
