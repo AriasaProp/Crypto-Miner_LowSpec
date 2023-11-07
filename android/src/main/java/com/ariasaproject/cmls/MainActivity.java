@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             default:
                                 break;
                             case MSG_UPDATE_SPEED:
-                                tv_s.setText(df.format((float)msg.obj / 1000000000.0f));
+                                tv_s.setText(df.format((float)msg.obj / 1000000.0f));
                                 break;
                             case MSG_UPDATE_ACCEPTED:
                                 tv_ra.setText(df.format((long)msg.obj));

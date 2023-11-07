@@ -67,7 +67,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                 try {
                     ObjectMapper mapper = new ObjectMapper();
                     String receivedMsg = recv();
-                    workerMsg.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Socket receive Msg: " receivedMsg);
+                    workerMsg.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Socket receive Msg: " + receivedMsg);
                     JsonNode jn = mapper.readTree(receivedMsg);
                     // parse method
                     try {

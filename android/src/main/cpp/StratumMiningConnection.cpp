@@ -12,7 +12,7 @@ static int stratumSocket = -1;
 static char *buffer = nullptr;
 
 bool onload_StratumMiningConnection (JNIEnv *) {
-  buffer = new char[1024*1024]{};
+  buffer = new char[1048575]{}; // aprox 1Mbyte
   return true;
 }
 void onunload_StratumMiningConnection (JNIEnv *) {
