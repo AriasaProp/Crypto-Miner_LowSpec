@@ -14,6 +14,7 @@ static char *buffer = nullptr;
 
 bool onload_StratumMiningConnection (JNIEnv *) {
   buffer = new char[1024*1024]{};
+  return true;
 }
 void onunload_StratumMiningConnection (JNIEnv *) {
   delete[] buffer;
@@ -28,12 +29,12 @@ JNIF(jboolean, connectN)
   stratumSocket = socket(AF_INET, SOCK_STREAM, 0);
   if (stratumSocket < 0) return false;
   const char *nuri = env->GetStringUTFChars(uri, JNI_FALSE);
-  struct sockaddr_in serverAddress {
+  struct sockaddr_in serverAddress = {
     .sin_family = AF_INET,
     .sin_port = htons(port),
-    .sin_addr {
+    .sin_addr = {
       .s_addr = inet_addr(nuri),
-    };
+    }
   };
   env->ReleaseStringUTFChars(uri, nuri);
   size_t tries = 0;
