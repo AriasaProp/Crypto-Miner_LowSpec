@@ -23,7 +23,6 @@ import static com.ariasaproject.cmls.Constants.STATUS_TYPE_ACCEPTED;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_REJECTED;
 import static com.ariasaproject.cmls.Constants.STATUS_TYPE_SPEED;
 
-import androidx.annotation.Keep;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ComponentName;
@@ -47,6 +46,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.SeekBar;
 
+import androidx.annotation.Keep;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatCheckBox;
@@ -62,7 +62,6 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.lang.Math;
 
 public class MainActivity extends AppCompatActivity implements ServiceConnection {
     static final int UPDATE_DATA = 1;
@@ -113,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         if (!serviceWasRunning) {
             startService(intent);
         }
-        //debug
+        // debug
         tv_jni = (AppCompatTextView) findViewById(R.id.jni_tv);
         tv_jni.setText(callHello());
         // define section layout
@@ -141,8 +140,10 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                         cuv.setText(String.format("%d Thread Usage", progress));
                     }
+
                     @Override
                     public void onStartTrackingTouch(SeekBar seekBar) {}
+
                     @Override
                     public void onStopTrackingTouch(SeekBar seekBar) {}
                 });
@@ -223,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             default:
                                 break;
                             case MSG_UPDATE_SPEED:
-                                tv_s.setText(df.format(speedC) + unit);// Get the runtime instance
+                                tv_s.setText(df.format(speedC) + unit); // Get the runtime instance
                                 /*
                                 long totalMemory = runtime.totalMemory();
                                 long freeMemory = runtime.freeMemory();
@@ -234,7 +235,9 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                                 break;
                             case MSG_UPDATE_ACCEPTED:
                             case MSG_UPDATE_REJECTED:
-                                tv_r.setText(String.format("%d accepted then %d rejected",AccC, rejectC));
+                                tv_r.setText(
+                                        String.format(
+                                                "%d accepted then %d rejected", AccC, rejectC));
                                 break;
                             case MSG_UPDATE_CONSOLE:
                                 adpt.notifyDataSetChanged();
@@ -526,8 +529,11 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             dest.writeStringArray(new String[] {time, msg});
         }
     }
-    
+
     native String callHello();
+
     @Keep
-    public String callOfCall() { return "Informasi dari java"; }
+    public String callOfCall() {
+        return "Informasi dari java";
+    }
 }

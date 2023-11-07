@@ -4,11 +4,11 @@ import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
 
-import com.ariasaproject.cmls.Constants;
+import androidx.annotation.Keep;
+
 import com.ariasaproject.cmls.MessageSendListener;
 import com.ariasaproject.cmls.MiningWork;
 
-import androidx.annotation.Keep;
 import java.util.ArrayList;
 
 public class CpuMiningWorker implements IMiningWorker {
@@ -19,16 +19,19 @@ public class CpuMiningWorker implements IMiningWorker {
         MSL = msl;
         _number_of_thread = i_number_of_thread;
     }
-    
+
     MiningWork mw;
+
     @Override
     public synchronized boolean doWork(MiningWork i_work) {
-        mw = i_work; 
+        mw = i_work;
         return nativeJob(_number_of_thread, i_work.header.refHex(), i_work.target.refHex());
     }
+
     private native boolean nativeJob(int step, byte[] head, byte[] target);
+
     private native void nativeStop();
-    
+
     @Override
     public synchronized void stopWork() {
         nativeStop();
@@ -41,6 +44,7 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     private native int getHashesTotal();
+
     public native boolean getStatus();
 
     public void ConsoleWrite(String c) {
@@ -48,19 +52,24 @@ public class CpuMiningWorker implements IMiningWorker {
     }
 
     private ArrayList<IWorkerEvent> _as_listener = new ArrayList<IWorkerEvent>();
-    
+
     @Keep
     private void updateSpeed(float f) {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, new Float(f));
     }
+
     @Keep
     private void updateConsole(String s) {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, s);
     }
-    
+
     @Keep
     private void invokeNonceFound(int n) {
-        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Mining: Nonce found! " + n + ". Now, wait new job");
+        MSL.sendMessage(
+                MSG_UPDATE,
+                MSG_UPDATE_CONSOLE,
+                0,
+                "Mining: Nonce found! " + n + ". Now, wait new job");
         for (IWorkerEvent i : _as_listener) i.onNonceFound(mw, n);
     }
 
