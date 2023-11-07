@@ -116,7 +116,6 @@
         app:layout_constraintTop_toBottomOf="@id/input_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" >
-      
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:id="@+id/show_userInput"
@@ -138,13 +137,22 @@
             android:text="@string/status_textview_speed" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:id="@+id/speed_tv"
+            android:id="@+id/speed_tv_label"
             app:layout_constraintTop_toBottomOf="@id/show_userInput"
-            app:layout_constraintStart_toEndOf="@id/speed_label"
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="0 hash/sec"
+            android:text=" hash/sec"
+            android:gravity="right" />
+        <androidx.appcompat.widget.AppCompatTextView
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:id="@+id/speed_tv"
+            app:layout_constraintTop_toBottomOf="@id/show_userInput"
+            app:layout_constraintStart_toEndOf="@id/speed_label"
+            app:layout_constraintEnd_toStartOf="@id/speed_tv_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0000,00"
             android:gravity="right"
             android:textColor="@android:color/holo_green_dark" />
         <androidx.appcompat.widget.AppCompatTextView
@@ -157,14 +165,44 @@
             android:text="Result:" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            app:layout_constraintTop_toBottomOf="@id/speed_label"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:id="@+id/result_tv"
+            app:layout_constraintStart_toEndOf="@id/result_label"
+            app:layout_constraintEnd_toStartOf="@id/resulta_tv_label"
+            android:id="@+id/resulta_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingRight="5dp"
-            android:text="0 accepted then 0 rejected" />
+            android:text="000" />
+        <androidx.appcompat.widget.AppCompatTextView
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            app:layout_constraintStart_toEndOf="@id/resulta_tv"
+            app:layout_constraintEnd_toStartOf="@id/resultr_tv"
+            android:id="@+id/resulta_tv_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:paddingRight="5dp"
+            android:text=" Accepted then " />
+        <androidx.appcompat.widget.AppCompatTextView
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            app:layout_constraintStart_toEndOf="@id/resulta_tv_label"
+            app:layout_constraintEnd_toStartOf="@id/resultr_tv_label"
+            android:id="@+id/resultr_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:paddingRight="5dp"
+            android:text="000" />
+        <androidx.appcompat.widget.AppCompatTextView
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            app:layout_constraintStart_toEndOf="@id/resultr_tv"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:id="@+id/resultr_tv_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="10dp"
+            android:paddingRight="5dp"
+            android:text=" Rejected" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:id="@+id/information_label"

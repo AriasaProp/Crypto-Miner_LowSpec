@@ -10,7 +10,6 @@
 #endif
 
 JavaVM *global_jvm;
-extern bool onload_MainActivity (JNIEnv *);
 extern bool onload_Constants (JNIEnv *);
 extern bool onload_CpuMiningWorker (JNIEnv *);
 
@@ -27,7 +26,6 @@ jint JNI_OnLoad (JavaVM *vm, void *) {
   return JNI_VERSION_1_6;
 }
 
-extern void onunload_MainActivity (JNIEnv *);
 extern void onunload_Constants (JNIEnv *);
 extern void onunload_CpuMiningWorker (JNIEnv *);
 
