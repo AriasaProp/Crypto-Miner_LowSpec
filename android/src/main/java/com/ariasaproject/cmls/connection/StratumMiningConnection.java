@@ -68,7 +68,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                     JsonNode jn = mapper.readTree(recv());
                     // parse method
                     try {
-                        i_json = new StratumJsonMethodGetVersion(jn);
+                        StratumJsonMethodGetVersion sjson = new StratumJsonMethodGetVersion(jn);
                         break;
                     } catch (Exception e) {
                     }
@@ -88,7 +88,8 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                     } catch (Exception e) {
                     }
                     try {
-                        i_json = new StratumJsonMethodShowMessage(jn);
+                        StratumJsonMethodShowMessage sjson = new StratumJsonMethodShowMessage(jn);
+                        
                         break;
                     } catch (Exception e) {
                     }
@@ -117,7 +118,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                             _parent.cbSubmitRecv(so, sjson);
                         }
                         synchronized (_json_q) {
-                            _json_q.add(i_json);
+                            _json_q.add(sjson);
                         }
                         semaphore.release();
                         break;
@@ -249,7 +250,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                 return ret;
             }
             throw new RuntimeException("Stratum authorize process failed.");
-        } catch (UnknownHostException|IOException|Exception e) {
+        } catch (UnknownHostException|IOException|RuntimeException e) {
             setChanged();
             notifyObservers(IMiningWorker.Notification.CONNECTION_ERROR);
             throw new RuntimeException(e);
@@ -357,7 +358,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
               new RuntimeException("Failed submit 3 times."); 
             SubmitOrder so = new SubmitOrder(id, w, i_nonce);
             _rx_thread.addSubmitOrder(so);
-        } catch (IOExceprion|Exception e) {
+        } catch (IOException|RuntimeException e) {
             throw new RuntimeException(e);
         }
     }
