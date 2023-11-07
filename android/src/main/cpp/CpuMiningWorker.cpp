@@ -51,17 +51,12 @@ static pthread_t *workers = nullptr;
 
 bool onload_CpuMiningWorker (JNIEnv *env) {
   jclass m_class = env->FindClass ("com/ariasaproject/cmls/worker/CpuMiningWorker");
-  if (!m_class) goto failed_section;
-  invokeNonce = env->GetMethodID (m_class, "invokeNonceFound", "(I)V");
-  if (!invokeNonce) goto failed_section;
-  updateSpeed = env->GetMethodID (m_class, "updateSpeed", "(F)V");
-  if (!updateSpeed) goto failed_section;
-  updateConsole = env->GetMethodID (m_class, "updateConsole", "(Ljava/lang/String;)V");
-  if (!updateConsole) goto failed_section;
-
+  if (!m_class) return false;
+  if (!(invokeNonce = env->GetMethodID (m_class, "invokeNonceFound", "(I)V")) ||
+    !(updateSpeed = env->GetMethodID (m_class, "updateSpeed", "(F)V")) ||
+    !(updateConsole = env->GetMethodID (m_class, "updateConsole", "(Ljava/lang/String;)V")))
+    return false;
   return true;
-failed_section:
-  return false;
 }
 void onunload_CpuMiningWorker (JNIEnv *) {
   invokeNonce = NULL;

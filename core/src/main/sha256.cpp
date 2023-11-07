@@ -14,11 +14,6 @@
     (y)[3] = (uint8_t)((x)&255);           \
   }
 
-#define LOAD32H(x, y)                                                         \
-  {                                                                           \
-    x = ((uint32_t)((y)[0] & 255) << 24) | ((uint32_t)((y)[1] & 255) << 16) | \
-        ((uint32_t)((y)[2] & 255) << 8) | ((uint32_t)((y)[3] & 255));         \
-  }
 
 #define STORE64H(x, y)                     \
   {                                        \
@@ -59,25 +54,31 @@ static void TransformFunction (Sha256Context *Context, uint8_t const *Buffer) {
   uint32_t t0;
   uint32_t t1;
   uint32_t t;
-  int i;
+  size_t i;
 
   // Copy state into S
-  for (i = 0; i < 8; i++) {
+  for (i = 0; i < 8; ++i) {
     S[i] = Context->state[i];
   }
 
   // Copy the state into 512-bits into W[0..15]
-  for (i = 0; i < 16; i++) {
-    LOAD32H (W[i], Buffer + (4 * i));
+  for (i = 0; i < 16; ++i) {
+    W[i] = *(Buffer + (i*4));
+    W[i] <<= 8;
+    W[i] |= *(Buffer + (i*4) + 1);
+    W[i] <<= 8;
+    W[i] |= *(Buffer + (i*4) + 2);
+    W[i] <<= 8;
+    W[i] |= *(Buffer + (i*4) + 3);
   }
 
   // Fill W[16..63]
-  for (i = 16; i < 64; i++) {
+  for (i = 16; i < 64; ++i) {
     W[i] = Gamma1 (W[i - 2]) + W[i - 7] + Gamma0 (W[i - 15]) + W[i - 16];
   }
 
   // Compress
-  for (i = 0; i < 64; i++) {
+  for (i = 0; i < 64; ++i) {
     Sha256Round (S[0], S[1], S[2], S[3], S[4], S[5], S[6], S[7], i);
     t = S[7];
     S[7] = S[6];
@@ -91,7 +92,7 @@ static void TransformFunction (Sha256Context *Context, uint8_t const *Buffer) {
   }
 
   // Feedback
-  for (i = 0; i < 8; i++) {
+  for (i = 0; i < 8; ++i) {
     Context->state[i] = Context->state[i] + S[i];
   }
 }
@@ -171,7 +172,7 @@ void Sha256Finalise (Sha256Context *Context, uint8_t Digest[SHA256_HASH_SIZE]) {
   TransformFunction (Context, Context->buf);
 
   // Copy output
-  for (i = 0; i < 8; i++) {
+  for (i = 0; i < 8; ++i) {
     STORE32H (Context->state[i], Digest + (4 * i));
   }
 }
