@@ -227,7 +227,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             for (i = 0; i < 3; i++) {
                 long id = _ids.incrementAndGet();
                 if(!send("{\"id\": " + id + ", \"method\": \"mining.authorize\", \"params\": [\"" + _uid + "\",\"" + _pass + "\"]}\n")) {
-                  continue
+                  continue;
                 }
                 if (tries >= 3) break;
                 StratumJsonResultStandard auth = (StratumJsonResultStandard)_rx_thread.waitForJsonResult( id, StratumJsonResultStandard.class,3000);
@@ -353,10 +353,8 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                             | ((i_nonce & 0x0000ff00) << 8)
                             | ((i_nonce & 0x000000ff) << 24)));
             // {"method": "mining.submit", "params": ["nyajira.xa", "e4c", "00000000", "52b7a1a9", "79280100"], "id":4}
-            int tries = 0;
-            while(tries < 3 && !send("{\"id\": " + id + ", \"method\": \"mining.submit\", \"params\": [\"" + _uid + "\", \"" + w.job_id + "\",\"" + w.xnonce2 + "\",\"" + sn + "\",\"" + i_ntime + "\"]}\n"))
-              tries++;
-            if (tries >= 3) new RuntimeException("Try send submit but always error 3 times."); 
+            if(!send("{\"id\": " + id + ", \"method\": \"mining.submit\", \"params\": [\"" + _uid + "\", \"" + w.job_id + "\",\"" + w.xnonce2 + "\",\"" + sn + "\",\"" + i_ntime + "\"]}\n"))
+              new RuntimeException("Failed submit 3 times."); 
             SubmitOrder so = new SubmitOrder(id, w, i_nonce);
             _rx_thread.addSubmitOrder(so);
         } catch (IOExceprion|Exception e) {
