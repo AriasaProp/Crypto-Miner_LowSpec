@@ -8,7 +8,6 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-static pthread_t *workers = nullptr;
 static int stratumSocket = -1;
 static char *buffer = nullptr;
 
