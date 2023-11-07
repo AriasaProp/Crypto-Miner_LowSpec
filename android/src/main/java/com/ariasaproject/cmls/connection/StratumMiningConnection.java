@@ -5,8 +5,17 @@ import android.os.AsyncTask;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.StratumMiningWork;
 import com.ariasaproject.cmls.stratum.StratumJson;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodGetVersion;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodMiningNotify;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodReconnect;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodSetDifficulty;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodShowMessage;
+import com.ariasaproject.cmls.stratum.StratumJsonResult;
+import com.ariasaproject.cmls.stratum.StratumJsonResultStandard;
+import com.ariasaproject.cmls.stratum.StratumJsonResultSubscribe;
 import com.ariasaproject.cmls.stratum.StratumWorkBuilder;
 import com.ariasaproject.cmls.worker.IMiningWorker;
+
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
