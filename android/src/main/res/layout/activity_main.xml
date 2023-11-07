@@ -137,24 +137,25 @@
             android:text="@string/status_textview_speed" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:id="@+id/speed_tv_label"
-            app:layout_constraintTop_toBottomOf="@id/show_userInput"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=" hash/sec"
-            android:gravity="right" />
-        <androidx.appcompat.widget.AppCompatTextView
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:id="@+id/speed_tv"
             app:layout_constraintTop_toBottomOf="@id/show_userInput"
             app:layout_constraintStart_toEndOf="@id/speed_label"
             app:layout_constraintEnd_toStartOf="@id/speed_tv_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="0000,00"
+            android:text="000,000"
             android:gravity="right"
             android:textColor="@android:color/holo_green_dark" />
+        <androidx.appcompat.widget.AppCompatTextView
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:id="@+id/speed_tv_label"
+            app:layout_constraintTop_toBottomOf="@id/show_userInput"
+            app:layout_constraintStart_toEndOf="@id/speed_tv"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=" GHash/sec"
+            android:gravity="right" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:id="@+id/result_label"

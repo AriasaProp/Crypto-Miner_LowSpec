@@ -2,14 +2,7 @@ package com.ariasaproject.cmls.stratum;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-/** Created by Ben David on 01/08/2017. */
 public class StratumJsonMethodReconnect extends StratumJsonMethod {
-    // {"method":"client.reconnect",params:["host",1]}
-    public static final String TEST_PATT =
-            "{\"params\": [\"host\",80], \"jsonrpc\": \"2.0\", \"method\": \"client.reconnect\","
-                    + " \"id\": null}";
-
-    // public parameter
     public int port;
     public String host;
 

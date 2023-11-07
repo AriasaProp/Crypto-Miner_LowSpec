@@ -5,19 +5,18 @@ import android.os.AsyncTask;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.StratumMiningWork;
 import com.ariasaproject.cmls.stratum.StratumJson;
-import com.ariasaproject.cmls.stratum.StratumJsonMethodGetVersion;
-import com.ariasaproject.cmls.stratum.StratumJsonMethodMiningNotify;
-import com.ariasaproject.cmls.stratum.StratumJsonMethodReconnect;
-import com.ariasaproject.cmls.stratum.StratumJsonMethodSetDifficulty;
-import com.ariasaproject.cmls.stratum.StratumJsonMethodShowMessage;
-import com.ariasaproject.cmls.stratum.StratumJsonResult;
-import com.ariasaproject.cmls.stratum.StratumJsonResultStandard;
-import com.ariasaproject.cmls.stratum.StratumJsonResultSubscribe;
-import com.ariasaproject.cmls.stratum.StratumSocket;
 import com.ariasaproject.cmls.stratum.StratumWorkBuilder;
 import com.ariasaproject.cmls.worker.IMiningWorker;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
@@ -214,23 +213,19 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
 
             // subscribe
             StratumJsonResultSubscribe subscribe = null;
-            {
-                for (i = 0; i < 3; i++) {
-                    subscribe =
-                            (StratumJsonResultSubscribe)
-                                    this._rx_thread.waitForJsonResult(
-                                            this._sock.subscribe(CLIENT_NAME),
-                                            StratumJsonResultSubscribe.class,
-                                            3000);
-                    if (subscribe == null || subscribe.error != null) {
-                        continue;
-                    }
-                    break;
-                }
-                if (i == 3) {
-                    throw new RuntimeException("Stratum subscribe error.");
-                }
+            for (i = 0; i < 3; i++) {
+                subscribe =
+                        (StratumJsonResultSubscribe)
+                                this._rx_thread.waitForJsonResult(
+                                        this._sock.subscribe(CLIENT_NAME),
+                                        StratumJsonResultSubscribe.class,
+                                        3000);
+                if (subscribe == null || subscribe.error != null) 
+                    continue;
+                break;
             }
+            if (i >= 3)
+                throw new RuntimeException("Stratum subscribe error.");
 
             // Authorize and make a 1st work.
             for (i = 0; i < 3; i++) {
@@ -247,9 +242,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                     // autentications result error
                 }
                 synchronized (this._data_lock) {
-                    // worker builderの構築
                     this._work_builder = new StratumWorkBuilder(subscribe);
-                    // 事前に受信したメッセージがあれば設定
                     if (this._last_difficulty != null) {
                         this._work_builder.setDiff(this._last_difficulty);
                     }
@@ -368,6 +361,95 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             this._rx_thread.addSubmitOrder(so);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+    private native boolean connectN(String host, int port);
+    private native boolean send(String msg);
+    private native String recv();
+    private native void disconnectN();
+    private class StratumSocket {
+        private int _id;
+        protected StratumSocket() {}
+        public StratumSocket(URI i_url) throws UnknownHostException, IOException {
+            connectN(i_url.getHost(), i_url.getPort());
+            _id = 1;
+        }
+    
+        public long subscribe(String i_agent_name) throws IOException {
+            long id;
+            synchronized (this) {
+                id = _id;
+                _id++;
+            }
+            send("{\"id\": " + id + ", \"method\": \"mining.subscribe\", \"params\": []}\n");
+            return id;
+        }
+    
+        public long authorize(String i_user, String i_password) throws IOException {
+            long id;
+            synchronized (this) {
+                id = _id;
+                _id++;
+            }
+            send("{\"id\": " + id + ", \"method\": \"mining.authorize\", \"params\": [\"" + i_user + "\",\"" + i_password + "\"]}\n");
+            return id;
+        }
+    
+        public long submit(int i_nonce, String i_user, String i_jobid, String i_nonce2, String i_ntime)
+                throws IOException {
+            long id;
+            synchronized (this) {
+                id = _id;
+                _id++;
+            }
+            String sn =
+                    String.format(
+                            "%08x",
+                            (((i_nonce & 0xff000000) >> 24)
+                                    | ((i_nonce & 0x00ff0000) >> 8)
+                                    | ((i_nonce & 0x0000ff00) << 8)
+                                    | ((i_nonce & 0x000000ff) << 24)));
+            // {"method": "mining.submit", "params": ["nyajira.xa", "e4c", "00000000", "52b7a1a9", "79280100"], "id":4}
+            send("{\"id\": " + id + ", \"method\": \"mining.submit\", \"params\": [\"" + i_user + "\", \"" + i_jobid + "\",\"" + i_nonce2 + "\",\"" + i_ntime + "\",\"" + sn + "\"]}\n");
+            return id;
+        }
+        public void close() {
+          disconnectN();
+        }
+    
+        public StratumJson recvStratumJson() throws IOException {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jn = mapper.readTree(recv());
+            // parse method
+            try {
+                return new StratumJsonMethodGetVersion(jn);
+            } catch (Exception e) {
+            }
+            try {
+                return new StratumJsonMethodMiningNotify(jn);
+            } catch (Exception e) {
+            }
+            try {
+                return new StratumJsonMethodReconnect(jn);
+            } catch (Exception e) {
+            }
+            try {
+                return new StratumJsonMethodSetDifficulty(jn);
+            } catch (Exception e) {
+            }
+            try {
+                return new StratumJsonMethodShowMessage(jn);
+            } catch (Exception e) {
+            }
+            try {
+                return new StratumJsonResultSubscribe(jn);
+            } catch (Exception e) {
+            }
+            try {
+                return new StratumJsonResultStandard(jn);
+            } catch (Exception e) {
+            }
+            return null;
         }
     }
 }

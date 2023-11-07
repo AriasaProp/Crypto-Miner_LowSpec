@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             default:
                                 break;
                             case MSG_UPDATE_SPEED:
-                                tv_s.setText(df.format((float)msg.obj));
+                                tv_s.setText(df.format((float)msg.obj / 1000000000.0f));
                                 break;
                             case MSG_UPDATE_ACCEPTED:
                                 tv_ra.setText(df.format((long)msg.obj));
@@ -278,41 +278,39 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
             };
     final Handler sH = new Handler(Looper.getMainLooper(), sHCallback);
 
-    final Runnable updateThreadRunnable =
-            () -> {
-                try {
-                    for (; ; ) {
-                        synchronized (mService) {
-                            if (stateMiningUpdate != mService.state) {
-                                stateMiningUpdate = mService.state;
-                                sH.sendEmptyMessage(UPDATE_STATE);
-                            }
-                            if (!mService.console.isEmpty()) {
-                                for (ConsoleItem ci : mService.console) logList.add(0, ci);
-                                while (logList.size() > MAX_LOG_COUNT)
-                                    logList.remove(logList.size() - 1);
-                                sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_CONSOLE, 0));
-                                mService.console.clear();
-                            }
-                            if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
-                                sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_SPEED, 0, mService.minerStatus[STATUS_TYPE_SPEED]));
-                                mService.minerStatus[STATUS_TYPE_SPEED] = null;
-                            }
-                            if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
-                                sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_ACCEPTED, 0, mService.minerStatus[STATUS_TYPE_ACCEPTED]));
-                                mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
-                            }
-                            if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
-                                sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_REJECTED, 0, mService.minerStatus[STATUS_TYPE_REJECTED]));
-                                mService.minerStatus[STATUS_TYPE_REJECTED] = null;
-                            }
-                            mService.wait();
-                        }
+    final Thread updateThread = new Thread(() -> {
+        try {
+            for (; ; ) {
+                synchronized (mService) {
+                    if (stateMiningUpdate != mService.state) {
+                        stateMiningUpdate = mService.state;
+                        sH.sendEmptyMessage(UPDATE_STATE);
                     }
-                } catch (InterruptedException e) {
+                    if (!mService.console.isEmpty()) {
+                        for (ConsoleItem ci : mService.console) logList.add(0, ci);
+                        while (logList.size() > MAX_LOG_COUNT)
+                            logList.remove(logList.size() - 1);
+                        sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_CONSOLE, 0));
+                        mService.console.clear();
+                    }
+                    if (mService.minerStatus[STATUS_TYPE_SPEED] != null) {
+                        sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_SPEED, 0, mService.minerStatus[STATUS_TYPE_SPEED]));
+                        mService.minerStatus[STATUS_TYPE_SPEED] = null;
+                    }
+                    if (mService.minerStatus[STATUS_TYPE_ACCEPTED] != null) {
+                        sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_ACCEPTED, 0, mService.minerStatus[STATUS_TYPE_ACCEPTED]));
+                        mService.minerStatus[STATUS_TYPE_ACCEPTED] = null;
+                    }
+                    if (mService.minerStatus[STATUS_TYPE_REJECTED] != null) {
+                        sH.sendMessage(sH.obtainMessage(UPDATE_DATA, MSG_UPDATE_REJECTED, 0, mService.minerStatus[STATUS_TYPE_REJECTED]));
+                        mService.minerStatus[STATUS_TYPE_REJECTED] = null;
+                    }
+                    mService.wait();
                 }
-            };
-    final Thread updateThread = new Thread(updateThreadRunnable);
+            }
+        } catch (InterruptedException e) {
+        }
+    });
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {

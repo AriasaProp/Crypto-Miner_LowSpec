@@ -12,13 +12,15 @@
 JavaVM *global_jvm;
 extern bool onload_Constants (JNIEnv *);
 extern bool onload_CpuMiningWorker (JNIEnv *);
+extern bool onload_StratumMiningConnection (JNIEnv *);
 
 jint JNI_OnLoad (JavaVM *vm, void *) {
   JNIEnv *env;
   if (
     (vm->GetEnv ((void **)&env, JNI_VERSION_1_6) != JNI_OK) ||
     !onload_Constants (env) ||
-    !onload_CpuMiningWorker (env)
+    !onload_CpuMiningWorker (env) ||
+    !onload_StratumMiningConnection (env) 
   ) return JNI_ERR;
 
   global_jvm = vm;
@@ -27,6 +29,7 @@ jint JNI_OnLoad (JavaVM *vm, void *) {
 
 extern void onunload_Constants (JNIEnv *);
 extern void onunload_CpuMiningWorker (JNIEnv *);
+extern void onunload_StratumMiningConnection (JNIEnv *);
 
 void JNI_OnUnload (JavaVM *vm, void *) {
   JNIEnv *env;
@@ -35,6 +38,7 @@ void JNI_OnUnload (JavaVM *vm, void *) {
 
   onunload_Constants (env);
   onunload_CpuMiningWorker (env);
+  onunload_StratumMiningConnection (env);
 
   global_jvm = nullptr;
 }
