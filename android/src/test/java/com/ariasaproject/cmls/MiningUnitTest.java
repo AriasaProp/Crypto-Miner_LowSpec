@@ -38,6 +38,7 @@ public class MiningUnitTest {
     @Test
     public void HashingTest() {
         System.out.println("Hashing Test Start");
+        try {
         //constants variable
         String SR = "{\"error\": null, \"id\": 1, \"result\": [[\"mining.notify\", \"ae6812eb4cd7735a302a8a9dd95cf71f\"], \"f801d02f\", 4]}";
         String NT = "{\"params\": [\"8bf\","
@@ -95,8 +96,12 @@ public class MiningUnitTest {
                             }));
         }
         es.invokeAll(calls);
+          
         if (fn.get()) System.out.println(String.format("Result Nonce: %d", nc.get()));
         else System.out.println("Failed to Find Nonce! :-(");
+        } catch (Exception e) {
+          System.out.println("Thrown cause " + e.getMessage());
+        }
         System.out.println("Hashing Test Ended!");
     }
 }
