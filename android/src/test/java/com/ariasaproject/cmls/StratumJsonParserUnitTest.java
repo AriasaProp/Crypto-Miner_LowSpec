@@ -6,6 +6,7 @@ import com.ariasaproject.cmls.Constants;
 import com.ariasaproject.cmls.HexArray;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.connection.*;
+import com.ariasaproject.cmls.stratum.StratumJson;
 import com.ariasaproject.cmls.stratum.StratumJsonMethodGetVersion;
 import com.ariasaproject.cmls.stratum.StratumJsonMethodMiningNotify;
 import com.ariasaproject.cmls.stratum.StratumJsonMethodReconnect;
