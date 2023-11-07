@@ -1,7 +1,9 @@
 #include <jni.h>
+#include <cstdint>
 #include <pthread.h>
 #include <iostream>
 #include <cstring>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -21,7 +23,7 @@ void onunload_StratumMiningConnection (JNIEnv *) {
 #define JNIF(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_cmls_connection_StratumMiningConnection_##M
 
 JNIF(jboolean, connectN)
-(JNIEnv *env, jobject o, jstring uri, jint port) {
+(JNIEnv *env, jobject, jstring uri, jint port) {
   if (stratumSocket >= 0) return true;
   stratumSocket = socket(AF_INET, SOCK_STREAM, 0);
   if (stratumSocket < 0) return false;
@@ -43,7 +45,7 @@ JNIF(jboolean, connectN)
 
 
 JNIF(jboolean, send)
-(JNIEnv *env, jobject o, jstring msg) {
+(JNIEnv *env, jobject, jstring msg) {
   if (stratumSocket < 0) return false;
   const char *nmsg = env->GetStringUTFChars(msg, JNI_FALSE);
   size_t sended = 0, fullMsg = env->GetStringUTFLength(msg), tries = 0;
@@ -58,7 +60,7 @@ JNIF(jboolean, send)
 }
 
 JNIF(jstring, recv)
-(JNIEnv *env, jobject o) {
+(JNIEnv *env, jobject) {
   if (stratumSocket < 0) return 0;
   memset(buffer, 0, sizeof(buffer));
   size_t received = 0, tries = 0;
@@ -70,7 +72,7 @@ JNIF(jstring, recv)
 }
 
 JNIF(void, disconnectN)
-(JNIEnv *, jobject o) {
+(JNIEnv *, jobject) {
   if (stratumSocket < 0) return;
   close(stratumSocket);
   stratumSocket = -1;
