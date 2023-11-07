@@ -174,7 +174,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     private String _uid;
     private String _pass;
     private URI _server;
-    private AtomicLong _ids = new AtomicLong(0);
+    private final AtomicLong _ids = new AtomicLong(0);
     private AsyncRxSocketThread _rx_thread;
 
     public StratumMiningConnection(String i_url, String i_userid, String i_password)
@@ -198,7 +198,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         try {
             MiningWork ret = null;
             try {
-                if (!connectN(_server.getHost(), _server.getPort())) throw new RuntimeException("failed to connect");
+                if (!connectN(_server.getHost(), _server.getPort())) throw new RuntimeException("failed to connect with " + _server.toString());
                 _ids.set(0);
             } catch (Exception e) {
                 setChanged();
@@ -345,21 +345,17 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         }
         StratumMiningWork w = (StratumMiningWork) i_work;
         String ntime = w.data.getStr(StratumMiningWork.INDEX_OF_NTIME, 4);
-        try {
-            long id = _ids.incrementAndGet();
-            String sn = String.format("%08x",
-                            (((i_nonce & 0xff000000) >> 24)
-                            | ((i_nonce & 0x00ff0000) >> 8)
-                            | ((i_nonce & 0x0000ff00) << 8)
-                            | ((i_nonce & 0x000000ff) << 24)));
-            // {"method": "mining.submit", "params": ["nyajira.xa", "e4c", "00000000", "52b7a1a9", "79280100"], "id":4}
-            if(!send("{\"id\": " + id + ", \"method\": \"mining.submit\", \"params\": [\"" + _uid + "\", \"" + w.job_id + "\",\"" + w.xnonce2 + "\",\"" + sn + "\",\"" + ntime + "\"]}\n"))
-              new RuntimeException("Failed submit 3 times."); 
-            SubmitOrder so = new SubmitOrder(id, w, i_nonce);
-            _rx_thread.addSubmitOrder(so);
-        } catch (IOException|RuntimeException e) {
-            throw new RuntimeException(e);
-        }
+        long id = _ids.incrementAndGet();
+        String sn = String.format("%08x",
+                        (((i_nonce & 0xff000000) >> 24)
+                        | ((i_nonce & 0x00ff0000) >> 8)
+                        | ((i_nonce & 0x0000ff00) << 8)
+                        | ((i_nonce & 0x000000ff) << 24)));
+        // {"method": "mining.submit", "params": ["nyajira.xa", "e4c", "00000000", "52b7a1a9", "79280100"], "id":4}
+        if(!send("{\"id\": " + id + ", \"method\": \"mining.submit\", \"params\": [\"" + _uid + "\", \"" + w.job_id + "\",\"" + w.xnonce2 + "\",\"" + sn + "\",\"" + ntime + "\"]}\n"))
+          new RuntimeException("Failed submit 3 times."); 
+        SubmitOrder so = new SubmitOrder(id, w, i_nonce);
+        _rx_thread.addSubmitOrder(so);
     }
     private native boolean connectN(String host, int port);
     private native boolean send(String msg);
