@@ -133,12 +133,8 @@ public class SingleMiningChief implements Observer {
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Worker connecting");
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_CONNECTING);
                 break;
-            case AUTHENTICATION_ERROR:
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Authentication error");
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
-                break;
             case CONNECTION_ERROR:
-                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Connection error");
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Connection error(host,port,subscribe,auth)");
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_ERROR);
                 break;
             case COMMUNICATION_ERROR:

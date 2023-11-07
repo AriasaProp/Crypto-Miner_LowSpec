@@ -5,7 +5,6 @@ import com.ariasaproject.cmls.MiningWork;
 public interface IMiningWorker {
     public enum Notification {
         CONNECTION_ERROR,
-        AUTHENTICATION_ERROR,
         COMMUNICATION_ERROR,
         CONNECTING,
         POW_TRUE,
