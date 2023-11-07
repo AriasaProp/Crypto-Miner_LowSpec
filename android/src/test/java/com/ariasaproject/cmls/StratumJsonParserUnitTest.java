@@ -60,7 +60,7 @@ public class StratumJsonParserUnitTest {
     public void MethodSetDifficulty() {
         try {
             final String TEST_PATT = "{\"params\": [533.210506917676], \"jsonrpc\": \"2.0\", \"method\": \"mining.set_difficulty\", \"id\": 44016281}";
-            StratumJson s = new StratumJsonMethodSetDifficulty(mapper.readTree(StratumJsonMethodSetDifficulty.TEST_PATT));
+            StratumJson s = new StratumJsonMethodSetDifficulty(mapper.readTree(TEST_PATT));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -69,7 +69,7 @@ public class StratumJsonParserUnitTest {
     public void MethodShowMessage() {
         try {
             final String TEST_PATT = "{\"params\": [\"TEST\"], \"jsonrpc\": \"2.0\", \"method\": \"client.show_message\", \"id\": null}";
-            StratumJson s = new StratumJsonMethodShowMessage(mapper.readTree(StratumJsonMethodShowMessage.TEST_PATT));
+            StratumJson s = new StratumJsonMethodShowMessage(mapper.readTree(TEST_PATT));
         } catch (Exception e) {
             e.printStackTrace();
         }
