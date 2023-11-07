@@ -16,8 +16,7 @@ extern bool onload_CpuMiningWorker (JNIEnv *);
 jint JNI_OnLoad (JavaVM *vm, void *) {
   JNIEnv *env;
   if (
-    (vm->GetEnv (reinterpret_cast<void **> (&env), JNI_VERSION_1_6) != JNI_OK) ||
-    !onload_MainActivity (env) ||
+    (vm->GetEnv ((void **)&env, JNI_VERSION_1_6) != JNI_OK) ||
     !onload_Constants (env) ||
     !onload_CpuMiningWorker (env)
   ) return JNI_ERR;
@@ -31,10 +30,9 @@ extern void onunload_CpuMiningWorker (JNIEnv *);
 
 void JNI_OnUnload (JavaVM *vm, void *) {
   JNIEnv *env;
-  if (vm->GetEnv (reinterpret_cast<void **> (&env), JNI_VERSION_1_6) != JNI_OK)
+  if (vm->GetEnv ((void **)&env, JNI_VERSION_1_6) != JNI_OK)
     return;
 
-  onunload_MainActivity (env);
   onunload_Constants (env);
   onunload_CpuMiningWorker (env);
 
