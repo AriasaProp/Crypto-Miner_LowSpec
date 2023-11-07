@@ -174,10 +174,10 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     }
     
     private final String CLIENT_NAME = "CMLS";
-    private String _uid;
-    private String _pass;
-    private String _uri;
-    private int _port;
+    private final String _uid;
+    private final String _pass;
+    private final String _url;
+    private final int _port;
     private final AtomicLong _ids = new AtomicLong(0);
     private AsyncRxSocketThread _rx_thread;
     private final MessageSendListener workerMsg;
@@ -233,7 +233,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                   continue;
                 }
                 StratumJsonResultStandard auth = (StratumJsonResultStandard)_rx_thread.waitForJsonResult( id, StratumJsonResultStandard.class,3000);
-                if (auth == null || auth.error != null)continue;
+                if (auth == null || auth.error != null) continue;
                 if (!auth.result) {
                     // autentications result error
                 }
