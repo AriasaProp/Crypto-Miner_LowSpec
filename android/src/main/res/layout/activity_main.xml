@@ -160,7 +160,6 @@
             android:id="@+id/result_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/show_userInput"
             app:layout_constraintTop_toBottomOf="@id/speed_label"
             app:layout_constraintStart_toStartOf="parent"
             android:text="Result:" />
