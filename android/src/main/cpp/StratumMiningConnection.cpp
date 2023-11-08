@@ -25,17 +25,17 @@ void onunload_StratumMiningConnection (JNIEnv *) {
 JNIF(jboolean, connectN)
 (JNIEnv *env, jobject, jstring uri, jint port) {
   if (stratumSocket >= 0) return true;
+  const char *nuri = env->GetStringUTFChars(uri, JNI_FALSE);
+  struct hostent *host = gethostbyname(nuri);
+  env->ReleaseStringUTFChars(uri, nuri);
+  if (!host) return false;
   stratumSocket = socket(AF_INET, SOCK_STREAM, 0);
   if (stratumSocket < 0) return false;
-  const char *nuri = env->GetStringUTFChars(uri, JNI_FALSE);
   struct sockaddr_in serverAddress = {
     .sin_family = AF_INET,
     .sin_port = htons(port),
-    .sin_addr = {
-      .s_addr = inet_addr(nuri),
-    }
+    .sin_addr = *((struct in_addr *)host->h_addr),
   };
-  env->ReleaseStringUTFChars(uri, nuri);
   size_t tries = 0;
   while (connect(stratumSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
     if (++tries >= 3) return false;
