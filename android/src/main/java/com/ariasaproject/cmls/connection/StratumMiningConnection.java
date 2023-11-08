@@ -363,7 +363,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     }
     private native boolean connectN(String host, int port);
     private native boolean send(String msg);
-    private native String recv();
+    private native String[] recv();
     private native void disconnectN();
     
 }

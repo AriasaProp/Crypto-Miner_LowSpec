@@ -62,7 +62,7 @@ JNIF(jboolean, send)
   return true;
 }
 static size_t lastBuffer = 0;
-JNIF(jstring, recv)
+JNIF(jobjectArray, recv)
 (JNIEnv *env, jobject) {
   if (stratumSocket < 0) return 0;
   size_t received = 0, tries = 0;
@@ -86,7 +86,7 @@ JNIF(jstring, recv)
   if (startPos < received) {
     size_t remain = strlen(buffer+startPos);
     if (remain) {
-      memmove(buffer, startPos, remain);
+      memmove(buffer, buffer+startPos, remain);
     }
     lastBuffer = startPos;
   }
