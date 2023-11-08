@@ -9,6 +9,15 @@ import com.ariasaproject.cmls.MessageSendListener;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.StratumMiningWork;
 import com.ariasaproject.cmls.stratum.StratumSocket;
+import com.ariasaproject.cmls.stratum.StratumJson;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodGetVersion;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodMiningNotify;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodSetDifficulty;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodReconnect;
+import com.ariasaproject.cmls.stratum.StratumJsonMethodShowMessage;
+import com.ariasaproject.cmls.stratum.StratumJsonResult;
+import com.ariasaproject.cmls.stratum.StratumJsonResultSubscribe;
+import com.ariasaproject.cmls.stratum.StratumJsonResultStandard;
 import com.ariasaproject.cmls.worker.IMiningWorker;
 
 
@@ -249,7 +258,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         try {
             _rx_thread.interrupt();
             _rx_thread.join();
-            _sock.disconnect();
+            _sock.close();
             setChanged();
             notifyObservers(IMiningWorker.Notification.TERMINATED);
             synchronized (_data_lock) {
