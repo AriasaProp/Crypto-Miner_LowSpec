@@ -8,7 +8,7 @@ import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
 import com.ariasaproject.cmls.MessageSendListener;
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.StratumMiningWork;
-import com.ariasaproject.cmls.stratum.StratumSocket;
+import com.ariasaproject.cmls.stratum.StratumWorkBuilder;
 import com.ariasaproject.cmls.stratum.StratumJson;
 import com.ariasaproject.cmls.stratum.StratumJsonMethodGetVersion;
 import com.ariasaproject.cmls.stratum.StratumJsonMethodMiningNotify;
@@ -199,7 +199,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         try {
             MiningWork ret = null;
             try {
-                _sock = new StratumSocket(String.format("%s:%d", _url, _port));
+                _sock = new StratumSocket(new URI(String.format("%s:%d", _url, _port)));
                 _ids.set(0);
             } catch (Exception e) {
                 setChanged();
