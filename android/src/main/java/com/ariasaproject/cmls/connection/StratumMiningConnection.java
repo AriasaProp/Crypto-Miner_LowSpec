@@ -351,7 +351,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         try {
             _sock.write("{\"id\": " + id + ", \"method\": \"mining.submit\", \"params\": [\"" + _uid + "\", \"" + w.job_id + "\",\"" + w.xnonce2 + "\",\"" + sn + "\",\"" + ntime + "\"]}\n");
         } catch (IOException e) {
-            throw new RuntimeException("Connection socket got problem.")
+            throw new RuntimeException("Connection socket got problem.");
         }
         SubmitOrder so = new SubmitOrder(id, w, i_nonce);
         _rx_thread.addSubmitOrder(so);
