@@ -68,10 +68,11 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         public void run() {
             for (; ; ) {
                 try {
+                    Thread.sleep(10);
+                    String msgReceive = recv();
+                    if (msgReceive == null) continue;
                     ObjectMapper mapper = new ObjectMapper();
-                    String receivedMsg = recv();
-                    workerMsg.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Socket receive Msg: " + receivedMsg);
-                    JsonNode jn = mapper.readTree(receivedMsg);
+                    JsonNode jn = mapper.readTree(msgReceive);
                     // parse method
                     try {
                         StratumJsonMethodGetVersion sjson = new StratumJsonMethodGetVersion(jn);
@@ -130,8 +131,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                         break;
                     } catch (Exception e) {
                     }
-                    Thread.sleep(1);
-                    continue;
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {

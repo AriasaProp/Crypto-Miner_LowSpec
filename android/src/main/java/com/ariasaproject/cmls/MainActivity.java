@@ -207,7 +207,6 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
         checkBatteryOptimizations();
     }
 
-    final DecimalFormat df = new DecimalFormat("#.##");
     final Handler.Callback sHCallback =
             (msg) -> {
                 switch (msg.what) {
@@ -218,13 +217,13 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             default:
                                 break;
                             case MSG_UPDATE_SPEED:
-                                tv_s.setText(df.format((float)msg.obj / 1000000.0f));
+                                tv_s.setText(String.format("%.3f", (float)msg.obj));
                                 break;
                             case MSG_UPDATE_ACCEPTED:
-                                tv_ra.setText(df.format((long)msg.obj));
+                                tv_ra.setText(String.format("%03d", (long)msg.obj));
                                 break;
                             case MSG_UPDATE_REJECTED:
-                                tv_rr.setText(df.format((long)msg.obj));
+                                tv_rr.setText(String.format("%03d", (long)msg.obj));
                                 break;
                             case MSG_UPDATE_CONSOLE:
                                 adpt.notifyDataSetChanged();

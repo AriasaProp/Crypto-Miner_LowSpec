@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:maxLines="1"
                 android:inputType="textUri"
-                android:text="stratum+tcp://us2.litecoinpool.org" />
+                android:text="us2.litecoinpool.org" />
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/port_container"
@@ -143,7 +143,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text=" MHash/sec"
+            android:text=" kHash/sec"
             android:gravity="right" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
@@ -154,7 +154,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="000,000"
-            android:gravity="right"
             android:textColor="@android:color/holo_green_dark" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
@@ -173,7 +172,8 @@
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingRight="5dp"
-            android:text="000" />
+            android:text="000" 
+            android:textColor="@android:color/holo_green_dark" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             app:layout_constraintTop_toBottomOf="@id/speed_label"
@@ -193,7 +193,8 @@
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingRight="5dp"
-            android:text="000" />
+            android:text="000" 
+            android:textColor="@android:color/holo_red_dark" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             app:layout_constraintTop_toBottomOf="@id/speed_label"

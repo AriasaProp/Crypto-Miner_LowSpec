@@ -8,6 +8,8 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <string>
+#include <vector>
 
 static int stratumSocket = -1;
 static char *buffer = nullptr;
@@ -59,17 +61,42 @@ JNIF(jboolean, send)
   env->ReleaseStringUTFChars(msg, nmsg);
   return true;
 }
-
+static size_t lastBuffer = 0;
 JNIF(jstring, recv)
 (JNIEnv *env, jobject) {
   if (stratumSocket < 0) return 0;
-  memset(buffer, 0, sizeof(buffer));
   size_t received = 0, tries = 0;
   do {
-    received = recv(stratumSocket, buffer, sizeof(buffer), 0);
+    received = recv(stratumSocket, buffer-lastBuffer, sizeof(buffer)-lastBuffer, 0);
     if (!received) tries++;
   } while (tries < 3);
-  return env->NewStringUTF(buffer);
+  if (tries >= 3) return 0;
+  //string each line
+  std::string data(buffer);
+  std::vector<std::string> datas;
+  size_t endPos = 0, startPos = 0;
+  while (startPos != std::string::npos) {
+    endPos = data.find('\n', startPos);
+    if (endPos == std::string::npos) {
+      break;
+    }
+    datas.push_back(data.substr(startPos, endPos - startPos));
+    startPos = endPos + 1;
+  }
+  if (startPos < received) {
+    size_t remain = strlen(buffer+startPos);
+    if (remain) {
+      memmove(buffer, startPos, remain);
+    }
+    lastBuffer = startPos;
+  }
+  if (datas.empty()) return 0;
+
+  jobjectArray result = env->NewObjectArray(datas.size(), env->FindClass("java/lang/String"), nullptr);
+  for (size_t i = 0; i < datas.size(); ++i) {
+      env->SetObjectArrayElement(result, i, env->NewStringUTF(datas[i].c_str()));
+  }
+  return result;
 }
 
 JNIF(void, disconnectN)
