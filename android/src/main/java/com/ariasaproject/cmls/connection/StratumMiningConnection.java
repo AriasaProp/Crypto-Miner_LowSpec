@@ -367,7 +367,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             this._rx = new BufferedReader(new InputStreamReader(this.getInputStream()));
         }
         
-        public void write(String msg) {
+        public void write(String msg) throws IOException {
             this._tx.write(msg);
             this._tx.flush();
         }
