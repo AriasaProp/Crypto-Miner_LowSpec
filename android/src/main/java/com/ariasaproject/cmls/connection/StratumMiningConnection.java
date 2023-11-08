@@ -337,10 +337,8 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         }
     }
 
-    public void submitWork(MiningWork i_work, int i_nonce) throws RuntimeException {
-        if (!(i_work instanceof StratumMiningWork)) {
-            throw new RuntimeException();
-        }
+    public void submitWork(MiningWork i_work, int i_nonce) throws Exception {
+        if (!(i_work instanceof StratumMiningWork)) throw new RuntimeException();
         StratumMiningWork w = (StratumMiningWork) i_work;
         String ntime = w.data.getStr(StratumMiningWork.INDEX_OF_NTIME, 4);
         long id = _ids.incrementAndGet();
