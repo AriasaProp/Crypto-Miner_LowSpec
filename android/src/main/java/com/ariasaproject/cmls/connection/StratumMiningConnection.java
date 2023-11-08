@@ -337,7 +337,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         }
     }
 
-    public void submitWork(MiningWork i_work, int i_nonce) throws Exception {
+    public void submitWork(MiningWork i_work, int i_nonce) throws RuntimeException {
         if (!(i_work instanceof StratumMiningWork)) throw new RuntimeException();
         StratumMiningWork w = (StratumMiningWork) i_work;
         String ntime = w.data.getStr(StratumMiningWork.INDEX_OF_NTIME, 4);
@@ -348,9 +348,14 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                         | ((i_nonce & 0x0000ff00) << 8)
                         | ((i_nonce & 0x000000ff) << 24)));
         // {"method": "mining.submit", "params": ["nyajira.xa", "e4c", "00000000", "52b7a1a9", "79280100"], "id":4}
-        _sock.write("{\"id\": " + id + ", \"method\": \"mining.submit\", \"params\": [\"" + _uid + "\", \"" + w.job_id + "\",\"" + w.xnonce2 + "\",\"" + sn + "\",\"" + ntime + "\"]}\n");
+        try {
+            _sock.write("{\"id\": " + id + ", \"method\": \"mining.submit\", \"params\": [\"" + _uid + "\", \"" + w.job_id + "\",\"" + w.xnonce2 + "\",\"" + sn + "\",\"" + ntime + "\"]}\n");
+        } catch (IOException e) {
+            throw new RuntimeException("Connection socket got problem.")
+        }
         SubmitOrder so = new SubmitOrder(id, w, i_nonce);
         _rx_thread.addSubmitOrder(so);
+        
     }
     
     private static class StratumSocket extends Socket {
