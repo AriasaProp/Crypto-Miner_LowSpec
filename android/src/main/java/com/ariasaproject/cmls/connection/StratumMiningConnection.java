@@ -69,67 +69,67 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             for (; ; ) {
                 try {
                     Thread.sleep(10);
-                    String msgReceive = recv();
-                    if (msgReceive == null) continue;
-                    ObjectMapper mapper = new ObjectMapper();
-                    JsonNode jn = mapper.readTree(msgReceive);
-                    // parse method
-                    try {
-                        StratumJsonMethodGetVersion sjson = new StratumJsonMethodGetVersion(jn);
-                        break;
-                    } catch (Exception e) {
-                    }
-                    try {
-                        _parent.cbNewMiningNotify(new StratumJsonMethodMiningNotify(jn));
-                        break;
-                    } catch (Exception e) {
-                    }
-                    try {
-                        new StratumJsonMethodReconnect(jn);
-                        break;
-                    } catch (Exception e) {
-                    }
-                    try {
-                        _parent.cbNewMiningDifficulty(new StratumJsonMethodSetDifficulty(jn));
-                        break;
-                    } catch (Exception e) {
-                    }
-                    try {
-                        StratumJsonMethodShowMessage sjson = new StratumJsonMethodShowMessage(jn);
-                        
-                        break;
-                    } catch (Exception e) {
-                    }
-                    try {
-                        StratumJsonResultSubscribe sjson = new StratumJsonResultSubscribe(jn);
-                        synchronized (_json_q) {
-                            _json_q.add(sjson);
+                    for (final String receivedMsg : recv()) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode jn = mapper.readTree(receivedMsg);
+                        // parse method
+                        try {
+                            StratumJsonMethodGetVersion sjson = new StratumJsonMethodGetVersion(jn);
+                            break;
+                        } catch (Exception e) {
                         }
-                        semaphore.release();
-                        break;
-                    } catch (Exception e) {
-                    }
-                    try {
-                        StratumJsonResultStandard sjson = new StratumJsonResultStandard(jn);
-                        SubmitOrder so = null;
-                        synchronized (_submit_q) {
-                            for (SubmitOrder i : _submit_q) {
-                                if (i.id == sjson.id) {
-                                    _submit_q.remove(i);
-                                    so = i;
-                                    break;
+                        try {
+                            _parent.cbNewMiningNotify(new StratumJsonMethodMiningNotify(jn));
+                            break;
+                        } catch (Exception e) {
+                        }
+                        try {
+                            new StratumJsonMethodReconnect(jn);
+                            break;
+                        } catch (Exception e) {
+                        }
+                        try {
+                            _parent.cbNewMiningDifficulty(new StratumJsonMethodSetDifficulty(jn));
+                            break;
+                        } catch (Exception e) {
+                        }
+                        try {
+                            StratumJsonMethodShowMessage sjson = new StratumJsonMethodShowMessage(jn);
+                            
+                            break;
+                        } catch (Exception e) {
+                        }
+                        try {
+                            StratumJsonResultSubscribe sjson = new StratumJsonResultSubscribe(jn);
+                            synchronized (_json_q) {
+                                _json_q.add(sjson);
+                            }
+                            semaphore.release();
+                            break;
+                        } catch (Exception e) {
+                        }
+                        try {
+                            StratumJsonResultStandard sjson = new StratumJsonResultStandard(jn);
+                            SubmitOrder so = null;
+                            synchronized (_submit_q) {
+                                for (SubmitOrder i : _submit_q) {
+                                    if (i.id == sjson.id) {
+                                        _submit_q.remove(i);
+                                        so = i;
+                                        break;
+                                    }
                                 }
                             }
+                            if (so != null) {
+                                _parent.cbSubmitRecv(so, sjson);
+                            }
+                            synchronized (_json_q) {
+                                _json_q.add(sjson);
+                            }
+                            semaphore.release();
+                            break;
+                        } catch (Exception e) {
                         }
-                        if (so != null) {
-                            _parent.cbSubmitRecv(so, sjson);
-                        }
-                        synchronized (_json_q) {
-                            _json_q.add(sjson);
-                        }
-                        semaphore.release();
-                        break;
-                    } catch (Exception e) {
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
