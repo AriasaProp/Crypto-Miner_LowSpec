@@ -217,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             default:
                                 break;
                             case MSG_UPDATE_SPEED:
-                                tv_s.setText(String.format("%.3f", (float)msg.obj));
+                                tv_s.setText(String.format("%.3f", (float)msg.obj / 1000.0f));
                                 break;
                             case MSG_UPDATE_ACCEPTED:
                                 tv_ra.setText(String.format("%03d", (long)msg.obj));
