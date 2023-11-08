@@ -69,7 +69,9 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
             for (; ; ) {
                 try {
                     Thread.sleep(10);
-                    for (final String receivedMsg : recv()) {
+                    final String[] receivedMsgs = recv();
+                    if (receivedMsgs == null) continue;
+                    for (final String receivedMsg : receivedMsgs) {
                         ObjectMapper mapper = new ObjectMapper();
                         JsonNode jn = mapper.readTree(receivedMsg);
                         // parse method
