@@ -109,7 +109,7 @@ public class MinerService extends Service implements Handler.Callback {
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                             smc = null;
-                                            console.add(new ConsoleItem("Start Mining Error: " + e.getMessage());
+                                            console.add(new ConsoleItem("Start Mining Error: " + e.getMessage()));
                                             serviceHandler.sendMessage(serviceHandler.obtainMessage(MSG_STATE, MSG_STATE_NONE, 0));
                                         }
                                     });
