@@ -13,7 +13,7 @@ public interface IMiningWorker {
         TERMINATED
     };
 
-    public boolean doWork(MiningWork i_work);
+    public void doWork(MiningWork i_work) throws Exception;
 
     public void stopWork();
 

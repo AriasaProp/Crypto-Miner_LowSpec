@@ -23,9 +23,11 @@ public class CpuMiningWorker implements IMiningWorker {
     MiningWork mw;
 
     @Override
-    public synchronized boolean doWork(MiningWork i_work) {
+    public synchronized void doWork(MiningWork i_work) throws Exception {
         mw = i_work;
-        return nativeJob(_number_of_thread, i_work.header.refHex(), i_work.target.refHex());
+        if (!nativeJob(_number_of_thread, i_work.header.refHex(), i_work.target.refHex())) {
+            throw new RuntimeException("Failed start Native Hasher!");
+        }
     }
 
     private native boolean nativeJob(int step, byte[] head, byte[] target);
@@ -65,11 +67,7 @@ public class CpuMiningWorker implements IMiningWorker {
 
     @Keep
     private void invokeNonceFound(int n) {
-        MSL.sendMessage(
-                MSG_UPDATE,
-                MSG_UPDATE_CONSOLE,
-                0,
-                "Mining: Nonce found! " + n + ". Now, wait new job");
+        MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE,0,"Mining: Nonce found! " + n + ". Now, wait new job");
         for (IWorkerEvent i : _as_listener) i.onNonceFound(mw, n);
     }
 

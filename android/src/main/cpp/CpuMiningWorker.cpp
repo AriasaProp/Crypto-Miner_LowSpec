@@ -141,14 +141,14 @@ JNIF (jboolean, nativeJob)
   }
   job_globalClass = env->NewGlobalRef (o);
   // speed update start from 0
-  env->CallVoidMethod (o, updateSpeed, 0.0f);
-  env->CallVoidMethod (o, updateConsole, env->NewStringUTF ("Native Worker: Workers Starting"));
+  //env->CallVoidMethod (o, updateSpeed, 0.0f);
+  //env->CallVoidMethod (o, updateConsole, env->NewStringUTF ("Native Worker: Workers Starting"));
   // none of thread workers is running
   // set constant data each job
   saved_time = std::chrono::steady_clock::now ();
   hash_total = 0;
   hash_sec = 0;
-  job_step = static_cast<uint32_t> (step);
+  job_step = (uint32_t)step;
   doingJob = true;
 
   // copy java memory to native memory
@@ -174,13 +174,11 @@ JNIF (jboolean, nativeJob)
     }
   }
   pthread_attr_destroy (&attr);
-  env->CallVoidMethod (o, updateConsole, env->NewStringUTF ("Native Worker: Workers Started"));
   return result;
 }
 JNIF (void, nativeStop)
 (JNIEnv *env, jobject o) {
   // completly stop the job
-  env->CallVoidMethod (o, updateConsole, env->NewStringUTF ("Native Worker: Workers Stopping"));
   if (job_step && workers) {
     pthread_mutex_lock (&_mtx);
     doingJob = false;
@@ -194,7 +192,6 @@ JNIF (void, nativeStop)
     env->DeleteGlobalRef (job_globalClass);
     job_globalClass = NULL;
   }
-  env->CallVoidMethod (o, updateConsole, env->NewStringUTF ("Native Worker: Workers Stopped"));
 }
 JNIF (jint, getHashesTotal)
 (JNIEnv *, jobject) {
