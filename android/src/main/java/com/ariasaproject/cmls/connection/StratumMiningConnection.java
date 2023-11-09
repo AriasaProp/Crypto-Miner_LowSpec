@@ -115,7 +115,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
                             _parent.cbSubmitRecv(so, sjson);
                         }
                         synchronized (_json_q) {
-                            _json_q.add(i_json);
+                            _json_q.add(sjson);
                         }
                         semaphore.release();
                     } catch (Exception e) {
