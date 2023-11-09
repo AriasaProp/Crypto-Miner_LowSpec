@@ -174,14 +174,14 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     private final String CLIENT_NAME = "CMLS";
     private final String _uid;
     private final String _pass;
-    private final URI i_uri;
+    private final URI _uri;
     private final AtomicLong _ids = new AtomicLong(0);
     private final AsyncRxSocketThread _rx_thread = new AsyncRxSocketThread(this);
     private final MessageSendListener workerMsg;
     private StratumSocket _sock = null;
 
-    public StratumMiningConnection(String i_url, int i_port, String i_userid, String i_password, MessageSendListener wMsg) {
-        i_uri = new URI(String.format("%s:%d", i_url, i_port));
+    public StratumMiningConnection(URI i_uri, String i_userid, String i_password, MessageSendListener wMsg) {
+        _uri = i_uri;
         _pass = i_password;
         _uid = i_userid;
         workerMsg = wMsg;
@@ -196,7 +196,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         // Connect to host
         try {
             MiningWork ret = null;
-            _sock = new StratumSocket(i_uri);
+            _sock = new StratumSocket(_uri);
             _ids.set(0);
             _rx_thread.start();
             int i;
