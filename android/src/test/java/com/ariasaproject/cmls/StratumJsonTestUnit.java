@@ -14,6 +14,9 @@ import com.ariasaproject.cmls.stratum.StratumJsonResult;
 import com.ariasaproject.cmls.stratum.StratumJsonResultStandard;
 import com.ariasaproject.cmls.stratum.StratumJsonResultSubscribe;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class StratumJsonTestUnit {
     @Test
     public void JsonParser() throws Exception {
