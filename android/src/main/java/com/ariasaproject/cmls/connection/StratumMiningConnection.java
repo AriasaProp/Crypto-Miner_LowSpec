@@ -61,13 +61,13 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
 
         public AsyncRxSocketThread(StratumMiningConnection i_parent) throws SocketException {
             _parent = i_parent;
-            _sock.setSoTimeout(1000);
+            _parent._sock.setSoTimeout(1000);
         }
 
         public void run() {
             for (; ; ) {
                 try {
-                    JsonNode jn = _sock.read();
+                    JsonNode jn = _parent._sock.read();
                     // parse method
                     try {
                         StratumJsonMethodGetVersion sjson = new StratumJsonMethodGetVersion(jn);
@@ -174,16 +174,14 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
     private final String CLIENT_NAME = "CMLS";
     private final String _uid;
     private final String _pass;
-    private final String _url;
-    private final int _port;
+    private final URI i_uri;
     private final AtomicLong _ids = new AtomicLong(0);
-    private AsyncRxSocketThread _rx_thread;
+    private final AsyncRxSocketThread _rx_thread = new AsyncRxSocketThread(this);
     private final MessageSendListener workerMsg;
     private StratumSocket _sock = null;
 
     public StratumMiningConnection(String i_url, int i_port, String i_userid, String i_password, MessageSendListener wMsg) {
-        _url = i_url;
-        _port = i_port;
+        i_uri = new URI(String.format("%s:%d", i_url, i_port));
         _pass = i_password;
         _uid = i_userid;
         workerMsg = wMsg;
@@ -198,9 +196,8 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         // Connect to host
         try {
             MiningWork ret = null;
-            _sock = new StratumSocket(new URI(String.format("%s:%d", _url, _port)));
+            _sock = new StratumSocket(i_uri);
             _ids.set(0);
-            _rx_thread = new AsyncRxSocketThread(this);
             _rx_thread.start();
             int i;
 
@@ -346,9 +343,8 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         } catch (IOException e) {
             throw new RuntimeException("Connection socket got problem.");
         }
-        SubmitOrder so = new SubmitOrder(id, w, i_nonce);
-        _rx_thread.addSubmitOrder(so);
         
+        _rx_thread.addSubmitOrder(new SubmitOrder(id, w, i_nonce));
     }
     
     private class StratumSocket extends Socket {
