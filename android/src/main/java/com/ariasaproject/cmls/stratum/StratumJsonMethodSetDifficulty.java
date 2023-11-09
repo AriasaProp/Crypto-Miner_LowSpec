@@ -3,11 +3,6 @@ package com.ariasaproject.cmls.stratum;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class StratumJsonMethodSetDifficulty extends StratumJsonMethod {
-    public static final String TEST_PATT =
-            "{\"params\": [533.210506917676], \"jsonrpc\": \"2.0\", \"method\":"
-                    + " \"mining.set_difficulty\", \"id\": 44016281}";
-
-    // public parameter
     public double difficulty;
 
     public StratumJsonMethodSetDifficulty(JsonNode i_json_node) throws RuntimeException {

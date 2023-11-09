@@ -38,11 +38,11 @@ public class SingleMiningChief implements Observer {
         private int _number_of_all;
 
         EventListener() {
-            this.resetCounter();
+            resetCounter();
         }
 
         public void resetCounter() {
-            this._number_of_accept = this._number_of_all = 0;
+            _number_of_accept = _number_of_all = 0;
         }
         @Override
         public void onNewWork(MiningWork i_work) {
@@ -53,14 +53,8 @@ public class SingleMiningChief implements Observer {
                     hash_total /= 1000.0f;
                     unit_step++;
                 }
-                
-                MSL.sendMessage(
-                        MSG_UPDATE,
-                        MSG_UPDATE_CONSOLE,
-                        0,
-                        String.format(
-                                "Miner: %.3f %s then New work detected",
-                                hash_total, UnitHash[unit_step]));
+                String console_message = String.format("Miner: %.2f %s then New work detected", hash_total, UnitHash[unit_step]);
+                MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, console_message);
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
                 _worker.doWork(i_work);
@@ -101,20 +95,20 @@ public class SingleMiningChief implements Observer {
             IMiningConnection i_connection, IMiningWorker i_worker, MessageSendListener msl)
             throws Exception {
         MSL = msl;
-        this._connection = i_connection;
-        this._worker = i_worker;
-        this._eventlistener = new EventListener();
-        this._connection.addListener(this._eventlistener);
-        this._worker.addListener(this._eventlistener);
+        _connection = i_connection;
+        _worker = i_worker;
+        _eventlistener = new EventListener();
+        _connection.addListener(_eventlistener);
+        _worker.addListener(_eventlistener);
     }
 
     public void startMining() throws Exception {
         MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_CONSOLE, 0, "Miner: Starting worker thread");
         ((StratumMiningConnection) _connection).addObserver(this);
-        MiningWork first_work = this._connection.connect();
-        this._eventlistener.resetCounter();
+        MiningWork first_work = _connection.connect();
+        _eventlistener.resetCounter();
         if (first_work != null) {
-            this._worker.doWork(first_work);
+            _worker.doWork(first_work);
         }
     }
 
@@ -124,8 +118,8 @@ public class SingleMiningChief implements Observer {
                 MSG_UPDATE_CONSOLE,
                 0,
                 "Miner Worker stopping... cooling down \nThis can take a few minutes");
-        this._connection.disconnect();
-        this._worker.stopWork();
+        _connection.disconnect();
+        _worker.stopWork();
     }
 
     public void update(Observable o, Object arg) {
