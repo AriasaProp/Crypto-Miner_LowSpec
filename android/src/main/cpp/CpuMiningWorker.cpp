@@ -177,7 +177,7 @@ JNIF (jboolean, nativeJob)
   return result;
 }
 JNIF (void, nativeStop)
-(JNIEnv *env, jobject o) {
+(JNIEnv *env, jobject) {
   // completly stop the job
   if (job_step && workers) {
     pthread_mutex_lock (&_mtx);
