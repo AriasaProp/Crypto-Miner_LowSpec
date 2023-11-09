@@ -61,7 +61,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
 
         public AsyncRxSocketThread(StratumMiningConnection i_parent) throws SocketException {
             _parent = i_parent;
-            //_parent._ids.setSoTimeout(100);
+            _sock.setSoTimeout(1000);
         }
 
         public void run() {
@@ -198,15 +198,8 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         // Connect to host
         try {
             MiningWork ret = null;
-            try {
-                _sock = new StratumSocket(new URI(String.format("%s:%d", _url, _port)));
-                _ids.set(0);
-            } catch (Exception e) {
-                setChanged();
-                notifyObservers(IMiningWorker.Notification.CONNECTION_ERROR);
-                e.printStackTrace();
-            }
-
+            _sock = new StratumSocket(new URI(String.format("%s:%d", _url, _port)));
+            _ids.set(0);
             _rx_thread = new AsyncRxSocketThread(this);
             _rx_thread.start();
             int i;
@@ -358,7 +351,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         
     }
     
-    private static class StratumSocket extends Socket {
+    private class StratumSocket extends Socket {
         private BufferedWriter _tx;
         private BufferedReader _rx;
     
