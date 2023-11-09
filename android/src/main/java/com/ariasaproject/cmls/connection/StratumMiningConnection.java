@@ -64,7 +64,6 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
 
         public AsyncRxSocketThread(StratumMiningConnection i_parent) throws SocketException {
             _parent = i_parent;
-            _parent._sock.setSoTimeout(100);
         }
 
         public void run() {
@@ -192,6 +191,7 @@ public class StratumMiningConnection extends Observable implements IMiningConnec
         try {
             MiningWork ret = null;
             _sock = new StratumSocket(_server);
+            _sock.setSoTimeout(100);
             
             _rx_thread.start();
             int i;
