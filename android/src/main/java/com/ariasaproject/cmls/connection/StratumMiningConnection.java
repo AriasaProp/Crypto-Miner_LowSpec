@@ -2,6 +2,19 @@ package com.ariasaproject.cmls.connection;
 
 import android.os.AsyncTask;
 
+import static com.ariasaproject.cmls.Constants.MSG_STATE;
+import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_ACCEPTED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_CONSOLE;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_REJECTED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_SPEED;
+import static com.ariasaproject.cmls.Constants.MSG_UPDATE_STATUS;
+import static com.ariasaproject.cmls.Constants.STATUS_CONNECTING;
+import static com.ariasaproject.cmls.Constants.STATUS_ERROR;
+import static com.ariasaproject.cmls.Constants.STATUS_MINING;
+import static com.ariasaproject.cmls.Constants.STATUS_TERMINATED;
+
 import com.ariasaproject.cmls.MiningWork;
 import com.ariasaproject.cmls.MessageSendListener;
 import com.ariasaproject.cmls.StratumMiningWork;
