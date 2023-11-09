@@ -44,6 +44,19 @@ public class Constants {
     public static final int STATUS_TYPE_ACCEPTED = 1;
     public static final int STATUS_TYPE_REJECTED = 2;
     public static final int STATUS_TYPE_CONSOLE = 3;
+    
+    //unit hash
+    public static final String[] UnitHash = new String[]{
+      "Hash",
+      "kHash",
+      "MHash",
+      "GHash",
+      "THash",
+      "PHash",
+      "EHash",
+      "ZHash",
+      "YHash",
+    };
 
     // native hasher
     public static native byte[] hash(byte[] header);

@@ -1,5 +1,6 @@
 package com.ariasaproject.cmls;
 
+import static com.ariasaproject.cmls.Constants.UnitHash;
 import static com.ariasaproject.cmls.Constants.MSG_STATE;
 import static com.ariasaproject.cmls.Constants.MSG_STATE_ONSTOP;
 import static com.ariasaproject.cmls.Constants.MSG_UPDATE;
@@ -43,17 +44,23 @@ public class SingleMiningChief implements Observer {
         public void resetCounter() {
             this._number_of_accept = this._number_of_all = 0;
         }
-
         @Override
         public void onNewWork(MiningWork i_work) {
             try {
+                float hash_total = _worker.getNumberOfHash();
+                int unit_step = 0;
+                while (unit_step < UnitHash.length && hash_total > 1000.0f) {
+                    hash_total /= 1000.0f;
+                    unit_step++;
+                }
+                
                 MSL.sendMessage(
                         MSG_UPDATE,
                         MSG_UPDATE_CONSOLE,
                         0,
                         String.format(
-                                "Miner: %d Hashes then New work detected",
-                                _worker.getNumberOfHash()));
+                                "Miner: %.3f %s then New work detected",
+                                hash_total, UnitHash[unit_step]));
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_SPEED, 0, 0.0f);
                 MSL.sendMessage(MSG_UPDATE, MSG_UPDATE_STATUS, 0, STATUS_MINING);
                 _worker.doWork(i_work);

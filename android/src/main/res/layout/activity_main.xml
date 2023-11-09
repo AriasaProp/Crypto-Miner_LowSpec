@@ -137,24 +137,14 @@
             android:text="@string/status_textview_speed" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:id="@+id/speed_tv_label"
-            app:layout_constraintTop_toBottomOf="@id/show_userInput"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=" hash/sec"
-            android:gravity="right" />
-        <androidx.appcompat.widget.AppCompatTextView
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:id="@+id/speed_tv"
             app:layout_constraintTop_toBottomOf="@id/show_userInput"
             app:layout_constraintStart_toEndOf="@id/speed_label"
-            app:layout_constraintEnd_toStartOf="@id/speed_tv_label"
-            android:layout_width="match_parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0000,00"
             android:gravity="right"
-            android:textColor="@android:color/holo_green_dark" />
+            android:text="0,000 Hash/Sec" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:id="@+id/result_label"
@@ -165,17 +155,18 @@
             android:text="Result:" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            app:layout_constraintTop_toBottomOf="@id/show_userInput"
+            app:layout_constraintTop_toBottomOf="@id/speed_label"
             app:layout_constraintStart_toEndOf="@id/result_label"
             android:id="@+id/resulta_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingRight="5dp"
+            android:textColor="@android:color/holo_green_dark"
             android:text="000" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            app:layout_constraintTop_toBottomOf="@id/show_userInput"
+            app:layout_constraintTop_toBottomOf="@id/speed_label"
             app:layout_constraintStart_toEndOf="@id/resulta_tv"
             android:id="@+id/resulta_tv_label"
             android:layout_width="wrap_content"
@@ -185,17 +176,18 @@
             android:text=" Accepted then " />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            app:layout_constraintTop_toBottomOf="@id/show_userInput"
+            app:layout_constraintTop_toBottomOf="@id/speed_label"
             app:layout_constraintStart_toEndOf="@id/resulta_tv_label"
             android:id="@+id/resultr_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingLeft="10dp"
             android:paddingRight="5dp"
+            android:textColor="@android:color/holo_red_dark"
             android:text="000" />
         <androidx.appcompat.widget.AppCompatTextView
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            app:layout_constraintTop_toBottomOf="@id/show_userInput"
+            app:layout_constraintTop_toBottomOf="@id/speed_label"
             app:layout_constraintStart_toEndOf="@id/resultr_tv"
             app:layout_constraintEnd_toEndOf="parent"
             android:id="@+id/resultr_tv_label"
@@ -221,23 +213,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No Information" />
-        <androidx.appcompat.widget.AppCompatTextView
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:id="@+id/jni_label"
-            app:layout_constraintTop_toBottomOf="@id/information_label"
-            app:layout_constraintStart_toStartOf="parent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="JNI Response:" />
-        <androidx.appcompat.widget.AppCompatTextView
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:id="@+id/jni_tv"
-            app:layout_constraintTop_toBottomOf="@id/information_label"
-            app:layout_constraintStart_toEndOf="@id/jni_label"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="No Response" />
     </androidx.constraintlayout.widget.ConstraintLayout>
     
     <androidx.appcompat.widget.AppCompatCheckBox

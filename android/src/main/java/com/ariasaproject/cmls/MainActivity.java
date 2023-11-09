@@ -2,6 +2,7 @@ package com.ariasaproject.cmls;
 
 import static android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
 
+import static com.ariasaproject.cmls.Constants.UnitHash;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PASS;
 import static com.ariasaproject.cmls.Constants.DEFAULT_PORT;
 import static com.ariasaproject.cmls.Constants.DEFAULT_URL;
@@ -218,13 +219,19 @@ public class MainActivity extends AppCompatActivity implements ServiceConnection
                             default:
                                 break;
                             case MSG_UPDATE_SPEED:
-                                tv_s.setText(df.format((float)msg.obj));
+                                float hash_speed = (float)msg.obj;
+                                int unit_step = 0;
+                                while (unit_step < UnitHash.length && hash_speed > 1000.0f) {
+                                    hash_speed /= 1000.0f;
+                                    unit_step++;
+                                }
+                                tv_s.setText(String.format("%.3f %s/Sec", hash_speed, UnitHash[unit_step]));
                                 break;
                             case MSG_UPDATE_ACCEPTED:
-                                tv_ra.setText(df.format((long)msg.obj));
+                                tv_ra.setText(String.format("%03d", (long)msg.obj));
                                 break;
                             case MSG_UPDATE_REJECTED:
-                                tv_rr.setText(df.format((long)msg.obj));
+                                tv_rr.setText(String.format("%03d", (long)msg.obj));
                                 break;
                             case MSG_UPDATE_CONSOLE:
                                 adpt.notifyDataSetChanged();
